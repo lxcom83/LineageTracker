@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.16
+- Reading labels with AI: a spinner and expected time while waiting, a Cancel button, Save waits until the details arrive, busy replies retried automatically, then Try again and (with both keys) the other AI as a backup. Plain wording for busy, free-allowance and offline errors. Ask about your records gets the same.
+- Sources inside each variety: each purchase or swap gets a code like Choko-C1 and a received date, and the variety page compares sources (plants grown, germination, harvest). Adding a variety you already have offers to add it as a new source instead; genuinely different plants get a distinct name. Group names are suggested as you type, with a check for near misses. Merge into... combines duplicates.
+- How a plant started: from seed (which packet), a cutting or division (which plant), bought as a seedling, or other, shown on the plant's page. Move or repot records the new place with a dated note, and a new bed, pot or pen can be added straight from the list. Propagate is now "Take cuttings or divide".
+- Whole fruit or crowns as a form a lot can take.
+- Share pictures: the photo takes the space the words don't need, a square option, and lineagetracker.org on every shared picture, caption, catalogue and report. Plant photos get their own caption.
+- A gentle donation reminder, twice a year, never in the first six months, and never on top of anything else.
+
+## 0.15.1
+- Gemini: the default model is now gemini-3.8-flash, replacing gemini-2.5-flash, which Google has retired for new users. When Google retires a model and names its replacement, the app now switches automatically, remembers it, and tries again.
+
 ## 0.15
 - Partner versions: clubs, seed libraries, societies and businesses can offer their own version with their name, logo, colours, welcome message, variety list and a chosen set of features, using the "Make it yours" page on lineagetracker.org. Partner versions always show "Powered by Lineage Tracker", keep Lineage Tracker's support links, and keep records on each person's device. Anyone can switch back to plain Lineage Tracker in Settings.
 - Licence: all rights reserved, with the code published for transparency, plus free relabelling terms and a trademark notice (LICENSE.md, RELABELLING.md, TRADEMARKS.md).
