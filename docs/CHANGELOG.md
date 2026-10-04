@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.17 (format version 17)
+- Lists: a new button at the top of the screen. Make your own lists (veggies, flowers, chickens, a seed bank catalogue); one variety can be on several. Lists from others arrive as catalogue files you can browse, star into a wishlist, request from, and import into your library with where they came from kept. Remove a list any time; anything you imported stays.
+- Sharing inside lists, when Selling and swapping is on: seeds per bag, a reserve to keep, prices, bags available worked out from your stock, sent and received in swaps, and seed-library lending with return reminders. Share a list as a catalogue file, a PDF, a web page or a text list. Old offers become a list automatically.
+- Groups: a bed, patch or flock as one entry, mixed varieties with rough counts. Inputs, harvests, photos and moves apply to the whole group, and a standout can be tracked separately.
+- Tester kits (Breeder): send seed with a kit file; testers in any mode record a few things and send results back, which appear in the project with their general area and season weather.
+- Collapsible groups in the Library and Plants lists (by type by default, changeable in Settings), plant rows showing place and age, Expand and Collapse all.
+- Home: a getting-started checklist for new users (gone after 30 days) and compact quick buttons.
+- Selection reasons, measured or estimated numbers, record completeness, a starter trait dictionary, species chosen from your library, and examples drawn from your own library.
+- Your name for shared lists and a random user ID (synced), a device name, a sync conflicts list where an overwritten version can be brought back, and a coarse region per site, worked out on the device and not shared.
+- Log moved into My garden.
+
 ## 0.16
 - Reading labels with AI: a spinner and expected time while waiting, a Cancel button, Save waits until the details arrive, busy replies retried automatically, then Try again and (with both keys) the other AI as a backup. Plain wording for busy, free-allowance and offline errors. Ask about your records gets the same.
 - Sources inside each variety: each purchase or swap gets a code like Choko-C1 and a received date, and the variety page compares sources (plants grown, germination, harvest). Adding a variety you already have offers to add it as a new source instead; genuinely different plants get a distinct name. Group names are suggested as you type, with a check for near misses. Merge into... combines duplicates.

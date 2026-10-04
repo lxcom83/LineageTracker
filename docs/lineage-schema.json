@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "lineage-schema.json",
   "title": "Lineage import and backup file",
-  "description": "Format version 14. See DATA-FORMAT.md for meanings and conventions.",
+  "description": "Format version 17. See DATA-FORMAT.md for meanings and conventions.",
   "type": "object",
   "required": [
     "app",

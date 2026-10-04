@@ -1,6 +1,6 @@
 # Lineage Tracker data format
 
-**Format version 14** (Lineage Tracker 0.14). This document describes how Lineage Tracker stores
+**Format version 17** (Lineage Tracker 0.17). This document describes how Lineage Tracker stores
 records, so that people and AI tools can convert existing breeding records
 into a file Lineage Tracker can import.
 
@@ -33,7 +33,7 @@ newer `updatedAt`. **Undo last restore** reverses an import.
 ```json
 {
   "app": "lineage",
-  "version": 14,
+  "version": 17,
   "exportedAt": "2026-10-02T09:00:00.000Z",
   "records": [ ... ],
   "photos": [ ... ]
@@ -245,6 +245,18 @@ reading covers the days after the previous reading up to its own date.
 
 Each workspace (your records, an example, a shared library, a split-off list) is a separate set of records on the device; a backup contains the workspace that was open when it was made. Units are a display setting: all measurements are stored metric. Gauge readings imported from a weather station carry `source: "station"`. When sync is protected with a passphrase, the Drive copy is `{ "format": "sync-encrypted", "salt", "data" }` (AES-GCM, key derived from the passphrase); backups made on the device are not encrypted.
 
+### Lists, catalogues and lending (0.17)
+
+`list`: `name`, `notes`, `trade` (used for sharing), `ltype` (`free`, `swap`, `sale`, `mixed`, `library`), `status`, `contact`, `area`, `postsTo`, `postage`, and `items`: `{ ref, bag, reserve, price: { mode, amount }, manual, sent, note }` where `ref` is a variety or lot id.
+`received`: a list someone sent you: `sender { userId, name, contact, area }`, `name`, `items` (names, species, bag, price, availability, small photo), `starred`, `imported`.
+`loan`: `listId`, `ref`, `who`, `bags`, `date`, `due`, `returned`.
+`kit` (breeder) and `trial` (tester): a tester kit and its results.
+`profile`: `userId` (random), `displayName`, `devices`. Every record carries `dev`, the id of the device that last changed it.
+
+### Groups and other 0.17 fields
+
+An `individual` with `isGroup: true` is a bed, patch or flock: `mix: [{ strainId, count }]`, `count`. `groupOf` on an individual points to the group it was picked from. `selection: { decision, reasons, note, date, goalV }` records why a plant or animal was kept or rejected. Entries carry `est: { fieldId: true }` for estimated numbers, and harvests `est: true`. Sites carry `region: { lat, lon }`, rounded to half a degree.
+
 ### `product` and `yield`: what your garden or farm produces
 
 `product`: `name`, `kind` (`plant` or `animal`), `unit` (such as `kg`, `eggs`, `L`, `fruit`), `alsoWeight` (record a weight as well as a count), `weightUnit`, `notes`.
@@ -320,7 +332,7 @@ When sync is on, each person's Drive holds a folder named **Lineage Tracker sync
 
 | File | Contents |
 |---|---|
-| `lineage-records.json` | `{ "app": "lineage", "version": 14, "format": "sync", "updatedAt", "by", "records": [...] }`, every record including deletion markers. |
+| `lineage-records.json` | `{ "app": "lineage", "version": 17, "format": "sync", "updatedAt", "by", "records": [...] }`, every record including deletion markers. |
 | `photos/<photoId>.jpg`, `photos/<photoId>-thumb.jpg` | Photos, identified by the `photoId` app property. |
 | `weekly snapshots/lineage-records-YYYY-MM-DD.json` | The last eight weekly copies, in the records-only backup format. Any of them can be restored from Settings. |
 
@@ -461,7 +473,7 @@ Lineage Tracker itself keeps everything on your device.
 
 ```
 Convert my breeding records into Lineage Tracker's friendly import format, described
-in section 6 of the Lineage Tracker data format document (format version 14).
+in section 6 of the Lineage Tracker data format document (format version 17).
 
 Rules:
 - Output one JSON object with "app": "lineage" and "format": "friendly".
