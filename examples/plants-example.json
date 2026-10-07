@@ -436,7 +436,10 @@
    ],
    "goalReviewMonths": 12,
    "goalReviewedAt": "2026-04-02",
-   "siteId": "exp-site"
+   "siteId": "exp-site",
+   "tagStyle": {
+    "preset": "projgen"
+   }
   },
   {
    "id": "exp-p-li",
@@ -952,6 +955,16 @@
     "Small seed cavity": 1,
     "Fruit 1 to 2 kg": 2,
     "Compact vine": 3
+   },
+   "selection": {
+    "decision": "rejected",
+    "reasons": [
+     "Diseased",
+     "Poor storage"
+    ],
+    "note": "Powdery mildew early.",
+    "date": "2026-02-01",
+    "goalV": "1"
    }
   },
   {
@@ -1100,6 +1113,12 @@
     "Small seed cavity": 5,
     "Fruit 1 to 2 kg": 5,
     "Compact vine": 2
+   },
+   "flowers": {
+    "male": "2025-12-22",
+    "female": "2026-01-06",
+    "first": "",
+    "end": "2026-02-20"
    }
   },
   {
@@ -1229,7 +1248,7 @@
    "id": "exp-i-lf2-p03",
    "type": "individual",
    "code": "LI-F2-P03",
-   "name": "",
+   "name": "Shed Queen",
    "strainId": "",
    "projectId": "exp-p-li",
    "generation": "F2",
@@ -1249,7 +1268,24 @@
     "Fruit 1 to 2 kg": 5,
     "Compact vine": 2
    },
-   "goalV": "1.0"
+   "goalV": "1.0",
+   "flowers": {
+    "male": "2025-12-18",
+    "female": "2025-12-27",
+    "first": "",
+    "end": "2026-02-24"
+   },
+   "selection": {
+    "decision": "kept",
+    "reasons": [
+     "Meets target: Storage life",
+     "Meets target: Sweet, dense flesh",
+     "Healthy and vigorous"
+    ],
+    "note": "Still firm after seven months in the shed.",
+    "date": "2026-05-02",
+    "goalV": "1"
+   }
   },
   {
    "id": "exp-e17",
@@ -1397,6 +1433,15 @@
     "Small seed cavity": 1,
     "Fruit 1 to 2 kg": 2,
     "Compact vine": 4
+   },
+   "selection": {
+    "decision": "rejected",
+    "reasons": [
+     "Poor flavour"
+    ],
+    "note": "Watery.",
+    "date": "2026-04-10",
+    "goalV": "1"
    }
   },
   {
@@ -1752,7 +1797,7 @@
    "id": "exp-i-lf2-p07",
    "type": "individual",
    "code": "LI-F2-P07",
-   "name": "",
+   "name": "Gem",
    "strainId": "",
    "projectId": "exp-p-li",
    "generation": "F2",
@@ -1772,7 +1817,23 @@
     "Fruit 1 to 2 kg": 5,
     "Compact vine": 3
    },
-   "goalV": "1.0"
+   "goalV": "1.0",
+   "flowers": {
+    "male": "2025-12-20",
+    "female": "2026-01-03",
+    "first": "",
+    "end": "2026-02-28"
+   },
+   "selection": {
+    "decision": "kept",
+    "reasons": [
+     "Meets target: Small seed cavity",
+     "Productive"
+    ],
+    "note": "Smallest cavity of the 10.",
+    "date": "2026-05-02",
+    "goalV": "1"
+   }
   },
   {
    "id": "exp-e44",
@@ -2503,7 +2564,23 @@
     "Fruit 1 to 2 kg": 5,
     "Compact vine": 2
    },
-   "goalV": "1.0"
+   "goalV": "1.0",
+   "flowers": {
+    "male": "2025-12-10",
+    "female": "2025-12-21",
+    "first": "",
+    "end": "2026-02-15"
+   },
+   "selection": {
+    "decision": "kept",
+    "reasons": [
+     "Healthy and vigorous",
+     "Meets target: Fruit 1 to 2 kg"
+    ],
+    "note": "",
+    "date": "2026-05-02",
+    "goalV": "1"
+   }
   },
   {
    "id": "exp-e81",
@@ -2656,6 +2733,12 @@
     "Small seed cavity": 2,
     "Fruit 1 to 2 kg": 2,
     "Compact vine": 2
+   },
+   "flowers": {
+    "male": "2025-12-12",
+    "female": "2025-12-24",
+    "first": "",
+    "end": "2026-02-10"
    }
   },
   {
@@ -3200,6 +3283,232 @@
    "rain": 6,
    "tmax": 25.8,
    "tmin": 8.7,
+   "notes": ""
+  },
+  {
+   "id": "exp-v19-cx",
+   "type": "cross",
+   "date": "2026-12-20",
+   "motherId": "exp-i-lf3-1",
+   "fatherId": "exp-i-cb-1",
+   "method": "Hand pollinated",
+   "status": "Planned",
+   "projectId": "exp-p",
+   "code": "26C-4",
+   "outcome": "",
+   "notes": "Bring the combined line back to the best F3.",
+   "goalV": "1"
+  },
+  {
+   "id": "exp-v19-grp",
+   "type": "individual",
+   "isGroup": true,
+   "code": "MIX-G01",
+   "name": "Front border mix",
+   "mix": [
+    {
+     "strainId": "exp-s-tr",
+     "count": 3
+    },
+    {
+     "strainId": "exp-s-bc",
+     "count": 4
+    }
+   ],
+   "count": 7,
+   "strainId": "",
+   "projectId": "",
+   "generation": "",
+   "startDate": "2026-09-25",
+   "placeId": "exp-pl-mound",
+   "status": "Active",
+   "photoIds": []
+  },
+  {
+   "id": "exp-v19-in1",
+   "type": "input",
+   "name": "Seaweed tonic (example)",
+   "category": "fert",
+   "unit": "mL",
+   "rate": "30 mL per 9 L watering can",
+   "organic": true,
+   "qty": 800,
+   "opened": "2026-09-01",
+   "expiry": "",
+   "notes": "Example only.",
+   "whp": {},
+   "photoIds": []
+  },
+  {
+   "id": "exp-v19-ap1",
+   "type": "apply",
+   "date": "2026-09-28",
+   "inputId": "exp-v19-in1",
+   "amount": 60,
+   "unit": "mL",
+   "method": "Watered in",
+   "reason": "Transplant shock",
+   "targets": [
+    "exp-pl-rb1",
+    "exp-i-lf3-1",
+    "exp-i-lf3-2",
+    "exp-i-lf3-3"
+   ],
+   "scope": {
+    "type": "place",
+    "id": "exp-pl-rb1"
+   },
+   "repeatDays": 14,
+   "notes": ""
+  },
+  {
+   "id": "exp-v19-pr1",
+   "type": "product",
+   "name": "Squash",
+   "kind": "plant",
+   "unit": "fruit",
+   "alsoWeight": true,
+   "weightUnit": "kg",
+   "notes": ""
+  },
+  {
+   "id": "exp-v19-l1",
+   "type": "list",
+   "name": "Squash I grow every year",
+   "notes": "The reliable ones.",
+   "trade": false,
+   "ltype": "free",
+   "status": "open",
+   "items": [
+    {
+     "ref": "exp-s-wb"
+    },
+    {
+     "ref": "exp-s-bc"
+    },
+    {
+     "ref": "exp-s-tr"
+    }
+   ]
+  },
+  {
+   "id": "exp-v19-l2",
+   "type": "list",
+   "name": "Seed swap table",
+   "notes": "Spare seed for the autumn swap.",
+   "trade": true,
+   "ltype": "swap",
+   "status": "open",
+   "contact": "Find me at the swap table",
+   "area": "Example town",
+   "postsTo": "local",
+   "postage": {
+    "mode": "pickup",
+    "amount": "",
+    "extra": ""
+   },
+   "items": [
+    {
+     "ref": "exp-l-li",
+     "offer": "seed",
+     "bag": 10,
+     "reserve": "",
+     "price": {},
+     "manual": ""
+    },
+    {
+     "ref": "exp-l-tr",
+     "offer": "seed",
+     "bag": 8,
+     "reserve": "",
+     "price": {},
+     "manual": ""
+    }
+   ]
+  },
+  {
+   "id": "exp-v19-y0",
+   "type": "yield",
+   "date": "2026-04-12",
+   "productId": "exp-v19-pr1",
+   "qty": 3,
+   "weight": 5.2,
+   "unit": "fruit",
+   "quality": "Good",
+   "targets": [
+    "exp-i-lf2-p03"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": ""
+  },
+  {
+   "id": "exp-v19-y1",
+   "type": "yield",
+   "date": "2026-04-12",
+   "productId": "exp-v19-pr1",
+   "qty": 4,
+   "weight": 4.1,
+   "unit": "fruit",
+   "quality": "Good",
+   "targets": [
+    "exp-i-lf2-p07"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": ""
+  },
+  {
+   "id": "exp-v19-y2",
+   "type": "yield",
+   "date": "2026-04-12",
+   "productId": "exp-v19-pr1",
+   "qty": 6,
+   "weight": 9.8,
+   "unit": "fruit",
+   "quality": "Good",
+   "targets": [
+    "exp-i-tf2-p02"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": ""
+  },
+  {
+   "id": "exp-v19-y3",
+   "type": "yield",
+   "date": "2026-04-12",
+   "productId": "exp-v19-pr1",
+   "qty": 3,
+   "weight": 4.4,
+   "unit": "fruit",
+   "quality": "Good",
+   "targets": [
+    "exp-i-lf2-p02"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": ""
+  },
+  {
+   "id": "exp-v19-y4",
+   "type": "yield",
+   "date": "2026-04-12",
+   "productId": "exp-v19-pr1",
+   "qty": 5,
+   "weight": 8.1,
+   "unit": "fruit",
+   "quality": "Good",
+   "targets": [
+    "exp-i-tf2-p03"
+   ],
+   "scope": {
+    "type": "single"
+   },
    "notes": ""
   }
  ],

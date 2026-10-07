@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.19 (format version 19)
+- Flowering: one-tap First male flower, First female flower and Flowering finished buttons; a flowering timeline on each project; the cross form and cross page warn when parents' flowering doesn't overlap.
+- Colour genetics calculator: ready-made genes for chickens (blue, barring, dominant white, blue eggshell), pumpkins and squash, and tomatoes, plus your own genes; handles dominant, blended and sex-linked traits; results can be saved to a planned cross.
+- Clutches, litters and hatches: eggs set, fertile and hatched (or born, stillborn and weaned) with percentages worked out, and offspring created in one tap, individually with tags or as a group.
+- Cross cards: share both parents side by side with the cross's stage, from Waiting on flowers or Planned pairing to seeds saved or chicks hatched.
+- Naming: tag styles chosen per project (project and generation, selection history, cross, year, simple, breeder prefix, or your own pattern) with a live preview; generations worked out from the parents, including backcrosses and selfing; Add existing plants or animals to a project, optionally re-tagging them with their old tags kept as "also known as"; the Purdy pedigree on every plant; breeder codes (from your user ID unless you choose one) on everything shared; tap any plant on the bloodline chart for its full founder breakdown.
+- Sync: Dropbox recommended and shown first, plain connect screen, a reminder to connect your other devices, and a "Sync paused: tap to resume" bar when Google signs out. Move to a new phone in Settings.
+- Shared pictures and captions now say "Free at lineagetracker.org".
+- Examples: the plant example shows groups, lists, harvests, flowering, selection reasons and a planned cross; a new breeding example follows an Olive Egger chicken line with four founders, two lines, clutches, a backcross and a saved genetics prediction.
+
+## 0.18
+- Dropbox sync, alongside Google Drive: the same records, photos, weekly snapshots, passphrase protection and conflict list, kept in the app's own Dropbox folder. Choose either in Settings, Sync. Sign-ins renew themselves.
+- Built-in lists: "All my seeds and stock" and "Not on a list yet", with Move ticked to a list for sorting several at once.
+- What you're offering on trading lists: seeds, cuttings or clones, slips or tubers, seedlings or plants, divisions, scions, hatching eggs, young, adults, pairs or trios. Wording, bag names and availability follow it, and stock can be entered right in the item.
+- Lists collapse any variety or type with three or more entries, plant rows show age then place, and the Group switch appears from four plants.
+- Adding a plant: that variety's packets come first and a single match is picked for you; choosing a packet fills in the variety.
+- New plant codes for one-word varieties use three letters (CHO-P01). "today" instead of "0 days". The reserve hint follows the bag size as you type.
+
 ## 0.17 (format version 17)
 - Lists: a new button at the top of the screen. Make your own lists (veggies, flowers, chickens, a seed bank catalogue); one variety can be on several. Lists from others arrive as catalogue files you can browse, star into a wishlist, request from, and import into your library with where they came from kept. Remove a list any time; anything you imported stays.
 - Sharing inside lists, when Selling and swapping is on: seeds per bag, a reserve to keep, prices, bags available worked out from your stock, sent and received in swaps, and seed-library lending with return reminders. Share a list as a catalogue file, a PDF, a web page or a text list. Old offers become a list automatically.

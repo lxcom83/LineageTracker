@@ -1,4 +1,5 @@
 {
+  "dropboxAppKey": "",
   "googleClientId": "PASTE-YOUR-CLIENT-ID.apps.googleusercontent.com",
   "siteUrl": "https://app.lineagetracker.org/",
   "donateUrl": "",

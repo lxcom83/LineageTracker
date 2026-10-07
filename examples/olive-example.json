@@ -1,0 +1,2082 @@
+{
+ "app": "lineage",
+ "version": 3,
+ "format": "example",
+ "name": "Breeding example: Olive Egger line",
+ "anchorDate": "2026-10-01",
+ "photos": [],
+ "records": [
+  {
+   "id": "exo-s-ara",
+   "type": "strain",
+   "name": "Araucana",
+   "kind": "animal",
+   "group": "Chicken",
+   "species": "Gallus gallus domesticus",
+   "speciesVerified": true,
+   "origin": "Example Poultry",
+   "description": "Lays sky-blue eggs. Carries the blue-eggshell gene (O), which is dominant.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-s-wel",
+   "type": "strain",
+   "name": "Welsummer",
+   "kind": "animal",
+   "group": "Chicken",
+   "species": "Gallus gallus domesticus",
+   "speciesVerified": true,
+   "origin": "Example Poultry",
+   "description": "Dark brown, speckled eggs. Friendly, good forager.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-s-mar",
+   "type": "strain",
+   "name": "Black Copper Maran",
+   "kind": "animal",
+   "group": "Chicken",
+   "species": "Gallus gallus domesticus",
+   "speciesVerified": true,
+   "origin": "Example Poultry",
+   "description": "The darkest brown eggs. Hardy, calm.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-s-aus",
+   "type": "strain",
+   "name": "Black Australorp",
+   "kind": "animal",
+   "group": "Chicken",
+   "species": "Gallus gallus domesticus",
+   "speciesVerified": true,
+   "origin": "Example Poultry",
+   "description": "Australian utility breed and a prolific layer of brown eggs.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-pl-a",
+   "type": "place",
+   "name": "Breeding pen A",
+   "kind": "animal",
+   "method": "Pen",
+   "details": "Araucana hen with the Welsummer rooster.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-pl-b",
+   "type": "place",
+   "name": "Breeding pen B",
+   "kind": "animal",
+   "method": "Pen",
+   "details": "Araucana hens with the Maran rooster.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-pl-brood",
+   "type": "place",
+   "name": "Brooder",
+   "kind": "animal",
+   "method": "Brooder",
+   "details": "Heat plate, first four weeks.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-pl-grow",
+   "type": "place",
+   "name": "Grow-out run",
+   "kind": "animal",
+   "method": "Run",
+   "details": "Young birds, five weeks to point of lay.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-pl-coop",
+   "type": "place",
+   "name": "Laying coop",
+   "kind": "animal",
+   "method": "Coop and run",
+   "details": "Main laying flock, deep litter.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-site",
+   "type": "site",
+   "name": "Example farm",
+   "lat": -32.73,
+   "lon": 151.55,
+   "locLabel": "Hunter Valley, NSW (example)",
+   "seasonStart": 7,
+   "heat": 32,
+   "frost": 0,
+   "gddBase": 10,
+   "manual": false,
+   "manualMode": "regional"
+  },
+  {
+   "id": "exo-p",
+   "type": "project",
+   "name": "Olive Egger line",
+   "code": "OE",
+   "kind": "animal",
+   "species": "Gallus gallus domesticus",
+   "parentId": "",
+   "goal": "A calm, productive line laying deep olive eggs, built from Araucana blue eggs and dark brown Welsummer and Maran eggs, with Australorp laying ability to come. Example project: everything here is made up.",
+   "strainIds": [
+    "exo-s-ara",
+    "exo-s-wel",
+    "exo-s-mar",
+    "exo-s-aus"
+   ],
+   "traits": [
+    {
+     "name": "Egg colour (olive depth)",
+     "tier": 1,
+     "must": true,
+     "def": "1 = sky blue, 3 = sage green, 5 = deep olive."
+    },
+    {
+     "name": "Laying rate",
+     "tier": 1,
+     "must": false,
+     "def": "Eggs per week at peak lay."
+    },
+    {
+     "name": "Temperament",
+     "tier": 2,
+     "must": false,
+     "def": "1 = flighty or aggressive, 5 = calm and easy to handle."
+    },
+    {
+     "name": "Heat tolerance",
+     "tier": 2,
+     "must": false,
+     "def": "1 = panting and off lay above 30°C, 5 = active and laying in heat."
+    }
+   ],
+   "recordTypes": [
+    {
+     "id": "exo-rt-e",
+     "tplKey": "eggs",
+     "name": "Egg count",
+     "itemName": "",
+     "parentRt": "",
+     "fields": [
+      {
+       "id": "exo-rt-e-f0",
+       "label": "Days counted",
+       "type": "number",
+       "agg": "sum"
+      },
+      {
+       "id": "exo-rt-e-f1",
+       "label": "Eggs laid",
+       "type": "number",
+       "agg": "sum"
+      },
+      {
+       "id": "exo-rt-e-f2",
+       "label": "Laying rate",
+       "type": "calc",
+       "unit": "%",
+       "formula": "{Eggs laid} / {Days counted} * 100",
+       "agg": "avg",
+       "compare": true
+      },
+      {
+       "id": "exo-rt-e-f3",
+       "label": "Average egg weight",
+       "type": "number",
+       "unit": "g",
+       "agg": "avg",
+       "compare": true
+      },
+      {
+       "id": "exo-rt-e-f4",
+       "label": "Egg colour (olive depth)",
+       "type": "score",
+       "agg": "latest",
+       "compare": true
+      }
+     ],
+     "repeatDays": 30
+    },
+    {
+     "id": "exo-rt-w",
+     "tplKey": "weigh",
+     "name": "Weigh-in",
+     "itemName": "",
+     "parentRt": "",
+     "fields": [
+      {
+       "id": "exo-rt-w-f0",
+       "label": "Weight",
+       "type": "number",
+       "unit": "kg",
+       "agg": "latest",
+       "compare": true
+      },
+      {
+       "id": "exo-rt-w-f1",
+       "label": "Body condition",
+       "type": "score",
+       "agg": "latest",
+       "compare": true
+      }
+     ],
+     "repeatDays": 30
+    }
+   ],
+   "goals": [
+    {
+     "v": 1,
+     "date": "2025-07-01",
+     "statement": "A calm, productive line laying deep olive eggs, built from Araucana blue eggs and dark brown Welsummer and Maran eggs, with Australorp laying ability to come. Example project: everything here is made up.",
+     "why": "Starting the line."
+    }
+   ],
+   "goalReviewMonths": 12,
+   "siteId": "exo-site",
+   "tagStyle": {
+    "preset": "animal"
+   }
+  },
+  {
+   "id": "exo-p-w",
+   "type": "project",
+   "name": "Line W (Araucana × Welsummer)",
+   "code": "W",
+   "kind": "animal",
+   "species": "Gallus gallus domesticus",
+   "parentId": "exo-p",
+   "goal": "Olive eggs with Welsummer speckling and friendliness.",
+   "strainIds": [
+    "exo-s-ara",
+    "exo-s-wel"
+   ],
+   "traits": [],
+   "recordTypes": []
+  },
+  {
+   "id": "exo-p-m",
+   "type": "project",
+   "name": "Line M (Araucana × Maran)",
+   "code": "M",
+   "kind": "animal",
+   "species": "Gallus gallus domesticus",
+   "parentId": "exo-p",
+   "goal": "The darkest olive, from the darkest brown.",
+   "strainIds": [
+    "exo-s-ara",
+    "exo-s-mar"
+   ],
+   "traits": [],
+   "recordTypes": []
+  },
+  {
+   "id": "exo-h1",
+   "type": "individual",
+   "code": "OE-24-01",
+   "name": "Juniper",
+   "strainId": "exo-s-ara",
+   "projectId": "exo-p",
+   "generation": "P",
+   "sex": "Female",
+   "motherId": "",
+   "fatherId": "",
+   "stockId": "",
+   "startDate": "2024-03-02",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-a",
+   "crossId": "",
+   "clutchId": "",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 1,
+    "Laying rate": 3,
+    "Temperament": 4
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-h2",
+   "type": "individual",
+   "code": "OE-24-02",
+   "name": "Sage",
+   "strainId": "exo-s-ara",
+   "projectId": "exo-p",
+   "generation": "P",
+   "sex": "Female",
+   "motherId": "",
+   "fatherId": "",
+   "stockId": "",
+   "startDate": "2024-03-02",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-b",
+   "crossId": "",
+   "clutchId": "",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 1,
+    "Laying rate": 3,
+    "Temperament": 5
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-h3",
+   "type": "individual",
+   "code": "OE-24-03",
+   "name": "Willow",
+   "strainId": "exo-s-ara",
+   "projectId": "exo-p",
+   "generation": "P",
+   "sex": "Female",
+   "motherId": "",
+   "fatherId": "",
+   "stockId": "",
+   "startDate": "2024-03-09",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-b",
+   "crossId": "",
+   "clutchId": "",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 1,
+    "Laying rate": 4,
+    "Temperament": 3
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-r1",
+   "type": "individual",
+   "code": "OE-24-04",
+   "name": "Basil",
+   "strainId": "exo-s-wel",
+   "projectId": "exo-p",
+   "generation": "P",
+   "sex": "Male",
+   "motherId": "",
+   "fatherId": "",
+   "stockId": "",
+   "startDate": "2024-02-20",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-a",
+   "crossId": "",
+   "clutchId": "",
+   "description": "",
+   "scores": {
+    "Temperament": 5
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-r2",
+   "type": "individual",
+   "code": "OE-24-05",
+   "name": "Copper",
+   "strainId": "exo-s-mar",
+   "projectId": "exo-p",
+   "generation": "P",
+   "sex": "Male",
+   "motherId": "",
+   "fatherId": "",
+   "stockId": "",
+   "startDate": "2024-02-14",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-b",
+   "crossId": "",
+   "clutchId": "",
+   "description": "",
+   "scores": {
+    "Temperament": 4,
+    "Heat tolerance": 4
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-h4",
+   "type": "individual",
+   "code": "OE-24-06",
+   "name": "Dot",
+   "strainId": "exo-s-aus",
+   "projectId": "exo-p",
+   "generation": "P",
+   "sex": "Female",
+   "motherId": "",
+   "fatherId": "",
+   "stockId": "",
+   "startDate": "2024-04-01",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-coop",
+   "crossId": "",
+   "clutchId": "",
+   "description": "",
+   "scores": {
+    "Laying rate": 5,
+    "Temperament": 5
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-c1",
+   "type": "cross",
+   "date": "2025-08-20",
+   "motherId": "exo-h1",
+   "fatherId": "exo-r1",
+   "method": "Natural mating",
+   "status": "Successful",
+   "projectId": "exo-p-w",
+   "code": "25C-1",
+   "eggsSet": "2025-08-25",
+   "outcome": "8 chicks from 12 eggs",
+   "notes": "",
+   "goalV": "1",
+   "prediction": null
+  },
+  {
+   "id": "exo-c2",
+   "type": "cross",
+   "date": "2025-08-22",
+   "motherId": "exo-h2",
+   "fatherId": "exo-r2",
+   "method": "Natural mating",
+   "status": "Successful",
+   "projectId": "exo-p-m",
+   "code": "25C-2",
+   "eggsSet": "2025-08-27",
+   "outcome": "11 chicks from 14 eggs",
+   "notes": "",
+   "goalV": "1",
+   "prediction": null
+  },
+  {
+   "id": "exo-c3",
+   "type": "cross",
+   "date": "2025-09-05",
+   "motherId": "exo-h3",
+   "fatherId": "exo-r2",
+   "method": "Natural mating",
+   "status": "Successful",
+   "projectId": "exo-p-m",
+   "code": "25C-3",
+   "eggsSet": "2025-09-08",
+   "outcome": "6 chicks from 10 eggs",
+   "notes": "",
+   "goalV": "1",
+   "prediction": null
+  },
+  {
+   "id": "exo-k1",
+   "type": "clutch",
+   "crossId": "exo-c1",
+   "motherId": "exo-h1",
+   "fatherId": "exo-r1",
+   "projectId": "exo-p-w",
+   "kind": "eggs",
+   "date": "2025-08-25",
+   "eggsSet": 12,
+   "fertile": 10,
+   "hatched": 8,
+   "bornAlive": "",
+   "bornDead": "",
+   "weaned": "",
+   "weanDate": "",
+   "weanWeight": "",
+   "notes": "Incubator. Candled day 7 and day 14."
+  },
+  {
+   "id": "exo-k2",
+   "type": "clutch",
+   "crossId": "exo-c2",
+   "motherId": "exo-h2",
+   "fatherId": "exo-r2",
+   "projectId": "exo-p-m",
+   "kind": "eggs",
+   "date": "2025-08-27",
+   "eggsSet": 14,
+   "fertile": 13,
+   "hatched": 11,
+   "bornAlive": "",
+   "bornDead": "",
+   "weaned": "",
+   "weanDate": "",
+   "weanWeight": "",
+   "notes": "Broody Australorp sat them."
+  },
+  {
+   "id": "exo-k3",
+   "type": "clutch",
+   "crossId": "exo-c3",
+   "motherId": "exo-h3",
+   "fatherId": "exo-r2",
+   "projectId": "exo-p-m",
+   "kind": "eggs",
+   "date": "2025-09-08",
+   "eggsSet": 10,
+   "fertile": 7,
+   "hatched": 6,
+   "bornAlive": "",
+   "bornDead": "",
+   "weaned": "",
+   "weanDate": "",
+   "weanWeight": "",
+   "notes": "Incubator. Two late quitters."
+  },
+  {
+   "id": "exo-w1",
+   "type": "individual",
+   "code": "OE-W-25-01",
+   "name": "Olive",
+   "strainId": "",
+   "projectId": "exo-p-w",
+   "generation": "F1",
+   "sex": "Female",
+   "motherId": "exo-h1",
+   "fatherId": "exo-r1",
+   "stockId": "",
+   "startDate": "2025-09-15",
+   "status": "Selected",
+   "placeId": "exo-pl-coop",
+   "crossId": "exo-c1",
+   "clutchId": "exo-k1",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 4,
+    "Laying rate": 4,
+    "Temperament": 5
+   },
+   "selection": {
+    "decision": "kept",
+    "reasons": [
+     "Meets target: Egg colour (olive depth)",
+     "Calm temperament"
+    ],
+    "note": "",
+    "date": "2026-03-15",
+    "goalV": "1"
+   },
+   "photoIds": []
+  },
+  {
+   "id": "exo-w2",
+   "type": "individual",
+   "code": "OE-W-25-02",
+   "name": "Fern",
+   "strainId": "",
+   "projectId": "exo-p-w",
+   "generation": "F1",
+   "sex": "Female",
+   "motherId": "exo-h1",
+   "fatherId": "exo-r1",
+   "stockId": "",
+   "startDate": "2025-09-15",
+   "status": "Selected",
+   "placeId": "exo-pl-coop",
+   "crossId": "exo-c1",
+   "clutchId": "exo-k1",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 3,
+    "Laying rate": 5,
+    "Temperament": 4
+   },
+   "selection": {
+    "decision": "kept",
+    "reasons": [
+     "Meets target: Laying rate",
+     "Healthy"
+    ],
+    "note": "",
+    "date": "2026-03-15",
+    "goalV": "1"
+   },
+   "photoIds": []
+  },
+  {
+   "id": "exo-w3",
+   "type": "individual",
+   "code": "OE-W-25-03",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-w",
+   "generation": "F1",
+   "sex": "Male",
+   "motherId": "exo-h1",
+   "fatherId": "exo-r1",
+   "stockId": "",
+   "startDate": "2025-09-15",
+   "status": "Sold or rehomed",
+   "placeId": "exo-pl-grow",
+   "crossId": "exo-c1",
+   "clutchId": "exo-k1",
+   "description": "",
+   "scores": {
+    "Temperament": 2
+   },
+   "selection": {
+    "decision": "rejected",
+    "reasons": [
+     "Poor temperament"
+    ],
+    "note": "",
+    "date": "2026-01-20",
+    "goalV": "1"
+   },
+   "photoIds": []
+  },
+  {
+   "id": "exo-w4",
+   "type": "individual",
+   "code": "OE-W-25-04",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-w",
+   "generation": "F1",
+   "sex": "Female",
+   "motherId": "exo-h1",
+   "fatherId": "exo-r1",
+   "stockId": "",
+   "startDate": "2025-09-15",
+   "status": "Active",
+   "placeId": "exo-pl-coop",
+   "crossId": "exo-c1",
+   "clutchId": "exo-k1",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 2,
+    "Laying rate": 4
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-m1",
+   "type": "individual",
+   "code": "OE-M-25-01",
+   "name": "Moss",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "F1",
+   "sex": "Female",
+   "motherId": "exo-h2",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2025-09-17",
+   "status": "Selected",
+   "placeId": "exo-pl-coop",
+   "crossId": "exo-c2",
+   "clutchId": "exo-k2",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 5,
+    "Laying rate": 3,
+    "Temperament": 4
+   },
+   "selection": {
+    "decision": "kept",
+    "reasons": [
+     "Meets target: Egg colour (olive depth)",
+     "Hardy"
+    ],
+    "note": "",
+    "date": "2026-03-15",
+    "goalV": "1"
+   },
+   "photoIds": []
+  },
+  {
+   "id": "exo-m2",
+   "type": "individual",
+   "code": "OE-M-25-02",
+   "name": "Ivy",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "F1",
+   "sex": "Female",
+   "motherId": "exo-h2",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2025-09-17",
+   "status": "Active",
+   "placeId": "exo-pl-coop",
+   "crossId": "exo-c2",
+   "clutchId": "exo-k2",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 4,
+    "Laying rate": 4,
+    "Temperament": 4
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-m3",
+   "type": "individual",
+   "code": "OE-M-25-03",
+   "name": "Bramble",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "F1",
+   "sex": "Male",
+   "motherId": "exo-h2",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2025-09-17",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-b",
+   "crossId": "exo-c2",
+   "clutchId": "exo-k2",
+   "description": "",
+   "scores": {
+    "Temperament": 5,
+    "Heat tolerance": 4
+   },
+   "selection": {
+    "decision": "kept",
+    "reasons": [
+     "Calm temperament",
+     "Healthy"
+    ],
+    "note": "",
+    "date": "2026-03-15",
+    "goalV": "1"
+   },
+   "photoIds": []
+  },
+  {
+   "id": "exo-m4",
+   "type": "individual",
+   "code": "OE-M-25-04",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "F1",
+   "sex": "Male",
+   "motherId": "exo-h2",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2025-09-17",
+   "status": "Sold or rehomed",
+   "placeId": "exo-pl-grow",
+   "crossId": "exo-c2",
+   "clutchId": "exo-k2",
+   "description": "",
+   "scores": {
+    "Temperament": 3
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-m5",
+   "type": "individual",
+   "code": "OE-M-25-05",
+   "name": "Thistle",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "F1",
+   "sex": "Female",
+   "motherId": "exo-h3",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2025-09-29",
+   "status": "Active",
+   "placeId": "exo-pl-coop",
+   "crossId": "exo-c3",
+   "clutchId": "exo-k3",
+   "description": "",
+   "scores": {
+    "Egg colour (olive depth)": 4,
+    "Laying rate": 3
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-g-k1",
+   "type": "individual",
+   "isGroup": true,
+   "code": "OE-G01",
+   "name": "Rest of the 25C-1 hatch, sold as pullets",
+   "mix": [],
+   "count": 4,
+   "strainId": "",
+   "projectId": "exo-p-w",
+   "motherId": "exo-h1",
+   "fatherId": "exo-r1",
+   "crossId": "exo-c1",
+   "clutchId": "exo-k1",
+   "generation": "F1",
+   "startDate": "2025-09-15",
+   "placeId": "",
+   "status": "Sold or rehomed",
+   "photoIds": []
+  },
+  {
+   "id": "exo-g-k2",
+   "type": "individual",
+   "isGroup": true,
+   "code": "OE-G02",
+   "name": "Rest of the 25C-2 hatch, sold as pullets",
+   "mix": [],
+   "count": 7,
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "motherId": "exo-h2",
+   "fatherId": "exo-r2",
+   "crossId": "exo-c2",
+   "clutchId": "exo-k2",
+   "generation": "F1",
+   "startDate": "2025-09-17",
+   "placeId": "",
+   "status": "Sold or rehomed",
+   "photoIds": []
+  },
+  {
+   "id": "exo-c4",
+   "type": "cross",
+   "date": "2026-08-15",
+   "motherId": "exo-w1",
+   "fatherId": "exo-m3",
+   "method": "Natural mating",
+   "status": "Successful",
+   "projectId": "exo-p",
+   "code": "26C-1",
+   "eggsSet": "2026-08-20",
+   "outcome": "9 chicks from 12 eggs",
+   "notes": "",
+   "goalV": "1",
+   "prediction": null
+  },
+  {
+   "id": "exo-c5",
+   "type": "cross",
+   "date": "2026-08-25",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "method": "Natural mating",
+   "status": "Successful",
+   "projectId": "exo-p-m",
+   "code": "26C-2",
+   "eggsSet": "2026-08-28",
+   "outcome": "7 chicks from 10 eggs",
+   "notes": "",
+   "goalV": "1",
+   "prediction": null
+  },
+  {
+   "id": "exo-c6",
+   "type": "cross",
+   "date": "2026-11-01",
+   "motherId": "exo-w2",
+   "fatherId": "exo-r3",
+   "method": "Natural mating",
+   "status": "Planned",
+   "projectId": "exo-p",
+   "code": "26C-3",
+   "eggsSet": "",
+   "outcome": "",
+   "notes": "",
+   "goalV": "1",
+   "prediction": {
+    "genes": [
+     "Blue eggshell (O)"
+    ],
+    "mother": [
+     "O/o"
+    ],
+    "father": [
+     "o/o"
+    ],
+    "results": [
+     {
+      "sex": null,
+      "ph": "Blue-shelled eggs (carries non-blue)",
+      "p": 0.5
+     },
+     {
+      "sex": null,
+      "ph": "Not blue-shelled",
+      "p": 0.5
+     }
+    ],
+    "date": "2026-09-20"
+   }
+  },
+  {
+   "id": "exo-r3",
+   "type": "individual",
+   "code": "OE-24-07",
+   "name": "Oscar",
+   "strainId": "exo-s-aus",
+   "projectId": "exo-p",
+   "generation": "P",
+   "sex": "Male",
+   "motherId": "",
+   "fatherId": "",
+   "stockId": "",
+   "startDate": "2024-04-01",
+   "status": "Kept for breeding",
+   "placeId": "exo-pl-coop",
+   "crossId": "",
+   "clutchId": "",
+   "description": "Australorp rooster from a high-laying line. Planned outcross for laying ability.",
+   "scores": {
+    "Temperament": 5,
+    "Laying rate": 5
+   },
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-k4",
+   "type": "clutch",
+   "crossId": "exo-c4",
+   "motherId": "exo-w1",
+   "fatherId": "exo-m3",
+   "projectId": "exo-p",
+   "kind": "eggs",
+   "date": "2026-08-20",
+   "eggsSet": 12,
+   "fertile": 11,
+   "hatched": 9,
+   "bornAlive": "",
+   "bornDead": "",
+   "weaned": "",
+   "weanDate": "",
+   "weanWeight": "",
+   "notes": "First hatch combining Line W and Line M."
+  },
+  {
+   "id": "exo-k5",
+   "type": "clutch",
+   "crossId": "exo-c5",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "projectId": "exo-p-m",
+   "kind": "eggs",
+   "date": "2026-08-28",
+   "eggsSet": 10,
+   "fertile": 9,
+   "hatched": 7,
+   "bornAlive": "",
+   "bornDead": "",
+   "weaned": "",
+   "weanDate": "",
+   "weanWeight": "",
+   "notes": "Backcross to Copper for darker eggs."
+  },
+  {
+   "id": "exo-g-k4",
+   "type": "individual",
+   "isGroup": true,
+   "code": "OE-G03",
+   "name": "9 chicks from 26C-1 (Line W × Line M)",
+   "mix": [],
+   "count": 9,
+   "strainId": "",
+   "projectId": "exo-p",
+   "motherId": "exo-w1",
+   "fatherId": "exo-m3",
+   "crossId": "exo-c4",
+   "clutchId": "exo-k4",
+   "generation": "F2",
+   "startDate": "2026-09-10",
+   "placeId": "exo-pl-brood",
+   "status": "Active",
+   "photoIds": []
+  },
+  {
+   "id": "exo-b1",
+   "type": "individual",
+   "code": "OE-26-01",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "BC1F1",
+   "sex": "Female",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2026-09-18",
+   "status": "Active",
+   "placeId": "exo-pl-brood",
+   "crossId": "exo-c5",
+   "clutchId": "exo-k5",
+   "description": "",
+   "scores": {},
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-b2",
+   "type": "individual",
+   "code": "OE-26-02",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "BC1F1",
+   "sex": "Male",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2026-09-18",
+   "status": "Active",
+   "placeId": "exo-pl-brood",
+   "crossId": "exo-c5",
+   "clutchId": "exo-k5",
+   "description": "",
+   "scores": {},
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-b3",
+   "type": "individual",
+   "code": "OE-26-03",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "BC1F1",
+   "sex": "Female",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2026-09-18",
+   "status": "Active",
+   "placeId": "exo-pl-brood",
+   "crossId": "exo-c5",
+   "clutchId": "exo-k5",
+   "description": "",
+   "scores": {},
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-b4",
+   "type": "individual",
+   "code": "OE-26-04",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "BC1F1",
+   "sex": "Female",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2026-09-18",
+   "status": "Active",
+   "placeId": "exo-pl-brood",
+   "crossId": "exo-c5",
+   "clutchId": "exo-k5",
+   "description": "",
+   "scores": {},
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-b5",
+   "type": "individual",
+   "code": "OE-26-05",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "BC1F1",
+   "sex": "Male",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2026-09-18",
+   "status": "Active",
+   "placeId": "exo-pl-brood",
+   "crossId": "exo-c5",
+   "clutchId": "exo-k5",
+   "description": "",
+   "scores": {},
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-b6",
+   "type": "individual",
+   "code": "OE-26-06",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "BC1F1",
+   "sex": "Female",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2026-09-18",
+   "status": "Active",
+   "placeId": "exo-pl-brood",
+   "crossId": "exo-c5",
+   "clutchId": "exo-k5",
+   "description": "",
+   "scores": {},
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-b7",
+   "type": "individual",
+   "code": "OE-26-07",
+   "name": "",
+   "strainId": "",
+   "projectId": "exo-p-m",
+   "generation": "BC1F1",
+   "sex": "Female",
+   "motherId": "exo-m1",
+   "fatherId": "exo-r2",
+   "stockId": "",
+   "startDate": "2026-09-18",
+   "status": "Active",
+   "placeId": "exo-pl-brood",
+   "crossId": "exo-c5",
+   "clutchId": "exo-k5",
+   "description": "",
+   "scores": {},
+   "selection": null,
+   "photoIds": []
+  },
+  {
+   "id": "exo-e1",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h1",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 16,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 1
+  },
+  {
+   "id": "exo-e2",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h1",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 18,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 2
+  },
+  {
+   "id": "exo-e3",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h1",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 20,
+    "exo-rt-e-f3": 59,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 3
+  },
+  {
+   "id": "exo-e4",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h1",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 21,
+    "exo-rt-e-f3": 59,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 4
+  },
+  {
+   "id": "exo-e5",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h2",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 15,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 5
+  },
+  {
+   "id": "exo-e6",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h2",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 17,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 6
+  },
+  {
+   "id": "exo-e7",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h2",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 19,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 7
+  },
+  {
+   "id": "exo-e8",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h2",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 20,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 8
+  },
+  {
+   "id": "exo-e9",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h3",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 18,
+    "exo-rt-e-f3": 59,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 9
+  },
+  {
+   "id": "exo-e10",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h3",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 20,
+    "exo-rt-e-f3": 59,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 10
+  },
+  {
+   "id": "exo-e11",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h3",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 22,
+    "exo-rt-e-f3": 60,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 11
+  },
+  {
+   "id": "exo-e12",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h3",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 23,
+    "exo-rt-e-f3": 60,
+    "exo-rt-e-f4": 1
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 12
+  },
+  {
+   "id": "exo-e13",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h4",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 22,
+    "exo-rt-e-f3": 61
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 13
+  },
+  {
+   "id": "exo-e14",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h4",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 24,
+    "exo-rt-e-f3": 61
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 14
+  },
+  {
+   "id": "exo-e15",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h4",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 26,
+    "exo-rt-e-f3": 62
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 15
+  },
+  {
+   "id": "exo-e16",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-h4",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 27,
+    "exo-rt-e-f3": 62
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 16
+  },
+  {
+   "id": "exo-e17",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w1",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 19,
+    "exo-rt-e-f3": 56,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 17
+  },
+  {
+   "id": "exo-e18",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w1",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 21,
+    "exo-rt-e-f3": 56,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 18
+  },
+  {
+   "id": "exo-e19",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w1",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 23,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 19
+  },
+  {
+   "id": "exo-e20",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w1",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 24,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 20
+  },
+  {
+   "id": "exo-e21",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w2",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 22,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 3
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 21
+  },
+  {
+   "id": "exo-e22",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w2",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 24,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 3
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 22
+  },
+  {
+   "id": "exo-e23",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w2",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 26,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 3
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 23
+  },
+  {
+   "id": "exo-e24",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-w2",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 27,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 3
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 24
+  },
+  {
+   "id": "exo-e25",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m1",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 16,
+    "exo-rt-e-f3": 60,
+    "exo-rt-e-f4": 5
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 25
+  },
+  {
+   "id": "exo-e26",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m1",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 18,
+    "exo-rt-e-f3": 60,
+    "exo-rt-e-f4": 5
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 26
+  },
+  {
+   "id": "exo-e27",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m1",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 20,
+    "exo-rt-e-f3": 61,
+    "exo-rt-e-f4": 5
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 27
+  },
+  {
+   "id": "exo-e28",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m1",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 21,
+    "exo-rt-e-f3": 61,
+    "exo-rt-e-f4": 5
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 28
+  },
+  {
+   "id": "exo-e29",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m2",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 18,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 29
+  },
+  {
+   "id": "exo-e30",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m2",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 20,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 30
+  },
+  {
+   "id": "exo-e31",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m2",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 22,
+    "exo-rt-e-f3": 59,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 31
+  },
+  {
+   "id": "exo-e32",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m2",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 23,
+    "exo-rt-e-f3": 59,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 32
+  },
+  {
+   "id": "exo-e33",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m5",
+   "parentEntryId": "",
+   "date": "2026-06-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 15,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 33
+  },
+  {
+   "id": "exo-e34",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m5",
+   "parentEntryId": "",
+   "date": "2026-07-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 17,
+    "exo-rt-e-f3": 57,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 34
+  },
+  {
+   "id": "exo-e35",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m5",
+   "parentEntryId": "",
+   "date": "2026-08-31",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 19,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 35
+  },
+  {
+   "id": "exo-e36",
+   "type": "entry",
+   "rtId": "exo-rt-e",
+   "indId": "exo-m5",
+   "parentEntryId": "",
+   "date": "2026-09-30",
+   "values": {
+    "exo-rt-e-f0": 30,
+    "exo-rt-e-f1": 20,
+    "exo-rt-e-f3": 58,
+    "exo-rt-e-f4": 4
+   },
+   "photoIds": [],
+   "notes": "",
+   "seq": 36
+  },
+  {
+   "id": "exo-e37",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-w1",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 1.9,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 37
+  },
+  {
+   "id": "exo-e38",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-w2",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 2.0,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 38
+  },
+  {
+   "id": "exo-e39",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-w3",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 2.6,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 39
+  },
+  {
+   "id": "exo-e40",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-w4",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 1.8,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 40
+  },
+  {
+   "id": "exo-e41",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-m1",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 2.1,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 41
+  },
+  {
+   "id": "exo-e42",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-m2",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 2.0,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 42
+  },
+  {
+   "id": "exo-e43",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-m3",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 2.9,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 43
+  },
+  {
+   "id": "exo-e44",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-m4",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 2.7,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 44
+  },
+  {
+   "id": "exo-e45",
+   "type": "entry",
+   "rtId": "exo-rt-w",
+   "indId": "exo-m5",
+   "parentEntryId": "",
+   "date": "2026-01-10",
+   "values": {
+    "exo-rt-w-f0": 1.9,
+    "exo-rt-w-f1": 4
+   },
+   "photoIds": [],
+   "notes": "Weighed at 16 weeks.",
+   "seq": 45
+  },
+  {
+   "id": "exo-in1",
+   "type": "input",
+   "name": "Poultry wormer (example)",
+   "category": "wormer",
+   "unit": "mL",
+   "rate": "1 mL per litre of drinking water",
+   "organic": false,
+   "qty": 180,
+   "opened": "2026-03-01",
+   "expiry": "2027-12-31",
+   "notes": "Example only.",
+   "whp": {
+    "eggs": 7,
+    "meat": 28
+   },
+   "photoIds": []
+  },
+  {
+   "id": "exo-g-flock",
+   "type": "individual",
+   "isGroup": true,
+   "code": "OE-G04",
+   "name": "Laying flock",
+   "mix": [
+    {
+     "strainId": "exo-s-aus",
+     "count": 4
+    },
+    {
+     "strainId": "exo-s-ara",
+     "count": 2
+    }
+   ],
+   "count": 6,
+   "strainId": "",
+   "projectId": "",
+   "generation": "",
+   "startDate": "2024-05-01",
+   "placeId": "exo-pl-coop",
+   "status": "Active",
+   "photoIds": []
+  },
+  {
+   "id": "exo-ap1",
+   "type": "apply",
+   "date": "2026-09-02",
+   "inputId": "exo-in1",
+   "amount": 20,
+   "unit": "mL",
+   "method": "In water",
+   "reason": "Routine worming",
+   "targets": [
+    "exo-g-flock",
+    "exo-w1",
+    "exo-w2",
+    "exo-m1",
+    "exo-m2",
+    "exo-m5",
+    "exo-h4"
+   ],
+   "scope": {
+    "type": "place",
+    "id": "exo-pl-coop"
+   },
+   "repeatDays": 90,
+   "notes": ""
+  },
+  {
+   "id": "exo-pr1",
+   "type": "product",
+   "name": "Eggs",
+   "kind": "animal",
+   "unit": "eggs",
+   "alsoWeight": false,
+   "weightUnit": "kg",
+   "notes": ""
+  },
+  {
+   "id": "exo-y0",
+   "type": "yield",
+   "date": "2026-09-07",
+   "productId": "exo-pr1",
+   "qty": 31,
+   "weight": "",
+   "unit": "eggs",
+   "quality": "",
+   "targets": [
+    "exo-g-flock"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": "Weekly collection, laying flock."
+  },
+  {
+   "id": "exo-y1",
+   "type": "yield",
+   "date": "2026-09-14",
+   "productId": "exo-pr1",
+   "qty": 34,
+   "weight": "",
+   "unit": "eggs",
+   "quality": "",
+   "targets": [
+    "exo-g-flock"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": "Weekly collection, laying flock."
+  },
+  {
+   "id": "exo-y2",
+   "type": "yield",
+   "date": "2026-09-21",
+   "productId": "exo-pr1",
+   "qty": 33,
+   "weight": "",
+   "unit": "eggs",
+   "quality": "",
+   "targets": [
+    "exo-g-flock"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": "Weekly collection, laying flock."
+  },
+  {
+   "id": "exo-y3",
+   "type": "yield",
+   "date": "2026-09-28",
+   "productId": "exo-pr1",
+   "qty": 36,
+   "weight": "",
+   "unit": "eggs",
+   "quality": "",
+   "targets": [
+    "exo-g-flock"
+   ],
+   "scope": {
+    "type": "single"
+   },
+   "notes": "Weekly collection, laying flock."
+  },
+  {
+   "id": "exo-n1",
+   "type": "note",
+   "refId": "exo-p",
+   "date": "2025-07-01",
+   "text": "Plan: Araucana hens over a Welsummer rooster (Line W) and a Maran rooster (Line M). Blue shell plus brown coating should give olive F1s.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-n2",
+   "type": "note",
+   "refId": "exo-w1",
+   "date": "2026-03-15",
+   "text": "First olive egg from Olive at 26 weeks. Sage green with fine speckles.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-n3",
+   "type": "note",
+   "refId": "exo-m1",
+   "date": "2026-03-20",
+   "text": "Moss lays the darkest olive so far: deep khaki.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-n4",
+   "type": "note",
+   "refId": "exo-p",
+   "date": "2026-09-20",
+   "text": "Backcross chicks (26C-2) hatched well. Expect about half to lay blue-based eggs, and darker olive than the F1s.",
+   "photoIds": []
+  },
+  {
+   "id": "exo-rem1",
+   "type": "reminder",
+   "date": "2026-10-16",
+   "text": "Move the backcross chicks from the brooder to the grow-out run",
+   "refId": "exo-p",
+   "done": false
+  }
+ ]
+}

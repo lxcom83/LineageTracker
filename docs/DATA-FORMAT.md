@@ -1,6 +1,6 @@
 # Lineage Tracker data format
 
-**Format version 17** (Lineage Tracker 0.17). This document describes how Lineage Tracker stores
+**Format version 19** (Lineage Tracker 0.19). This document describes how Lineage Tracker stores
 records, so that people and AI tools can convert existing breeding records
 into a file Lineage Tracker can import.
 
@@ -33,7 +33,7 @@ newer `updatedAt`. **Undo last restore** reverses an import.
 ```json
 {
   "app": "lineage",
-  "version": 17,
+  "version": 19,
   "exportedAt": "2026-10-02T09:00:00.000Z",
   "records": [ ... ],
   "photos": [ ... ]
@@ -257,6 +257,14 @@ Each workspace (your records, an example, a shared library, a split-off list) is
 
 An `individual` with `isGroup: true` is a bed, patch or flock: `mix: [{ strainId, count }]`, `count`. `groupOf` on an individual points to the group it was picked from. `selection: { decision, reasons, note, date, goalV }` records why a plant or animal was kept or rejected. Entries carry `est: { fieldId: true }` for estimated numbers, and harvests `est: true`. Sites carry `region: { lat, lon }`, rounded to half a degree.
 
+### 0.19 additions
+
+`clutch`: a hatch or birth from a cross: `crossId`, `motherId`, `fatherId`, `projectId`, `kind` (`eggs` or `live`), `date`, `eggsSet`, `fertile`, `hatched`, `bornAlive`, `bornDead`, `weaned`, `weanDate`, `weanWeight`, `notes`. Offspring created from it carry `clutchId`.
+Individuals: `flowers: { male, female, first, end }` (dates), `aka` (earlier tags), `name` (nickname).
+Crosses: `prediction: { genes, mother, father, results: [{ sex, ph, p }], date }` from the genetics calculator.
+Projects: `tagStyle: { preset, pattern }` where preset is `projgen`, `selection`, `cross`, `year`, `simple`, `animal` or `custom`.
+`profile.breederCode`: the short code added to tags on shared items.
+
 ### `product` and `yield`: what your garden or farm produces
 
 `product`: `name`, `kind` (`plant` or `animal`), `unit` (such as `kg`, `eggs`, `L`, `fruit`), `alsoWeight` (record a weight as well as a count), `weightUnit`, `notes`.
@@ -332,7 +340,7 @@ When sync is on, each person's Drive holds a folder named **Lineage Tracker sync
 
 | File | Contents |
 |---|---|
-| `lineage-records.json` | `{ "app": "lineage", "version": 17, "format": "sync", "updatedAt", "by", "records": [...] }`, every record including deletion markers. |
+| `lineage-records.json` | `{ "app": "lineage", "version": 19, "format": "sync", "updatedAt", "by", "records": [...] }`, every record including deletion markers. |
 | `photos/<photoId>.jpg`, `photos/<photoId>-thumb.jpg` | Photos, identified by the `photoId` app property. |
 | `weekly snapshots/lineage-records-YYYY-MM-DD.json` | The last eight weekly copies, in the records-only backup format. Any of them can be restored from Settings. |
 
@@ -473,7 +481,7 @@ Lineage Tracker itself keeps everything on your device.
 
 ```
 Convert my breeding records into Lineage Tracker's friendly import format, described
-in section 6 of the Lineage Tracker data format document (format version 17).
+in section 6 of the Lineage Tracker data format document (format version 19).
 
 Rules:
 - Output one JSON object with "app": "lineage" and "format": "friendly".
