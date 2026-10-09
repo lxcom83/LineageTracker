@@ -1,6 +1,6 @@
 # Lineage Tracker data format
 
-**Format version 19** (Lineage Tracker 0.19). This document describes how Lineage Tracker stores
+**Format version 19** (Lineage Tracker 0.20). This document describes how Lineage Tracker stores
 records, so that people and AI tools can convert existing breeding records
 into a file Lineage Tracker can import.
 
@@ -105,6 +105,7 @@ Every record has `id` and `type`. Fields not listed are ignored.
 | `origin` | string | Breeder, seller or source. |
 | `description` | string | |
 | `photoIds` | string[] | |
+| `photoTags` | object | What each photo shows, keyed by photo id (see 4.13). Optional. |
 | `mainPhotoId`, `frame` | string, object | Chosen main photo and its framing (see 4.12). |
 
 ### `stock`: lot (seed packet, saved seed, cuttings, young plants, hatching eggs)
@@ -125,7 +126,8 @@ Every record has `id` and `type`. Fields not listed are ignored.
 | `projectId` | id | |
 | `motherId`, `fatherId`, `crossId` | id | Parents for saved seed or offspring. |
 | `notes` | string | |
-| `photoIds` | string[] | Label or packet photos. |
+| `photoIds` | string[] | Label or packet photos. A scanned packet has up to two: the front and the back. |
+| `photoTags` | object | What each photo shows (see 4.13). Optional. |
 
 Older files may have a text `quantity` instead of `qty`/`unit`; Lineage Tracker
 converts it.
@@ -170,6 +172,7 @@ converts it.
 | `goals` | array | Goal versions, oldest first: `{ "v": "1.1", "date", "statement", "inScope", "outScope", "success", "timeframe", "reason", "traits": [...] }`. `v` is major.minor; `traits` is a copy of the target traits when that version was made. `goal` always holds the current statement. |
 | `goalReviewMonths`, `goalReviewedAt` | number, date | How often to review the goal (default 12) and when it was last reviewed. |
 | `siteId` | id | Site whose weather the project is compared with. Lines use their parent's. |
+| `plan` | object | A breeding plan: time periods, boxes and lines, laid out before the real plants are known. See 4.14. |
 
 ### `cross`: pollination or pairing
 
@@ -185,10 +188,11 @@ converts it.
 | `code` | string | The cross code, such as `26C-1`. |
 | `attempts`, `fruitSet`, `seedsSaved` | number | Flowers pollinated or matings tried, how many took, and seeds saved or young born. Used for success rates in the cross planner. |
 | `eggsSet`, `dueDate` | date | For animals: when eggs went into the incubator or under a hen, and an optional manual due date. Without one, the due date is worked out from the species' gestation or incubation time. |
+| `planEdge` | string | Id of the breeding plan line this cross was recorded from (see 4.14). The plan reads it to show the line as done. |
 
 ### `note`
 
-`refId` (any record, or empty for a general note), `date`, `text`, `photoIds`.
+`refId` (any record, or empty for a general note), `date`, `text`, `photoIds`, `photoTags` (see 4.13).
 
 ### `entry`: one logged record of a project's record type
 
@@ -201,10 +205,11 @@ converts it.
 | `date` | date | |
 | `values` | object | Field id to value. Numbers as numbers, scores 1–5, choices as the option text, dates as `YYYY-MM-DD`, yes/no as `"Yes"`/`"No"`. Calculated fields are not stored. |
 | `notes`, `photoIds` | | |
+| `photoTags` | object | What each photo shows (see 4.13). Optional. |
 
 ### `place`: growing spot or animal housing
 
-`name`, `kind` (`plant`/`animal`), `method`, `details`, `photoIds`,
+`name`, `kind` (`plant`/`animal`), `method`, `details`, `photoIds`, `photoTags`,
 `mainPhotoId`, `frame`.
 
 Plant methods: `In ground`, `Garden bed`, `Raised bed`, `Container or pot`,
@@ -331,6 +336,69 @@ can be undone as one group.
 `frame` is `{ "x": 0.5, "y": 0.5, "z": 1 }`: the centre of the square as a
 fraction of the photo's width and height, and the zoom (1 = the largest square
 that fits). The photo itself is never altered.
+
+### 4.13 Photo labels
+
+A record that holds photos (a note, variety, packet, record entry or place) can
+carry `photoTags`: an object that says what each of its photos shows, keyed by
+photo id, for example `{ "a1b2c3": "seedling", "d4e5f6": "harvest" }`. Plant and
+project photos live on their notes, so that is where most labels are found. A
+photo with no entry is unlabelled; nothing is guessed. The keys are fixed and
+lower case so another system can ask for, say, the `harvest` photo of a variety:
+
+| Key | Meaning |
+|---|---|
+| `seed`, `seedling`, `growing`, `flower`, `fruit`, `harvest`, `cutopen` | Plants: the seed, a seedling, the growing plant, a flower, fruit on the plant, a harvest, a fruit cut open. |
+| `eggs`, `young`, `adult`, `group` | Animals: eggs, a chick or young animal, an adult, a pair, flock or group. |
+| `overview`, `place`, `problem` | Either: the whole line or project, a bed, pen or setting, a problem such as a pest, disease or injury. |
+| `packet-front`, `packet-back` | The front and back of a seed packet or label. |
+| `other` | Anything else. |
+
+Only photos listed in the same record's `photoIds` are labelled. An importer
+should ignore keys it does not know and drop entries whose photo is not in `photoIds`.
+
+### 4.14 Breeding plan
+
+A project can carry `plan`, a breeding plan laid out before the real plants are
+known. It is stored inside the project record, so it travels with it in backups
+and sync.
+
+```json
+"plan": {
+  "v": 1,
+  "periods": [{ "id": "y1", "name": "Year 1", "span": "1 year" }],
+  "nodes": [
+    { "id": "n1", "periodId": "y1", "kind": "plant", "label": "Arrakis Black", "refId": "<strain or individual id>", "lockedAt": 1791560025210 },
+    { "id": "n2", "periodId": "y1", "kind": "plant", "label": "orange-fleshed maxima" },
+    { "id": "n3", "periodId": "y2", "kind": "plant", "label": "Arrakis Black × orange-fleshed maxima", "via": "e1" }
+  ],
+  "edges": [
+    { "id": "e1", "kind": "cross", "dir": "one", "from": "n1", "to": "n2", "note": "", "bend": 0 },
+    { "id": "e2", "kind": "grow", "from": "n1", "to": "n3", "via": "e1" }
+  ]
+}
+```
+
+- **Periods** are the time periods, in order (`span` is a label only, such as
+  `3 months` or `5 years`).
+- **Nodes** are boxes. `kind` is `plant`, `animal` or `group` (a block, pen or bed
+  such as an open pollination block). A box with no `refId` is still to be chosen;
+  `label` says what it is. A box with a `refId` is locked in to a real individual
+  or variety and stays attached; `label` keeps the original wording. `via` is the
+  line it was created from, if any.
+- **Edges** are lines. `kind` is `cross` (from is the seed parent, to is the pollen
+  parent), `grow` (seed or young taken from one box and grown on as another) or
+  `release` (into a group box). For a cross, `dir` is `one`, `two` (both
+  directions) or `self` (`to` equals `from`). `bend` (-2 to 2) only changes how a
+  curve is drawn. `done` is used for `release` lines.
+- **State is worked out, not stored.** A cross line is done when a real `cross`
+  record has `planEdge` equal to its id and a status other than `Planned` (two
+  such crosses in different directions for a `two` line); a `grow` line is done
+  once its target box is locked in. Deleting a plan box or line never deletes
+  real records.
+
+An importer should ignore keys it does not know, and drop nodes whose `periodId`
+is missing and lines whose `from` or `to` is missing.
 
 ---
 

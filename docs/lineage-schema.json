@@ -83,6 +83,32 @@
         "type": "string"
       }
     },
+    "photoTags": {
+      "type": "object",
+      "description": "What each photo shows, keyed by photo id. Only photos listed in the same record's photoIds are labelled; an unlabelled photo has no entry.",
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "seed",
+          "seedling",
+          "growing",
+          "flower",
+          "fruit",
+          "harvest",
+          "cutopen",
+          "eggs",
+          "young",
+          "adult",
+          "group",
+          "overview",
+          "place",
+          "problem",
+          "packet-front",
+          "packet-back",
+          "other"
+        ]
+      }
+    },
     "photo": {
       "type": "object",
       "required": [
@@ -284,6 +310,9 @@
             "photoIds": {
               "$ref": "#/$defs/photoIds"
             },
+            "photoTags": {
+              "$ref": "#/$defs/photoTags"
+            },
             "mainPhotoId": {
               "type": "string"
             },
@@ -367,6 +396,9 @@
             },
             "photoIds": {
               "$ref": "#/$defs/photoIds"
+            },
+            "photoTags": {
+              "$ref": "#/$defs/photoTags"
             },
             "form": {
               "enum": [
@@ -468,6 +500,9 @@
             },
             "photoIds": {
               "$ref": "#/$defs/photoIds"
+            },
+            "photoTags": {
+              "$ref": "#/$defs/photoTags"
             },
             "mainPhotoId": {
               "type": "string"
@@ -622,6 +657,130 @@
             },
             "noInputs": {
               "type": "boolean"
+            },
+            "plan": {
+              "type": "object",
+              "description": "Breeding plan (0.20). Time periods, boxes (plants, animals, blocks or pens, possibly still to be chosen) and lines (crosses, grow-outs, releases). A box with refId is locked in to a real record.",
+              "properties": {
+                "v": {
+                  "type": "integer"
+                },
+                "periods": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "span": {
+                        "type": "string",
+                        "description": "For example 3 months, 1 year, 5 years. A label only."
+                      }
+                    }
+                  }
+                },
+                "nodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "periodId",
+                      "kind"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "periodId": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "enum": [
+                          "plant",
+                          "animal",
+                          "group"
+                        ]
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "What it is, for a box not yet chosen. Kept after a real record is chosen."
+                      },
+                      "note": {
+                        "type": "string"
+                      },
+                      "refId": {
+                        "type": "string",
+                        "description": "Id of the individual or strain it is locked in to."
+                      },
+                      "lockedAt": {
+                        "type": "number"
+                      },
+                      "via": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "edges": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "kind",
+                      "from",
+                      "to"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "enum": [
+                          "cross",
+                          "grow",
+                          "release"
+                        ]
+                      },
+                      "dir": {
+                        "enum": [
+                          "one",
+                          "two",
+                          "self",
+                          ""
+                        ]
+                      },
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      },
+                      "note": {
+                        "type": "string"
+                      },
+                      "bend": {
+                        "type": "number"
+                      },
+                      "done": {
+                        "type": "boolean"
+                      },
+                      "via": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
             }
           },
           "required": [
@@ -700,6 +859,10 @@
             },
             "code": {
               "type": "string"
+            },
+            "planEdge": {
+              "type": "string",
+              "description": "Id of the breeding plan line this cross was recorded from (0.20)."
             }
           },
           "required": [
@@ -722,6 +885,9 @@
             },
             "photoIds": {
               "$ref": "#/$defs/photoIds"
+            },
+            "photoTags": {
+              "$ref": "#/$defs/photoTags"
             }
           },
           "required": [
@@ -756,6 +922,9 @@
             },
             "photoIds": {
               "$ref": "#/$defs/photoIds"
+            },
+            "photoTags": {
+              "$ref": "#/$defs/photoTags"
             }
           },
           "required": [
@@ -784,6 +953,9 @@
             },
             "photoIds": {
               "$ref": "#/$defs/photoIds"
+            },
+            "photoTags": {
+              "$ref": "#/$defs/photoTags"
             },
             "mainPhotoId": {
               "type": "string"
@@ -1255,6 +1427,9 @@
               "items": {
                 "type": "string"
               }
+            },
+            "photoTags": {
+              "$ref": "#/$defs/photoTags"
             }
           },
           "required": [

@@ -10,7 +10,7 @@ candidates side by side, trace bloodlines in a family-tree chart, record where
 each plant grows or animal lives, and keep a dated log of notes and photos. A
 due list keeps track of what needs doing next.
 
-No account, no server, no subscription. Records and photos stay on the device.
+No account and no server. Records and photos stay on the device.
 
 ## Put it online with GitHub Pages (free)
 
