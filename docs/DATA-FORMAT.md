@@ -380,16 +380,16 @@ and sync.
 ```
 
 - **Periods** are the time periods, in order (`span` is a label only, such as
-  `3 months` or `5 years`).
+  `3 months`, `10 weeks` or `5 years`; any whole or decimal number of days, weeks, months or years is allowed).
 - **Nodes** are boxes. `kind` is `plant`, `animal` or `group` (a block, pen or bed
   such as an open pollination block). A box with no `refId` is still to be chosen;
   `label` says what it is. A box with a `refId` is locked in to a real individual
-  or variety and stays attached; `label` keeps the original wording. `via` is the
+  or variety and stays attached (unless the user deliberately changes it, which removes `refId` and `lockedAt` again); `label` keeps the original wording. `qty` (optional whole number above 1) is how many to grow out. `via` is the
   line it was created from, if any.
 - **Edges** are lines. `kind` is `cross` (from is the seed parent, to is the pollen
   parent), `grow` (seed or young taken from one box and grown on as another) or
   `release` (into a group box). For a cross, `dir` is `one`, `two` (both
-  directions) or `self` (`to` equals `from`). `bend` (-2 to 2) only changes how a
+  directions) or `self` (`to` equals `from`). `periodId` (optional, on crosses) is the period the cross is made in; its offspring go in the next period. `bend` (-2 to 2) only changes how a
   curve is drawn. `done` is used for `release` lines.
 - **State is worked out, not stored.** A cross line is done when a real `cross`
   record has `planEdge` equal to its id and a status other than `Planned` (two

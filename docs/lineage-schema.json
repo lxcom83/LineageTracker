@@ -726,6 +726,11 @@
                       },
                       "via": {
                         "type": "string"
+                      },
+                      "qty": {
+                        "type": "integer",
+                        "minimum": 2,
+                        "description": "How many to grow out (optional, shown as x12)."
                       }
                     }
                   }
@@ -776,6 +781,10 @@
                       },
                       "via": {
                         "type": "string"
+                      },
+                      "periodId": {
+                        "type": "string",
+                        "description": "For crosses: the period the cross is made in. Offspring go in the next period."
                       }
                     }
                   }

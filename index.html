@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#F5F2EC" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141A24" media="(prefers-color-scheme: dark)">
 <meta name="description" content="Lineage Tracker: free breeding records for plants and animals. Seed and stock library, tagged plants and animals, crosses, bloodlines, goals and weather, all kept on your own device.">
@@ -219,11 +219,15 @@ a.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-colo
 /* Sheets (forms) */
 .sheet-wrap{position:fixed;inset:0;z-index:20}
 .sheet-back{position:absolute;inset:0;background:rgba(8,14,16,.5);opacity:0;transition:opacity .2s}
-.sheet{position:absolute;left:0;right:0;bottom:0;max-height:92vh;max-height:92dvh;overflow:auto;overscroll-behavior:contain;background:var(--paper);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:0 16px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .25s ease}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:92vh;max-height:min(92dvh,calc(var(--vvh,100dvh) - 8px));overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:auto;overscroll-behavior:contain;background:var(--paper);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:0 16px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .25s ease}
 .sheet-wrap.open .sheet{transform:none}
 .sheet-wrap.open .sheet-back{opacity:1}
 .sheet-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0 8px;background:var(--paper)}
 .sheet-head h2{margin:0}
+.sheet::-webkit-scrollbar{width:10px}.sheet::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+.sheet-body{padding-bottom:40px}
+.plan-zoom{display:flex;gap:8px;justify-content:flex-end;margin:6px 0}
+.plan-zoom .icon-btn{background:var(--card);border:1px solid var(--line)}
 @media(min-width:760px){
   .sheet{left:50%;right:auto;bottom:auto;top:5vh;width:min(640px,94vw);max-height:90vh;border-radius:var(--r-lg);transform:translate(-50%,16px);opacity:0;transition:transform .2s,opacity .2s}
   .sheet-wrap.open .sheet{transform:translate(-50%,0);opacity:1}
@@ -587,7 +591,7 @@ body.busy::after{content:"";position:fixed;top:0;left:0;right:0;height:3px;z-ind
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>'use strict';
-const VERSION = '0.20';
+const VERSION = '0.20.1';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -3676,6 +3680,10 @@ function shareCaption(r) {
     const gf = goalFor(r), n = membersOf(r).length;
     return `Update on my ${r.name} breeding project: ${n} tagged so far.${gf ? `\nThe goal (v${gf.g.v}): ${gf.g.statement}` : ''}\n\n${base} ${hashTag(topProject(r).name.replace(/\(.*?\)/g, ''))}${tail}`;
   }
+  if (r.type === 'note') {
+    const about = get(r.refId), t = (r.text || '').trim();
+    return `${t || (about ? title(about) : 'From my garden today')}\n\n${base}${tail}`;
+  }
   return `${title(r)}\n\n${base}${tail}`;
 }
 async function shareCardForRecord(r) {
@@ -3702,6 +3710,10 @@ async function shareCardForRecord(r) {
     const gf = goalFor(r);
     const photo = pid || (best && coverOf(best.i));
     return drawShareCard({ photoId: photo, frame: pid ? fr : best && frameOf(best.i), tagText: r.code || r.name, title: r.name, subtitle: r.species || '', body: gf ? gf.g.statement : '', stats: [['Tagged', members.length], ['Generations', gens.length || null], best ? [`Best: ${best.i.code}`, best.s] : ['Crosses', crossesOf(r).length]], kind: r.kind });
+  }
+  if (r.type === 'note') {
+    const about = get(r.refId);
+    return drawShareCard({ photoId: r.photoIds?.[0] || null, frame: fr, tagText: about?.code || fmtDate(r.date), title: about ? title(about) : '', subtitle: about ? fmtDate(r.date) : '', body: (r.text || '').trim(), stats: [], kind: kindOf(about || r) });
   }
   return drawShareCard({ photoId: pid, frame: fr, tagText: title(r), title: '', stats: [], kind: kindOf(r) });
 }
@@ -4765,7 +4777,7 @@ function potUpSheet(id) {
   const lot = get(t.lotId), s = get(t.strainId), p = get(t.projectId);
   const [m, f] = lot ? parentsOf(lot) : [null, null];
   const gen = suggestGen(m, f);
-  const schemes = [...(p && on('projects') ? [['project', `Project tags (${suggestCode(p.id, gen, 'plant')} and on)`]] : []), ['variety', `Variety name (${nameCode(t.strainId, 'plant')} and on)`], ['tray', `Tray and cell (${t.code}-${ready[0]})`]];
+  const schemes = [['tag', `Tag (${suggestCode(p?.id || '', gen, 'plant', undefined, t.strainId)} and on)`], ...(p && on('projects') ? [['project', `Project tags (${suggestCode(p.id, gen, 'plant')} and on)`]] : []), ['variety', `Variety name (${nameCode(t.strainId, 'plant')} and on)`], ['tray', `Tray and cell (${t.code}-${ready[0]})`]];
   const { el, form } = formSheet(`Pot up from ${t.code}`, `
     <p class="muted" style="margin-top:0">Choose the seedlings you're keeping. Each becomes a plant with its own label and photo history, sown ${h(fmtDate(t.date))}.</p>
     <div class="pickbox">${ready.map(k => `<label class="chk"><input type="checkbox" data-pick-cell="${k}" checked><span>Cell ${k}</span></label>`).join('')}</div>
@@ -4778,7 +4790,7 @@ function potUpSheet(id) {
       if (!picks.length) throw new Error('Tick at least one seedling');
       const made = [];
       for (const k of picks) {
-        const code = d.scheme === 'project' ? suggestCode(p.id, gen, 'plant') : d.scheme === 'tray' ? `${t.code}-${k}` : nameCode(t.strainId, 'plant');
+        const code = d.scheme === 'tag' ? suggestCode(p?.id || '', gen, 'plant', undefined, t.strainId, { motherId: m?.id, date: t.date }) : d.scheme === 'project' ? suggestCode(p.id, gen, 'plant') : d.scheme === 'tray' ? `${t.code}-${k}` : nameCode(t.strainId, 'plant');
         const ind = { id: uid(), type: 'individual', code, name: '', strainId: t.strainId || '', projectId: t.projectId || '', generation: gen || '', sex: '', motherId: m?.id || '', fatherId: f?.id || '', stockId: t.lotId || '', startDate: t.date, status: 'Active', placeId: d.placeId || '', description: '', scores: {}, trayId: t.id, trayCell: k };
         await save(ind); made.push(ind);
         t.cells = { ...(t.cells || {}), [k]: { ...cellOf(t, k), s: 'potted', indId: ind.id, potted: today() } };
@@ -5515,6 +5527,7 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.20.1': ['Breeding plan: adding a cross now starts with the time period, then both parents, then how many offspring to grow out next period. Boxes show the quantity, like x12.','Breeding plan: tapping boxes and lines works on touch screens again, and the zoom buttons no longer cover the boxes. You can now change the real plant or animal a box is locked to.','New plant has a How many? field. Several plants are made at once, each with its own tag, and a pop-up lists their IDs.','Potting up seedlings now gives them tags like BF-P01, the same as New plant.','You can share a Log entry (photo and note), with the Lineage Tracker credit on it.','Pop-ups are easier to use on phones: they fit above the keyboard and scroll.'],
   '0.20': ['Breeding plan: plan a project before you know which plants you will use, as a table or a graph. Open a project and tap Breeding plan.', 'Scan the front and the back of a seed packet, and label photos as seedling, flower, harvest and more.', 'The "Made with Lineage Tracker" credit on shared pictures is now always on.'],
   '0.13': ['Send feedback, find help and read how your data is handled, from Settings, Help and feedback.', 'A short "what\'s new" like this after each update.', 'If something goes wrong, a bar appears with details you can copy into a bug report.'],
   '0.12': ['Workspaces: examples, shared libraries and your own lists, kept separate.', 'Pedigree certificates, provenance sheets and cross codes.', 'Imperial units, weather-station import and passphrase protection for sync.'],
@@ -7559,7 +7572,11 @@ Object.assign(ICON, {
   undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
 });
-const PLAN_SPANS = [['', 'Length not set'], ['3 months', '3 months'], ['6 months', '6 months'], ['1 year', '1 year'], ['2 years', '2 years'], ['3 years', '3 years'], ['5 years', '5 years']];
+const PLAN_SPANS = [['', 'Length not set'], ['1 week', '1 week'], ['2 weeks', '2 weeks'], ['4 weeks', '4 weeks'], ['6 weeks', '6 weeks'], ['8 weeks', '8 weeks'], ['12 weeks', '12 weeks'], ['3 months', '3 months'], ['6 months', '6 months'], ['1 year', '1 year'], ['2 years', '2 years'], ['3 years', '3 years'], ['5 years', '5 years'], ['__custom', 'Your own length...']];
+const PLAN_UNITS = [['days', 'days'], ['weeks', 'weeks'], ['months', 'months'], ['years', 'years']];
+/* "10 weeks" -> { n: 10, u: 'weeks' } for any length typed in; null if the label is not of that form */
+const planSpanParts = t => { const m = /^(\d+(?:\.\d+)?)\s*(day|week|month|year)s?$/i.exec(String(t || '').trim()); return m ? { n: +m[1], u: m[2].toLowerCase() + 's' } : null; };
+const planSpanText = (n, u) => { n = +n; const one = u.replace(/s$/, ''); return `${n} ${n === 1 ? one : one + 's'}`; };
 const PLAN_KIND = { plant: 'Plant', animal: 'Animal', group: 'Block or pen' };
 const PLAN_LINE = { cross: 'Cross (two plants or animals)', grow: 'Grown on (seed or young grown as the next one)', release: 'Goes into a block or pen' };
 const PLAN = { pid: null, link: null, undo: [], scale: 1, tx: 0, ty: 0, fitted: false };
@@ -7568,6 +7585,7 @@ const PL = { W: 132, H: 58, GAP: 44, LANE_H: 176, TOP: 12, LEFT: 18 };
 const bplanOf = p => { const x = (p && p.plan) || {}; return { v: 1, periods: x.periods || [], nodes: x.nodes || [], edges: x.edges || [] }; };
 const planNodeRec = n => (n && n.refId ? get(n.refId) : null);
 const planNodeName = n => { if (!n) return '?'; const r = planNodeRec(n); return r ? title(r) : (n.label || (n.kind === 'group' ? 'Block or pen' : n.kind === 'animal' ? 'An animal' : 'A plant')); };
+const planNodeLabel = n => planNodeName(n) + (+n.qty > 1 ? ` ×${+n.qty}` : '');
 const planPeriodName = (plan, n) => (plan.periods.find(x => x.id === n.periodId) || {}).name || '';
 const nextPeriodName = name => { const m = /^(.*?)(\d+)\s*$/.exec(name || ''); return m ? m[1] + (+m[2] + 1) : (name ? name + ' (next)' : 'Next period'); };
 const planDirText = e => (e.kind === 'cross' ? ({ one: 'One way', two: 'Two ways', self: 'Selfed' }[e.dir] || 'One way') : e.kind === 'grow' ? 'Grown on' : 'Goes into');
@@ -7629,15 +7647,16 @@ async function planStart(pid, withFounders) {
   render();
 }
 /* Add the next plant for a new cross: one placeholder per seed parent, in the following period */
-async function planAddNext(pid, edgeId) {
+async function planAddNext(pid, edgeId, qty) {
   let added = 0;
   await planChange(pid, pl => {
     const e = pl.edges.find(x => x.id === edgeId); if (!e) return;
     const A = pl.nodes.find(n => n.id === e.from), B = pl.nodes.find(n => n.id === e.to) || A; if (!A) return;
-    const idx = Math.max(pl.periods.findIndex(x => x.id === A.periodId), pl.periods.findIndex(x => x.id === B.periodId));
+    const idx = e.periodId && pl.periods.some(x => x.id === e.periodId) ? pl.periods.findIndex(x => x.id === e.periodId) : Math.max(pl.periods.findIndex(x => x.id === A.periodId), pl.periods.findIndex(x => x.id === B.periodId));
     let per = pl.periods[idx + 1];
     if (!per) { const cur = pl.periods[idx] || {}; per = { id: uid(), name: nextPeriodName(cur.name), span: cur.span || '' }; pl.periods.push(per); }
-    const mk = (seed, label) => { const n = { id: uid(), periodId: per.id, kind: seed.kind === 'animal' ? 'animal' : 'plant', label, via: e.id }; pl.nodes.push(n); pl.edges.push({ id: uid(), kind: 'grow', from: seed.id, to: n.id, via: e.id }); added++; };
+    const q = Math.max(1, Math.round(+qty || 1));
+    const mk = (seed, label) => { const n = { id: uid(), periodId: per.id, kind: seed.kind === 'animal' ? 'animal' : 'plant', label, via: e.id }; if (q > 1) n.qty = q; pl.nodes.push(n); pl.edges.push({ id: uid(), kind: 'grow', from: seed.id, to: n.id, via: e.id }); added++; };
     const nA = planNodeName(A), nB = planNodeName(B);
     if (e.dir === 'self' || A.id === B.id) mk(A, `${nA} selfed`);
     else if (e.dir === 'two') { mk(A, `${nA} × ${nB}`); mk(B, `${nB} × ${nA}`); }
@@ -7699,16 +7718,28 @@ function planPeriodSheet({ pid, id }) {
   if (!pe) return;
   const count = id ? plan.nodes.filter(n => n.periodId === id).length : 0;
   const { el } = formSheet(id ? 'Edit time period' : 'New time period', `
-    ${F.text('name', 'Name', pe.name, 'e.g. Year 1, Spring 2027')}
-    ${F.select('span', 'How long', pe.span || '', PLAN_SPANS)}
+    ${F.text('name', 'Name', pe.name, 'e.g. Year 1, Spring 2027, Generation 1')}
+    ${F.select('span', 'How long', !pe.span || PLAN_SPANS.some(o => o[0] === pe.span) ? (pe.span || '') : '__custom', PLAN_SPANS)}
+    <div class="two" id="spanCustom">${F.text('spanN', 'How many', (planSpanParts(pe.span) || {}).n ?? '', 'e.g. 10')}${F.select('spanU', 'Days, weeks, months or years', (planSpanParts(pe.span) || { u: 'weeks' }).u, PLAN_UNITS)}</div>
+    <p class="hint">Short periods suit fast cycles, such as indoor growing with controlled light. You can make them as short as a few days.</p>
+    ${id ? '' : F.text('howMany', 'How many to add', '1', 'e.g. 4')}
     ${id ? `<div class="actions tight"><button type="button" class="btn sm" data-pmv="-1">Move earlier</button><button type="button" class="btn sm" data-pmv="1">Move later</button><button type="button" class="btn sm danger" data-pdel>Delete this period</button></div>` : ''}`, {
     saveLabel: id ? 'Save' : 'Add',
     onSave: async d => {
       if (!d.name) throw new Error('Give the period a name');
-      await planChange(pid, pl => { if (id) Object.assign(pl.periods.find(x => x.id === id), { name: d.name, span: d.span }); else pl.periods.push({ id: uid(), name: d.name, span: d.span }); });
-      closeSheet(); render(); toast(id ? 'Saved' : 'Period added');
+      let span = d.span;
+      if (span === '__custom') { const n = parseFloat(d.spanN); if (!(n > 0) || n > 999) throw new Error('Type how many days, weeks, months or years'); span = planSpanText(n, d.spanU); }
+      const many = id ? 1 : Math.max(1, Math.min(24, parseInt(d.howMany, 10) || 1));
+      await planChange(pid, pl => {
+        if (id) { Object.assign(pl.periods.find(x => x.id === id), { name: d.name, span }); return; }
+        let nm = d.name; for (let i = 0; i < many; i++) { pl.periods.push({ id: uid(), name: nm, span }); nm = nextPeriodName(nm); }
+      });
+      closeSheet(); render(); toast(id ? 'Saved' : many > 1 ? `${many} periods added` : 'Period added');
     },
   });
+  const spanSel = $('select[name=span]', el), custom = $('#spanCustom', el);
+  const showCustom = () => { custom.hidden = spanSel.value !== '__custom'; };
+  spanSel.addEventListener('change', showCustom); showCustom();
   el.addEventListener('click', async e => {
     const mv = e.target.closest('[data-pmv]');
     if (mv) { await planChange(pid, pl => { const i = pl.periods.findIndex(x => x.id === id), j = i + +mv.dataset.pmv; if (j >= 0 && j < pl.periods.length) [pl.periods[i], pl.periods[j]] = [pl.periods[j], pl.periods[i]]; }); render(); toast('Moved'); return; }
@@ -7731,8 +7762,9 @@ function planNodeSheet({ pid, id, preset = {} }) {
   const { el } = formSheet(id ? (group ? 'Edit block or pen' : 'Edit plant or animal') : (group ? 'New block or pen' : n.kind === 'animal' ? 'New animal' : 'New plant'), `
     ${F.text('label', group ? 'Name' : 'What is it?', n.label, group ? 'e.g. Open pollination block' : n.kind === 'animal' ? 'e.g. a Welsummer hen' : 'e.g. orange-fleshed maxima')}
     <div class="two">${locked ? `<input type="hidden" name="kind" value="${h(n.kind)}">` : F.select('kind', 'Type', n.kind, kinds)}${F.select('periodId', 'Time period', n.periodId, plan.periods.map(x => [x.id, x.name]))}</div>
-    ${locked ? `<div class="notice"><b>Locked in:</b> <a href="${link(rec)}">${h(title(rec))}</a>. To change it, delete this box and add it again. Your real record is never deleted by the plan.</div>`
-      : group ? '' : `<div id="bindBox">${F.ref('refId', 'Choose the real one now (optional)', n.refId, parentGroups(), 'Choose later')}<p class="hint">Once chosen it is locked in and stays attached.</p></div>`}
+    ${group ? '' : `<label class="fld"><span>How many (to grow out)</span><input type="number" name="qty" min="1" max="999" inputmode="numeric" value="${+n.qty > 1 ? +n.qty : 1}"></label>`}
+    ${locked ? `<div class="notice"><b>Locked in:</b> <a href="${link(rec)}">${h(title(rec))}</a>. Your real record is never deleted by the plan.${id ? ' <button type="button" class="btn sm" data-unlock>Change the real plant or animal</button>' : ''}</div>`
+      : group ? '' : `<div id="bindBox"><label class="fld"><span>Choose the real one now (optional): what kind</span><select name="bindType"></select></label><label class="fld" id="bindWhichBox" hidden><span>Which one</span><select name="refId"></select></label><p class="hint">Only kinds you have tagged plants or animals of are listed. Once chosen it is locked in and stays attached.</p></div>`}
     ${F.area('note', 'Notes', n.note, 'Why this one? What are you hoping for?', 2)}
     ${id ? `<div class="actions tight"><button type="button" class="btn sm" data-mv="-1">Move left</button><button type="button" class="btn sm" data-mv="1">Move right</button></div>
       <div class="actions tight"><button type="button" class="btn sm danger" data-del1>Delete this box</button>${down ? `<button type="button" class="btn sm danger" data-delb>Delete it and the ${down} planned after it</button>` : ''}</div>` : ''}`, {
@@ -7743,13 +7775,44 @@ function planNodeSheet({ pid, id, preset = {} }) {
         let node = id ? pl.nodes.find(x => x.id === id) : null;
         if (!node) { node = { id: uid() }; pl.nodes.push(node); }
         node.kind = d.kind || node.kind; node.periodId = d.periodId || node.periodId; node.label = d.label || node.label || ''; node.note = d.note || '';
+        if (node.kind !== 'group' && Math.round(+d.qty) > 1) node.qty = Math.round(+d.qty); else delete node.qty;
         if (!locked && d.refId && node.kind !== 'group') { node.refId = d.refId; node.lockedAt = Date.now(); if (!node.label) node.label = title(get(d.refId)); }
         if (!node.label && !node.refId) node.label = PLAN_KIND[node.kind];
       });
       closeSheet(); render(); toast(id ? 'Saved' : 'Added');
     },
   });
+  const typeSel = $('select[name=bindType]', el), whichSel = $('select[name=refId]', el);
+  if (typeSel && whichSel) {
+    const form = typeSel.form, opt = (v, t) => `<option value="${h(v)}">${h(t)}</option>`;
+    const kindWanted = () => (form.elements.kind ? form.elements.kind.value : n.kind);
+    const fillTypes = () => {
+      const want = kindWanted(), inds = all('individual').filter(i => kindOf(i) === want);
+      const byStrain = groupBy(inds.filter(i => get(i.strainId)), i => i.strainId), loose = inds.filter(i => !get(i.strainId));
+      const rows = Object.keys(byStrain).map(k => get(k)).sort(byName).map(sv => opt(sv.id, `${sv.name} (${byStrain[sv.id].length})`));
+      if (loose.length) rows.push(opt('__none', `Crosses and others with no variety (${loose.length})`));
+      typeSel.innerHTML = opt('', rows.length ? 'Choose later' : `No tagged ${want === 'animal' ? 'animals' : 'plants'} yet`) + rows.join('');
+      typeSel.value = ''; fillWhich();
+    };
+    const fillWhich = () => {
+      const t = typeSel.value, box = $('#bindWhichBox', el);
+      box.hidden = !t;
+      if (!t) { whichSel.innerHTML = opt('', ''); return; }
+      const want = kindWanted(), inds = all('individual').filter(i => kindOf(i) === want && (t === '__none' ? !get(i.strainId) : i.strainId === t)).sort(byCode);
+      whichSel.innerHTML = opt('', 'Choose') + (t === '__none' ? '' : opt(t, 'The variety itself, no particular one')) + inds.map(i => opt(i.id, i.code + (i.name ? ` (${i.name})` : ''))).join('');
+    };
+    typeSel.addEventListener('change', fillWhich);
+    form.elements.kind?.addEventListener('change', fillTypes);
+    fillTypes();
+  }
   el.addEventListener('click', async e => {
+    if (e.target.closest('[data-unlock]')) {
+      const lines = plan.edges.filter(x => x.from === id || x.to === id), done = lines.filter(x => planEdgeState(plan, x).state !== 'planned');
+      const crosses = all('cross').filter(c => lines.some(x => x.id === c.planEdge));
+      if (!confirm(`Change which real ${n.kind === 'animal' ? 'animal' : 'plant'} this box is attached to?\n\nIt has ${lines.length} ${lines.length === 1 ? 'line' : 'lines'}${done.length ? `, ${done.length} marked done` : ''}${crosses.length ? `, and ${crosses.length} recorded ${crosses.length === 1 ? 'cross' : 'crosses'}` : ''}. Recorded crosses keep their original parents. Lines may go back to planned until you choose again.`)) return;
+      await planChange(pid, pl => { const nd = pl.nodes.find(x => x.id === id); if (nd) { delete nd.refId; delete nd.lockedAt; } });
+      closeSheet(); render(); planNodeSheet({ pid, id }); return;
+    }
     const mv = e.target.closest('[data-mv]');
     if (mv) { await planMove(pid, id, +mv.dataset.mv); render(); toast('Moved'); return; }
     if (e.target.closest('[data-del1]') && await planDeleteNode(pid, id, false)) { closeSheet(); render(); toast('Removed from the plan'); }
@@ -7826,6 +7889,68 @@ function planEdgeSheet({ pid, id, preset = {} }) {
   });
 }
 
+/* New cross: choose the period first, then both parents, then whether to grow out the offspring and how many */
+function planCrossSheet({ pid, preset = {} }) {
+  const p = get(pid), plan = bplanOf(p);
+  const parents = plan.nodes.filter(n => n.kind !== 'group');
+  if (!parents.length) { toast('Add a plant or animal to the plan first'); return; }
+  const idx = id => plan.periods.findIndex(x => x.id === id);
+  const pn = preset.from && plan.nodes.find(n => n.id === preset.from);
+  const withBoxes = plan.periods.filter(pe => parents.some(n => n.periodId === pe.id));
+  const per0 = preset.periodId || (pn && pn.periodId) || (withBoxes[withBoxes.length - 1] || plan.periods[0]).id;
+  const mode = S.settings.planNext;
+  const { el, form } = formSheet('Add a cross', `
+    ${F.select('periodId', '1. When is this cross made?', per0, plan.periods.map(x => [x.id, x.name + (x.span ? ` (${x.span})` : '')]))}
+    ${F.check('earlier', 'Also show parents from earlier periods', false)}
+    ${F.select('from', '2. Seed parent (mother or dam)', preset.from || '', [])}
+    ${F.select('dir', 'How', preset.dir || 'one', [['one', 'One way: the first is the seed parent'], ['two', 'Two ways: crossed both directions'], ['self', 'Selfed: bred with itself']])}
+    ${F.select('to', 'Pollen parent (father or sire)', preset.to || '', [])}
+    <div class="notice" id="gBox">
+      ${F.check('grow', '3. Grow out the offspring in the next period', mode !== 'no')}
+      <label class="fld" id="qtyBox"><span>How many of each to grow out?</span><input type="number" name="qty" min="1" max="999" inputmode="numeric" value="1"></label>
+      <p class="hint" id="gHint"></p>
+      ${F.check('remember', 'Remember my choice about growing out and do not ask again', false)}
+    </div>
+    ${F.area('note', 'Notes', '', 'Why this cross? What are you hoping for?', 2)}`, {
+    saveLabel: 'Add cross',
+    onSave: async d => {
+      const self = d.dir === 'self', to = self ? d.from : d.to;
+      if (!d.from) throw new Error('Choose the seed parent');
+      if (!to) throw new Error('Choose the pollen parent');
+      if (!self && d.from === to) throw new Error('Choose two different parents, or pick Selfed');
+      if (plan.edges.some(x => x.kind === 'cross' && x.from === d.from && x.to === to && (x.periodId || '') === d.periodId)) throw new Error('That cross is already in this period');
+      let newId = '';
+      await planChange(pid, pl => { const ed = { id: uid(), kind: 'cross', dir: d.dir, from: d.from, to, periodId: d.periodId, note: d.note || '', bend: 0, done: false }; pl.edges.push(ed); newId = ed.id; });
+      if ($('input[name=remember]', el).checked) { S.settings.planNext = d.grow ? 'yes' : 'no'; await saveSettings(); }
+      let n = 0;
+      if (d.grow) n = await planAddNext(pid, newId, d.qty);
+      closeSheet(); render(); toast(n ? (n > 1 ? 'Cross and next plants added' : 'Cross and next plant added') : 'Cross added');
+    },
+  });
+  const fromSel = form.elements.from, toSel = form.elements.to;
+  const fill = () => {
+    const per = form.elements.periodId.value, upto = idx(per), earlier = form.elements.earlier.checked;
+    const list = parents.filter(n => (earlier ? idx(n.periodId) <= upto : n.periodId === per));
+    const html = cur => `<option value="">Choose</option>` + list.map(n => `<option value="${h(n.id)}"${n.id === cur ? ' selected' : ''}>${h(planNodeLabel(n))}${earlier ? ` (${h(planPeriodName(plan, n))})` : ''}</option>`).join('');
+    const a = fromSel.value, b = toSel.value;
+    fromSel.innerHTML = html(a); toSel.innerHTML = html(b);
+    if (!list.length) { fromSel.innerHTML = `<option value="">Nothing in this period yet</option>`; toSel.innerHTML = fromSel.innerHTML; }
+  };
+  const sync = () => {
+    const dir = form.elements.dir.value, per = form.elements.periodId.value;
+    toSel.closest('.fld').hidden = dir === 'self';
+    const next = plan.periods[idx(per) + 1], two = dir === 'two';
+    form.elements.qty.closest('.fld').hidden = !form.elements.grow.checked;
+    $('#gHint', el).textContent = form.elements.grow.checked ? `${two ? 'Two boxes are added' : 'A box is added'} in ${next ? next.name : nextPeriodName((plan.periods[idx(per)] || {}).name) + ' (a new period)'} for the offspring.` : 'Nothing is added to the plan. You can add it later.';
+  };
+  // Keep chosen parents when the list is rebuilt: seed the selects before the first fill
+  fromSel.innerHTML = `<option value="${h(preset.from || '')}"></option>`; toSel.innerHTML = `<option value="${h(preset.to || '')}"></option>`;
+  fill();
+  form.elements.periodId.addEventListener('change', () => { fromSel.value = ''; toSel.value = ''; fill(); sync(); });
+  form.elements.earlier.addEventListener('change', fill);
+  form.addEventListener('change', sync); sync();
+}
+
 function planAddSheet(pid) {
   const p = get(pid);
   const items = [];
@@ -7841,7 +7966,7 @@ function planAddSheet(pid) {
     const k = b.dataset.add; closeSheet();
     if (k === 'period') { planPeriodSheet({ pid }); return; }
     await planEnsurePeriod(pid);
-    if (k === 'cross') { planEdgeSheet({ pid, preset: { kind: 'cross' } }); return; }
+    if (k === 'cross') { planCrossSheet({ pid }); return; }
     planNodeSheet({ pid, preset: { kind: k } });
   });
 }
@@ -7852,7 +7977,8 @@ function planLineSheet(pid) {
     const kind = b.dataset.line; closeSheet();
     const plan = bplanOf(get(pid));
     if (plan.nodes.length < (kind === 'cross' ? 1 : 2)) { toast('Add the boxes first with the + button'); return; }
-    if (planView() === 'graph') { PLAN.link = { kind, step: 0, from: null }; render(); }
+    if (kind === 'cross') planCrossSheet({ pid });
+    else if (planView() === 'graph') { PLAN.link = { kind, step: 0, from: null }; render(); }
     else planEdgeSheet({ pid, preset: { kind } });
   });
 }
@@ -7881,7 +8007,7 @@ function planTable(p, plan) {
     const es = plan.edges.filter(e => ids.has(e.from));
     return `<section class="plan-lane"><div class="sec-head"><h2>${h(pe.name)}${pe.span ? ` <span class="chip">${h(pe.span)}</span>` : ''}</h2><button type="button" class="linkish" data-act="bpPeriod" data-id="${pe.id}">Edit</button></div>
       ${ns.length ? `<ul class="list">${ns.map(n => { const r = planNodeRec(n); const sub = [PLAN_KIND[n.kind], r && n.label && n.label !== title(r) ? `planned as ${n.label}` : '', n.note].filter(Boolean).join(', ');
-        return `<li><a class="row" href="#" data-act="bpNode" data-id="${n.id}"><span class="main"><span class="t">${h(planNodeName(n))}</span><span class="s">${h(sub)}</span></span><span class="chip${r ? ' ok' : ''}">${r ? 'Locked in' : n.kind === 'group' ? 'Block' : 'To be chosen'}</span></a></li>`; }).join('')}</ul>` : '<p class="muted small">Nothing in this period yet.</p>'}
+        return `<li><a class="row" href="#" data-act="bpNode" data-id="${n.id}"><span class="main"><span class="t">${h(planNodeLabel(n))}</span><span class="s">${h(sub)}</span></span><span class="chip${r ? ' ok' : ''}">${r ? 'Locked in' : n.kind === 'group' ? 'Block' : 'To be chosen'}</span></a></li>`; }).join('')}</ul>` : '<p class="muted small">Nothing in this period yet.</p>'}
       ${es.length ? `<h3 class="tier-h">Lines</h3><ul class="list">${es.map(e => { const s = planEdgeState(plan, e);
         return `<li><a class="row" href="#" data-act="bpEdge" data-id="${e.id}"><span class="main"><span class="t">${h(planEdgeTitle(plan, e))}</span><span class="s">${h(planDirText(e))}${e.note ? ', ' + h(e.note) : ''}</span></span><span class="chip${s.state === 'done' ? ' ok' : s.state === 'failed' ? ' warn' : ''}">${h(s.text)}</span></a></li>`; }).join('')}</ul>` : ''}
       <div class="actions tight"><button type="button" class="btn sm" data-act="bpAddIn" data-id="${pe.id}">${ic('plus')}Add a plant or animal here</button></div></section>`;
@@ -7968,7 +8094,8 @@ function pBplan(id) {
   const summary = `<p class="small muted">${plan.nodes.length} ${plan.nodes.length === 1 ? 'box' : 'boxes'}, ${plan.edges.length} ${plan.edges.length === 1 ? 'line' : 'lines'}${plan.edges.length ? `, ${made} done` : ''}.</p>`;
   if (view === 'table') return `${head}${banner}${summary}${planTable(p, plan)}`;
   return `${head}${banner}<div class="tree-wrap plan-graph" id="planWrap"><svg id="planSvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Breeding plan graph. Use the Table view for a list."></svg>
-    <div class="tree-ctrl"><button type="button" class="icon-btn" data-tz="in" aria-label="Zoom in">${ic('plus')}</button><button type="button" class="icon-btn" data-tz="out" aria-label="Zoom out">${ic('minus')}</button><button type="button" class="icon-btn" data-tz="fit" aria-label="Fit to screen">${ic('fit')}</button></div></div>
+    </div>
+    <div class="plan-zoom"><button type="button" class="icon-btn" data-tz="in" aria-label="Zoom in">${ic('plus')}</button><button type="button" class="icon-btn" data-tz="out" aria-label="Zoom out">${ic('minus')}</button><button type="button" class="icon-btn" data-tz="fit" aria-label="Fit to screen">${ic('fit')}</button></div>
     <div class="tree-legend"><span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="var(--tag)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 7"/></svg>Planned</span><span><svg width="34" height="10" aria-hidden="true"><line x1="2" y1="5" x2="32" y2="5" stroke="var(--tag)" stroke-width="3" stroke-linecap="round"/></svg>Done</span><span><svg width="22" height="14" aria-hidden="true"><rect x="1" y="1" width="20" height="12" rx="3" fill="none" stroke="var(--muted)" stroke-dasharray="3 2"/></svg>To be chosen</span><span><svg width="22" height="14" aria-hidden="true"><rect x="1" y="1" width="20" height="12" rx="3" fill="var(--sunk)" stroke="var(--tag)" stroke-width="2"/></svg>Locked in</span></div>
     ${summary}<p class="hint">Drag to move around, pinch to zoom. Tap a box or a line to open it. Use the Line button below to draw a cross.</p>`;
 }
@@ -8014,7 +8141,7 @@ function mountPlan(pid) {
   }
   for (const n of plan.nodes) {
     const q = lay.pos.get(n.id); if (!q) continue;
-    const r = planNodeRec(n), name = planNodeName(n), group = n.kind === 'group', src = PLAN.link && PLAN.link.from === n.id;
+    const r = planNodeRec(n), name = planNodeLabel(n), group = n.kind === 'group', src = PLAN.link && PLAN.link.from === n.id;
     const stroke = src ? C.ink : r ? C.tag : C.muted, sw = src ? 3.4 : r ? 2.4 : 1.6;
     const fill = group ? C.sunk : r ? mix(C.card, C.tag, 0.22) : C.card;
     const sub = group ? 'block or pen' : r ? ('locked in' + (n.label && n.label !== name ? ', ' + n.label : '')) : (n.kind === 'animal' ? 'animal, to be chosen' : 'to be chosen');
@@ -8050,7 +8177,7 @@ function mountPlan(pid) {
   });
   wrap.addEventListener('pointercancel', e => { pts.delete(e.pointerId); });
   wrap.addEventListener('wheel', e => { e.preventDefault(); const r = wrap.getBoundingClientRect(); zoomAt(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
-  $('.tree-ctrl', wrap).addEventListener('click', e => { const b = e.target.closest('[data-tz]'); if (!b) return; if (b.dataset.tz === 'in') zoomAt(1.25, wrap.clientWidth / 2, wrap.clientHeight / 2); if (b.dataset.tz === 'out') zoomAt(0.8, wrap.clientWidth / 2, wrap.clientHeight / 2); if (b.dataset.tz === 'fit') fit(); });
+  $('.plan-zoom').addEventListener('click', e => { const b = e.target.closest('[data-tz]'); if (!b) return; if (b.dataset.tz === 'in') zoomAt(1.25, wrap.clientWidth / 2, wrap.clientHeight / 2); if (b.dataset.tz === 'out') zoomAt(0.8, wrap.clientWidth / 2, wrap.clientHeight / 2); if (b.dataset.tz === 'fit') fit(); });
 }
 function planLinkTap(pid, nodeId) {
   const L = PLAN.link; if (!L) return;
@@ -8441,12 +8568,26 @@ function sheet(titleText, body) {
   el.className = 'sheet-wrap';
   el.innerHTML = `<div class="sheet-back" data-close></div><section class="sheet" role="dialog" aria-modal="true" aria-label="${h(titleText)}"><header class="sheet-head"><h2>${h(titleText)}</h2><button type="button" class="icon-btn" data-close aria-label="Close">${ic('x')}</button></header><div class="sheet-body">${body}</div></section>`;
   document.body.appendChild(el);
-  el.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeSheet(); });
+  const born = Date.now();
+  /* A sheet opened from a tap must not be closed by the tap's own follow-up click landing on the backdrop (touch screens). */
+  el.addEventListener('click', e => { const c = e.target.closest('[data-close]'); if (!c) return; if (c.classList.contains('sheet-back') && Date.now() - born < 500) return; closeSheet(); });
+  fitSheets();
   requestAnimationFrame(() => el.classList.add('open'));
   hydrate(el);
-  setTimeout(() => $('input:not([type=hidden]),select,textarea', el)?.focus({ preventScroll: true }), 260);
+  const small = !window.matchMedia || !window.matchMedia('(min-width: 760px)').matches;
+  /* On a phone, opening the keyboard at once hides the form, so only focus automatically on larger screens. */
+  if (!small) setTimeout(() => $('input:not([type=hidden]),select,textarea', el)?.focus({ preventScroll: true }), 260);
+  el.addEventListener('focusin', e => { const t = e.target; if (!t.matches?.('input,select,textarea')) return; setTimeout(() => { try { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { /* ignore */ } }, 320); });
   return el;
 }
+/* Keep sheets inside the visible area, above the on-screen keyboard. */
+function fitSheets() {
+  const vv = window.visualViewport;
+  $$('.sheet-wrap').forEach(w => {
+    if (vv) { w.style.top = vv.offsetTop + 'px'; w.style.height = vv.height + 'px'; w.style.bottom = 'auto'; w.style.setProperty('--vvh', vv.height + 'px'); }
+  });
+}
+if (window.visualViewport) { window.visualViewport.addEventListener('resize', fitSheets); window.visualViewport.addEventListener('scroll', fitSheets); }
 function closeSheet() { $$('.sheet-wrap').forEach(e => e.remove()); }
 
 const F = {
@@ -8604,12 +8745,13 @@ function indSheet({ id, preset = {} } = {}) {
   if (!id && !i.strainId && i.stockId) i.strainId = get(i.stockId)?.strainId || '';
   if (!id && !i.generation) i.generation = suggestGen(get(i.motherId), get(i.fatherId));
   if (!id && !i.code) i.code = on('projects') && (i.projectId || levelN() >= 3) ? suggestCode(i.projectId, i.generation, kindOf(i), undefined, i.strainId, { motherId: i.motherId, crossId: i.crossId, date: i.startDate }) : nameCode(i.strainId, kindOf(i));
-  let ph;
+  let ph; let touched = false;
   const { el, form } = formSheet(id ? 'Edit' : `Add ${aOne()}`, `
     ${F.ref('strainId', 'Variety or breed', i.strainId, [{ label: 'Varieties and breeds', items: strainItems() }], 'None or mixed')}
     ${startFieldsHTML(i)}
     ${F.text('code', levelN() >= 3 ? 'Tag ID' : 'Name on its label', i.code, levelN() >= 3 ? `e.g. ${get(i.projectId)?.code || 'AB'}-F2-P04` : 'e.g. Moneymaker 1')}
     ${levelN() >= 3 ? '<p class="hint">Short and unique. Suggested from the project code and generation; change it to match your own labels.</p>' : ''}
+    ${id ? '' : `<label class="fld"><span>How many? (optional)</span><input type="number" name="howMany" min="1" max="200" inputmode="numeric" value="1"></label><p class="hint" id="hmHint" hidden>Each one gets its own tag ID, counting on from the one above.</p>`}
     <div class="two">${F.date('startDate', keepsKind('animal') && !keepsKind('plant') ? 'Born or hatched' : 'Sown or born', i.startDate)}${F.select('status', 'Status', i.status || 'Active', IND_STATUS)}</div>
     ${gate(on('places'), F.ref('placeId', 'Place (where it grows or lives)', i.placeId, [{ label: 'Places', items: placeItems() }], 'Not set'))}
     ${more(`${F.text('name', 'Nickname (optional)', i.name)}
@@ -8623,6 +8765,8 @@ function indSheet({ id, preset = {} } = {}) {
       if (!d.code) throw new Error('Give it a tag ID');
       const clash = all('individual').find(x => x.id !== id && (x.code || '').toUpperCase() === d.code.toUpperCase());
       if (clash) throw new Error(`Tag ${d.code} is already used`);
+      const howMany = id ? 1 : Math.max(1, Math.min(200, Math.round(+d.howMany) || 1)); delete d.howMany;
+      if (howMany > 1) { await addPlantBatch(d, howMany, { preset, touched, ph, auto: () => autoCodeNow(form) }); return; }
       const rec = id ? i : { ...preset, id: uid(), type: 'individual' };
       const oldPlace = id ? i.placeId : null;
       cleanStart(d); if (d.placeId === '__new') d.placeId = oldPlace || '';
@@ -8642,7 +8786,6 @@ function indSheet({ id, preset = {} } = {}) {
   mountStartFields(el, form); attachNewPlace(form.elements.placeId); mountPacketPicking(el, form);
   if (!id) {
     ph = mountPhotos(el, [], { kind: i.strainId || i.projectId || i.stockId ? kindOf(i) : keepsKind('animal') && !keepsKind('plant') ? 'animal' : keepsKind('plant') && !keepsKind('animal') ? 'plant' : 'both' });
-    let touched = false;
     const codeIn = form.elements.code;
     codeIn.addEventListener('input', () => { touched = true; });
     const refresh = () => {
@@ -8651,6 +8794,7 @@ function indSheet({ id, preset = {} } = {}) {
       if (!touched) codeIn.value = on('projects') && (form.elements.projectId.value || levelN() >= 3) ? suggestCode(form.elements.projectId.value, form.elements.generation.value, kindOf({ strainId: form.elements.strainId.value, projectId: form.elements.projectId.value }), undefined, form.elements.strainId.value, { motherId: form.elements.motherId.value, date: form.elements.startDate?.value }) : nameCode(form.elements.strainId.value, kindOf({ strainId: form.elements.strainId.value }));
     };
     form.elements.generation.addEventListener('input', () => { form.elements.generation.dataset.touched = '1'; refresh(); });
+    form.elements.howMany.addEventListener('input', () => { $('#hmHint', el).hidden = !(+form.elements.howMany.value > 1); });
     ['projectId', 'strainId', 'motherId', 'fatherId'].forEach(k => form.elements[k].addEventListener('change', refresh));
     form.elements.stockId.addEventListener('change', () => {
       const lot = get(form.elements.stockId.value); if (!lot) return;
@@ -8661,6 +8805,47 @@ function indSheet({ id, preset = {} } = {}) {
       refresh();
     });
   }
+}
+
+/* The tag the New plant form would suggest right now (used to count on through a batch) */
+function autoCodeNow(form) {
+  const e = form.elements;
+  return on('projects') && (e.projectId.value || levelN() >= 3) ? suggestCode(e.projectId.value, e.generation.value, kindOf({ strainId: e.strainId.value, projectId: e.projectId.value }), undefined, e.strainId.value, { motherId: e.motherId.value, date: e.startDate?.value }) : nameCode(e.strainId.value, kindOf({ strainId: e.strainId.value }));
+}
+/* Count a typed tag on: AB-P04 -> AB-P05, "Moneymaker 1" -> "Moneymaker 2", otherwise add -2, -3 */
+function nextTypedCode(code, used) {
+  const m = /^(.*?)(\d+)$/.exec(code);
+  for (let n = 1; n < 1000; n++) {
+    const c = m ? m[1] + String(+m[2] + n).padStart(m[2].length, '0') : `${code}-${n + 1}`;
+    if (!used.has(c.toUpperCase())) return c;
+  }
+  return code + '-' + uid().slice(0, 4);
+}
+async function addPlantBatch(d, howMany, { preset, touched, ph, auto }) {
+  const used = new Set(all('individual').map(x => (x.code || '').toUpperCase()));
+  const made = [];
+  let prev = d.code;
+  for (let k = 0; k < howMany; k++) {
+    let code = k === 0 ? d.code : (touched ? nextTypedCode(prev, used) : auto());
+    if (used.has(code.toUpperCase())) code = nextTypedCode(code, used);
+    used.add(code.toUpperCase()); prev = code;
+    const x = { ...d }; cleanStart(x); if (x.placeId === '__new') x.placeId = '';
+    const rec = { ...preset, id: uid(), type: 'individual', ...x, code };
+    if (KEPT.includes(rec.status) && !rec.goalV) { const gf = goalFor(get(rec.projectId)); if (gf) rec.goalV = gf.g.v; }
+    if (rec.stockId && !rec.motherId && !rec.fatherId) { const [m, f] = parentsOf(get(rec.stockId)); rec.motherId = m?.id || ''; rec.fatherId = f?.id || ''; }
+    if (rec.stockId && !rec.strainId) rec.strainId = get(rec.stockId)?.strainId || '';
+    await save(rec); made.push(rec);
+    if (ph?.ids.length) { const first = { id: uid(), type: 'note', refId: rec.id, date: today(), text: '', photoIds: ph.ids }; const tg = ph.tagMap(); if (Object.keys(tg).length) first.photoTags = tg; await save(first); }
+  }
+  closeSheet(); render();
+  idsSheet(made, `${made.length} added`);
+}
+/* One pop-up listing the ID of each new plant, with a Close button at the bottom */
+function idsSheet(recs, heading) {
+  const el = sheet('IDs for each plant', `<p class="muted" style="margin-top:0">${h(heading)}. Write these on your labels.</p>
+    <ul class="list">${recs.map(r => `<li><a class="row" href="${link(r)}" data-close><span class="main"><span class="t">${h(r.code)}</span><span class="s">${h(get(r.strainId)?.name || r.name || '')}</span></span></a></li>`).join('')}</ul>
+    <div class="actions sheet-actions"><button type="button" class="btn primary" data-close>Close</button></div>`);
+  return el;
 }
 
 function traitRow(t = { name: '', tier: 2, must: false }) {
@@ -8757,7 +8942,8 @@ function noteSheet({ id, refId } = {}) {
     ${F.ref('refId', 'About', n.refId, anyGroups(), 'General note, not linked')}
     ${F.date('date', 'Date', n.date)}
     ${F.area('text', 'Note', n.text, 'What did you notice? Flowering, fruit set, weights, behaviour, health, flavour...', 5)}
-    ${photoField()}`, {
+    ${photoField()}
+    ${id ? '<div class="actions tight"><button type="button" class="btn" data-sharenote>Share this entry</button></div>' : ''}`, {
     onSave: async d => {
       if (!d.text && !ph.ids.length) throw new Error('Write something or add a photo');
       const rec = id ? n : { id: uid(), type: 'note' };
@@ -8767,6 +8953,7 @@ function noteSheet({ id, refId } = {}) {
     onDelete: id && (async () => { await removeRec(id); return null; }),
   });
   ph = mountPhotos(el, n.photoIds, { tags: n.photoTags, kind: labelKindFor(n) });
+  $('[data-sharenote]', el)?.addEventListener('click', () => { closeSheet(); shareRecord(id); });
 }
 
 function captureSheet() {
