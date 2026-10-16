@@ -3,6 +3,15 @@
 ## Unreleased (examples only, no code change)
 - The three built-in examples now include sample pictures (drawings tagged SAMPLE IMAGE) with photo labels, front and back photos on the squash packets, a Log note that is not linked to anything, and a Breeding plan on each example project (periods, locked-in and planned boxes, planned and recorded crosses, quantity boxes, a block or pen). Built by `tools/make_example_media.py` after `tools/make_examples.py`.
 
+## 0.27.0 (no data format change; new sync settings `keepRule`, `lastSnapshotDay`)
+- Automatic backups (`js35.js`): while sync is on, `maybeSnapshot()` makes one records backup a day (was weekly) in the sync folder's snapshots folder, named `lineage-records-YYYY-MM-DD.json` (sealed when sync is passphrase-protected). Photos are not duplicated: they are already synced one by one.
+- Tidying: `backupsToKeep(names, rule)` keeps the newest backup of each of the last d days, w ISO weeks and m months (rules: 7/4/12 default, 14/8/24, last 10, keep all), plus every "keep forever" file (name ends `-keep.json`) and anything without a date. Replaces the old keep-8 rule. Only files in Lineage Tracker's own folder are touched.
+- Settings, Sync across devices: a list of backups with date and size, Restore (merges like restoring a file, undoable), Keep forever / Stop keeping (renames the file so every device respects it), Delete, and the keep rule. Providers gained `getSnapshot`, `renameSnapshot` and `size` in `listSnapshots` (Drive and Dropbox).
+- Settings, Backups explains that each Back up now is a new file (keep the newest two or three), or that automatic backups are on.
+
+## 0.26.1 (no data format change)
+- Settings, Backups shows whether the browser keeps the records permanently (`navigator.storage.persisted()`), the space used (`estimate()`), and an Ask again button (`persist()`). On iPhone and iPad, when not opened from the Home Screen, it explains how to add it first. `mountPersist()` in `js34.js`, called from `render()` on the settings page. The request on every start (in `init`) is unchanged.
+
 ## 0.26.0 (data format: new record type `ltdesign`; new settings only)
 - LT-Print designs in the app (`js34.js`). Labels page, Design: add a `.ltprint` file made in LT-Print (tools.lineagetracker.org). It is checked and cleaned with `ltpClean()` (same rules as LT-Print's `cleanTemplate`), kept as a record `{ type: 'ltdesign', name, design, from }` (so backups and sync carry it), filled in from the ticked plants, animals, lots, places or trays (`ltpRowOf`), and printed offline.
 - No account and no internet are needed to use a design. The design's fonts are embedded in the printed page as data URLs, so "Save as a file" gives a self-contained sheet.

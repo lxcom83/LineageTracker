@@ -627,6 +627,7 @@ body.busy::after{content:"";position:fixed;top:0;left:0;right:0;height:3px;z-ind
 @keyframes busy{from{background-position:-50% 0}to{background-position:150% 0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 @media (max-width:380px){.two{grid-template-columns:1fr}.capture-grid{grid-template-columns:1fr}.cap-btn.big{grid-row:auto}}
+.snapbox{margin-top:16px;border-top:1px solid var(--line,#ddd);padding-top:12px}.snaps{list-style:none;margin:8px 0;padding:0}.snaps li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;padding:6px 0;border-bottom:1px solid var(--line,#eee)}
 </style>
 </head>
 <body>
@@ -724,7 +725,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.26.0';
+const VERSION = '0.27.0';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -2707,7 +2708,9 @@ const GDRIVE = {
   },
   putPhoto: (id, size, data, enc, ex) => driveUpload({ id: ex, name: `${id}${size === 'thumb' ? '-thumb' : ''}.jpg`, parents: [S.sync.photosFolderId], appProperties: { lineageRole: 'photo', photoId: id, size, enc: enc ? '1' : '0' }, mime: enc ? 'application/octet-stream' : 'image/jpeg', data }),
   async getPhoto(h) { return (await api('GET', `${DRIVE}/${h}?alt=media`, { raw: true })).blob(); },
-  async listSnapshots() { return (await listAll(roleQ('snapshot', S.sync.snapsFolderId), 'files(id,name)')).map(f => ({ h: f.id, name: f.name })); },
+  async listSnapshots() { return (await listAll(roleQ('snapshot', S.sync.snapsFolderId), 'files(id,name,size)')).map(f => ({ h: f.id, name: f.name, size: f.size != null ? +f.size : null })); },
+  async getSnapshot(h) { return (await api('GET', `${DRIVE}/${h}?alt=media`, { raw: true })).blob(); },
+  renameSnapshot: (h, name) => api('PATCH', `${DRIVE}/${h}?fields=id`, { body: JSON.stringify({ name }), headers: { 'Content-Type': 'application/json' } }),
   putSnapshot: (name, data) => driveUpload({ name, parents: [S.sync.snapsFolderId], appProperties: { lineageRole: 'snapshot' }, mime: 'application/json', data }),
   del: h => api('DELETE', `${DRIVE}/${h}`),
   revoke() { try { if (SYNC.token && window.google?.accounts?.oauth2) google.accounts.oauth2.revoke(SYNC.token, () => {}); } catch {} SYNC.token = null; SYNC.tokenExp = 0; return saveToken(); },
@@ -2818,17 +2821,18 @@ async function syncPhotos() {
   return changed;
 }
 async function maybeSnapshot() {
-  if (S.sync.lastSnapshot && Date.now() - S.sync.lastSnapshot < 7 * 864e5) return;
-  // Another device may already have made this week's snapshot
+  // 0.27: one records backup a day (was weekly), tidied by the member's keep rule (js35.js)
+  if (S.sync.lastSnapshotDay === today()) return;
+  // Another device may already have made today's backup
   const P = prov();
-  const existing = (await P.listSnapshots()).map(f => (/(\d{4}-\d{2}-\d{2})/.exec(f.name) || [])[1]).filter(Boolean).sort().reverse();
-  if (existing[0] && daysBetween(existing[0], today()) < 7) { S.sync.lastSnapshot = Date.now() - daysBetween(existing[0], today()) * 864e5; return; }
+  const existing = (await P.listSnapshots()).map(f => snapDate(f.name)).filter(Boolean).sort().reverse();
+  if (existing[0] === today()) { S.sync.lastSnapshotDay = today(); return; }
   const snap = { app: 'lineage', version: 4, format: 'records', exportedAt: new Date().toISOString(), records: [...S.recs.values()], photos: [] };
   const data = S.sync.encrypt ? await sealJSON(snap) : JSON.stringify(snap);
   await P.putSnapshot(`lineage-records-${today()}.json`, data);
-  const snaps = (await P.listSnapshots()).sort((a, b) => b.name.localeCompare(a.name));
-  for (const old of snaps.slice(8)) await P.del(old.h);
-  S.sync.lastSnapshot = Date.now();
+  const snaps = await P.listSnapshots(), keep = backupsToKeep(snaps.map(f => f.name), backupRule()[2]);
+  for (const old of snaps) if (!keep.has(old.name)) await P.del(old.h);
+  S.sync.lastSnapshot = Date.now(); S.sync.lastSnapshotDay = today();
 }
 
 /* ---------- Connect, disconnect, settings ---------- */
@@ -2861,7 +2865,7 @@ function syncSettingsHTMLInner() {
   if (!st.enabled) {
     const ps = Object.values(PROVIDERS()).filter(p => p && p.configured()).sort((a, b) => (b.key === 'dropbox') - (a.key === 'dropbox'));
     return sec(title_, null, `<p>Keep the same records on your phone, tablet and computer by syncing through your own ${ps.length > 1 ? h(tl('Google Drive or Dropbox')) : ps[0]?.name || 'cloud storage'}. Off by default.</p>
-      <p class="muted">${h(tl('Lineage Tracker keeps your records, photos and eight weekly snapshots in its own folder ('))}<b>${h(tl('Lineage Tracker sync'))}</b> ${h(tl('in Google Drive, or'))} <b>${h(tl('Apps'))}</b> ${h(tl('in Dropbox). It can only see files it created, never the rest of your storage, and there is no Lineage Tracker server in between.'))}</p>
+      <p class="muted">${h(tl('Lineage Tracker keeps your records, photos and daily automatic backups in its own folder ('))}<b>${h(tl('Lineage Tracker sync'))}</b> ${h(tl('in Google Drive, or'))} <b>${h(tl('Apps'))}</b> ${h(tl('in Dropbox). It can only see files it created, never the rest of your storage, and there is no Lineage Tracker server in between.'))}</p>
       ${ps.length ? `<ul class="ticks small"><li>${h(tl('One folder, holding only Lineage Tracker\'s files.'))}</li><li>${h(tl('It can\'t see anything else in your storage.'))}</li><li>${h(tl('Sign in once on each device, with the same account.'))}</li></ul><div class="cap-list">${ps.map(p => `<button type="button" class="cap-item" data-act="syncConnect" data-p="${p.key}">${ic('cloud')}<span><b>Connect ${h(p.name)}${p.key === 'dropbox' && ps.length > 1 ? ` <span class="chip">${h(tl('Recommended'))}</span>` : ''}</b><small>${p.key === 'dropbox' ? h(tl('Stays signed in. Free plan holds about 5,000 photos.')) : h(tl('Sign in again about once an hour to keep syncing.'))}</small></span></button>`).join('')}</div>` : '<div class="notice">This copy of Lineage Tracker hasn\'t been set up for sync yet. Whoever hosts it adds a Google client ID or a Dropbox app key to config.json.</div>'}
       ${advanced}`);
   }
@@ -2873,11 +2877,13 @@ function syncSettingsHTMLInner() {
     <p class="hint">${st.encrypt ? 'Records and photos are encrypted on this device before they reach your ${h(provName())}. Each device needs the passphrase once.' : 'Optional. Encrypts records and photos before they reach your ${h(provName())}. If the passphrase is lost, the synced copy can\'t be read; your records on each device are unaffected.'}</p>
     <form id="syncForm" novalidate>${F.check('photos', 'Sync photos as well as records', st.photos !== false)}<p class="hint">${h(tl('Turn off to save storage space or mobile data. Records always sync.'))}</p></form>
     <p class="hint">${h(tl('Changes sync shortly after you make them, when Lineage Tracker opens, and when you tap Sync now. If the same record is changed on two devices before either syncs, the later change wins. Google sign-ins last about an hour, so after a break you may need to tap the cloud button once.'))}</p>
-    <p class="hint">${h(tl('Sync is not a backup: deleting something deletes it everywhere. Keep making backups, and remember the weekly snapshots in the sync folder.'))}</p>
+    <p class="hint">${h(tl('Sync is not a backup: deleting something deletes it everywhere. The automatic backups below are your safety net.'))}</p>
+    <div id="snapBox" class="snapbox"></div>
     ${advanced}`);
 }
 function mountSyncSettings() {
   setSyncState(SYNC.state, SYNC.msg);
+  loadBackupList();
   $('#cidForm')?.addEventListener('submit', async e => { e.preventDefault(); S.sync = { ...(S.sync || {}), clientId: e.target.elements.clientId.value.trim() }; await saveSync(); toast('Saved'); render(); });
   $('#syncForm')?.addEventListener('change', async e => { S.sync.photos = e.target.checked; await saveSync(); toast(e.target.checked ? 'Photos will sync' : 'Only records will sync'); });
 }
@@ -5698,6 +5704,8 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.27.0': ['Automatic backups: with sync on, a backup of your records is made every day in your own Google Drive or Dropbox, and old ones are tidied for you. Choose how many to keep (7 daily, 4 weekly and 12 monthly unless you change it).','Settings, Sync now lists your backups: restore one, delete one, or mark it Keep forever so it is never tidied away.'],
+  '0.26.1': ['Settings, Backups now says whether this device keeps your records permanently, and how much space they use. If the browser has not agreed yet, Ask again tries once more. On iPhone and iPad, add the app to your Home Screen first; Apple is more likely to agree.'],
   '0.26.0': ['Your own sticker designs: add a design made in LT-Print (lineagetracker.org) from a file under Labels, Design. It is kept with your records, fills in from your plants, animals, lots and places, and prints without internet. Anyone can send you a design; you do not need an account to use it.','Designs can hold barcodes, automatic numbers, best-before dates and their own typed rows, such as a list of seed packets or customer labels.','Print sticker buttons on each plant, animal and seed lot page open the sticker page with that one ready to print.'],
   '0.25.0': ['Groundwork for translations: the app can now show its words in other languages. No language is switched on yet, and nothing changes for you today. When a translation is added it appears under Settings, Language, marked as a beta until a native speaker has checked it, with a link to suggest a better wording.','Long words and right-to-left languages: pages now wrap or shorten long words instead of running off the screen.'],
   '0.24.0': ['The cloud button at the top shows whether anything leaves this device: a crossed-out cloud means nothing does. Tap it to switch sync, AI help and weather lookups on or off in one place, or choose Work offline to pause them all.','Share photos: pick 2 to 12 photos of a variety, plant, project or from the Log and make a collage, a slideshow video or a picture set for Instagram, Facebook, TikTok and more. Sized for tall, square or 9:16 story and reel.','Share branding: the full footer stays the default. Choose a slim web-address strip instead for places that remove branded posts, on every share picture.','Library: a Products tab (Harvests for plant lists) beside Inputs, to set up what your plants and animals produce.','Scan label: Library, Inputs, Scan label reads a product label (or use copy and paste with Claude or ChatGPT) and saves the printed rate, such as 20 mL per litre.','How much to add: pick or type any size in litres, gallons, m², ft², kg or lb and see the exact amount to add, on the input page and while logging an input. There is also a stand-alone Calculator (Library, Inputs) for any label, and the app remembers your last size.','The + menu is grouped (Add, Record, View and share) and has Share photos. Animal screens say Pairing instead of Cross.','Sticker labels: five layouts (small tag, front sticker, branded packet sticker, wrap-around fold-over, cage or pen), sheet sizes or your own millimetres, a tick-list of what to print, branding settings and a live preview.'],
@@ -7131,7 +7139,9 @@ const DBX = {
     if (ex && ex !== path.toLowerCase()) { try { await dbxRpc('files/delete_v2', { path: ex }); } catch {} }
   },
   async getPhoto(h) { return (await dbxDownload(h)) || new Blob([]); },
-  async listSnapshots() { return (await dbxList('/snapshots')).map(e => ({ h: e.path_lower, name: e.name })); },
+  async listSnapshots() { return (await dbxList('/snapshots')).map(e => ({ h: e.path_lower, name: e.name, size: e.size != null ? +e.size : null })); },
+  async getSnapshot(h) { return (await dbxDownload(h)) || new Blob(['{}']); },
+  renameSnapshot: (h, name) => dbxRpc('files/move_v2', { from_path: h, to_path: '/snapshots/' + name, autorename: false }),
   putSnapshot: (name, data) => dbxUpload(`/snapshots/${name}`, data),
   del: h => dbxRpc('files/delete_v2', { path: h }),
   async revoke() { try { if (SYNC.dbx?.access) await dbxRpc('auth/token/revoke', null); } catch {} SYNC.dbx = {}; await saveDbx(); },
@@ -9713,6 +9723,112 @@ function ltpMount(chosen, rk) {
   prev();
   return true;
 }
+
+/* ---------- 0.26.1: does this browser keep our records permanently? ----------
+   The app asks for persistent storage on every start (init). Settings, Backups shows the answer, how much is used,
+   and an Ask again button. On iPhone and iPad, Apple is more likely to agree once the app is on the Home Screen. */
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const standalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+async function mountPersist() {
+  const box = $('#persistNote'); if (!box) return;
+  const st = navigator.storage;
+  if (!st || !st.persisted) { box.textContent = tl('This browser does not say whether it keeps your records permanently. Keep backups or sync switched on.'); return; }
+  let kept = false, used = 0;
+  try { kept = await st.persisted(); } catch { /* treat as not kept */ }
+  try { const e = await st.estimate(); used = e.usage || 0; } catch { /* no estimate */ }
+  const mb = used ? ' ' + tl('Using about {n} MB on this device.', { n: Math.max(1, Math.round(used / 1048576)) }) : '';
+  box.textContent = '';
+  if (kept) { box.append(tl('This device keeps your records permanently: the browser has agreed not to clear them.') + mb); return; }
+  box.append(tl('The browser may clear your records if the device runs very low on space or the app is not opened for a long time. Backups or sync keep you safe.') + mb + ' ');
+  if (isIOS() && !standalone()) box.append(tl('On iPhone and iPad, add Lineage Tracker to your Home Screen (Share, then Add to Home Screen) and open it from there, then tap Ask again.') + ' ');
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = tl('Ask again');
+  b.addEventListener('click', async () => {
+    let ok = false; try { ok = await st.persist(); } catch { /* refused */ }
+    toast(ok ? tl('The browser will keep your records permanently.') : tl('The browser said no for now. It may agree later, as you use the app more. Your backups and sync still protect your records.'));
+    mountPersist();
+  });
+  box.append(b);
+}
+/* ===================================================================
+   0.27: automatic backups in the member's own Drive or Dropbox, and managing them.
+   While sync is on, a records backup is made once a day in the sync folder (photos are already synced there one by one).
+   Old ones are tidied by a keep rule the member chooses (default 7 daily, 4 weekly, 12 monthly). "Keep forever" renames
+   a backup to end in -keep, so every synced device leaves it alone. Only files Lineage Tracker made are ever touched.
+   =================================================================== */
+const BACKUP_RULES = [
+  ['d7w4m12', '7 daily, 4 weekly, 12 monthly (about a year)', { d: 7, w: 4, m: 12 }],
+  ['d14w8m24', '14 daily, 8 weekly, 24 monthly (about two years)', { d: 14, w: 8, m: 24 }],
+  ['last10', 'The last 10 only', { d: 10, w: 0, m: 0 }],
+  ['all', 'Keep every backup (tidy them yourself)', null],
+];
+const backupRule = () => (BACKUP_RULES.find(r => r[0] === S.sync?.keepRule) || BACKUP_RULES[0]);
+const snapDate = name => (/(\d{4}-\d{2}-\d{2})/.exec(name) || [])[1] || '';
+const snapKept = name => /-keep\.json(\.enc)?$/i.test(name);
+const isoWeek = iso => { const d = new Date(iso + 'T00:00:00Z'), day = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - day + 3); const y = d.getUTCFullYear(), w1 = new Date(Date.UTC(y, 0, 4)); return y + '-W' + (1 + Math.round(((d - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7)); };
+/* Which backups to keep: the newest of each of the last d days, w weeks and m months that have a backup, plus every
+   "keep forever" one, plus anything without a date in its name (never delete what we cannot read). rule null = keep all. */
+function backupsToKeep(names, rule) {
+  if (!rule) return new Set(names);
+  const keep = new Set(names.filter(n => snapKept(n) || !snapDate(n)));
+  const dated = names.filter(n => snapDate(n) && !snapKept(n)).sort((a, b) => (snapDate(b) + b).localeCompare(snapDate(a) + a));
+  const days = new Set(), weeks = new Set(), months = new Set();
+  for (const n of dated) {
+    const d = snapDate(n), wk = isoWeek(d), mo = d.slice(0, 7);
+    let k = false;
+    if (!days.has(d) && days.size < rule.d) { days.add(d); k = true; }
+    if (!weeks.has(wk) && weeks.size < rule.w) { weeks.add(wk); k = true; }
+    if (!months.has(mo) && months.size < rule.m) { months.add(mo); k = true; }
+    if (k) keep.add(n);
+    else { days.add(d); weeks.add(wk); months.add(mo); }   // a second backup on the same day/week/month counts as seen
+  }
+  return keep;
+}
+
+/* ---------- the list in Settings ---------- */
+const mbText = n => (n == null ? '' : n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
+async function loadBackupList() {
+  const box = $('#snapBox'); if (!box || !S.sync?.enabled) return;
+  const ruleSel = `<label class="fld" style="max-width:420px"><span>${h(tl('How many to keep'))}</span><select id="keepRule">${BACKUP_RULES.map(r => `<option value="${r[0]}" ${backupRule()[0] === r[0] ? 'selected' : ''}>${h(tl(r[1]))}</option>`).join('')}</select></label>`;
+  box.innerHTML = `<h3>${h(tl('Automatic backups'))}</h3><p class="muted small">${h(tl('A backup of your records is made each day in your'))} ${h(provName())} ${h(tl('sync folder. Photos are already synced there. Older backups are tidied by the rule below; ones you keep forever are never removed.'))}</p>${ruleSel}<div id="snapList" class="muted small">${h(tl('Loading…'))}</div>`;
+  $('#keepRule').addEventListener('change', async e => { S.sync.keepRule = e.target.value; await saveSync(); toast(tl('Saved. It applies the next time a backup is made.')); });
+  let list;
+  try { const P = prov(); await P.auth(false); await P.prepare(); list = await P.listSnapshots(); }
+  catch (e) { $('#snapList').textContent = e.needsAuth ? tl('Sign in to sync (Sync now) to see your backups.') : tl('Your backups could not be listed right now.') + ' ' + (e.message || ''); return; }
+  list.sort((a, b) => (snapDate(b.name) + b.name).localeCompare(snapDate(a.name) + a.name));
+  const sl = $('#snapList'); sl.className = '';
+  if (!list.length) { sl.innerHTML = `<p class="muted small">${h(tl('No automatic backups yet. The first is made at the next sync.'))}</p>`; return; }
+  const keep = backupsToKeep(list.map(f => f.name), backupRule()[2]);
+  const row = f => `<li data-h="${h(f.h)}" data-name="${h(f.name)}"><span><b>${h(snapDate(f.name) ? new Date(snapDate(f.name) + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : f.name)}</b>${f.size != null ? ` <span class="muted">${mbText(f.size)}</span>` : ''}${snapKept(f.name) ? ` <span class="chip ok">${h(tl('Kept forever'))}</span>` : keep.has(f.name) ? '' : ` <span class="chip">${h(tl('Tidied next time'))}</span>`}</span>
+    <span class="actions tight"><button class="btn sm" data-snap="restore">${h(tl('Restore'))}</button><button class="btn sm" data-snap="keep">${h(snapKept(f.name) ? tl('Stop keeping') : tl('Keep forever'))}</button><button class="btn sm" data-snap="del">${h(tl('Delete'))}</button></span></li>`;
+  const kept = list.filter(f => snapKept(f.name)), recent = list.filter(f => !snapKept(f.name)).slice(0, 7), older = list.filter(f => !snapKept(f.name)).slice(7);
+  sl.innerHTML = `<ul class="snaps">${recent.map(row).join('')}</ul>
+    ${older.length ? `<details><summary class="small">${h(tl('Older backups'))} (${older.length})</summary><ul class="snaps">${older.map(row).join('')}</ul></details>` : ''}
+    ${kept.length ? `<h4 style="margin:12px 0 0">${h(tl('Kept forever'))} (${kept.length})</h4><ul class="snaps">${kept.map(row).join('')}</ul>` : ''}
+    <p class="hint">${h(tl('Restore adds what is missing and updates records only where the backup is newer, like restoring a file. It can be undone from Settings, Backups.'))}</p>`;
+  sl.addEventListener('click', async e => {
+    const b = e.target.closest('[data-snap]'); if (!b) return;
+    const li = b.closest('li'), hnd = li.dataset.h, name = li.dataset.name, P = prov();
+    busy(true);
+    try {
+      if (b.dataset.snap === 'restore') {
+        let data = JSON.parse(await (await P.getSnapshot(hnd)).text());
+        if (data.format === 'sync-encrypted') { if (!SYNC.key) throw new Error(tl('Enter your sync passphrase first (Sync, Enter it on this device).')); data = await openJSON(data); }
+        const n = await doImport(new File([JSON.stringify(data)], name.replace(/\.enc$/, ''), { type: 'application/json' }), false);
+        toast(tl('Restored:') + ' ' + n); render(); return;
+      }
+      if (b.dataset.snap === 'keep') {
+        const nn = snapKept(name) ? name.replace(/-keep(\.json(\.enc)?)$/i, '$1') : name.replace(/(\.json(\.enc)?)$/i, '-keep$1');
+        await P.renameSnapshot(hnd, nn); toast(snapKept(name) ? tl('It will be tidied by the rule again') : tl('Kept forever'));
+      }
+      if (b.dataset.snap === 'del') {
+        if (!confirm(tl('Delete this backup from your') + ' ' + provName() + '?')) return;
+        await P.del(hnd); toast(tl('Backup deleted'));
+      }
+      loadBackupList();
+    } catch (err) { toast(err.message || tl('That did not work. Please try again.')); }
+    finally { busy(false); }
+  });
+}
 /* v0.25: translation framework, screens and actions (language picker, page frame words) */
 function languageSettingsHTML() {
   const real = LT_LANGS, cur = S.settings.lang && S.settings.lang !== 'auto' ? S.settings.lang : 'en', sug = suggestedLanguage();
@@ -10097,6 +10213,8 @@ function pSettings() {
   ${sec('Example data', null, `<p>${h(tl('Explore Lineage Tracker with made-up records. Examples open in their own workspace, so they never mix with your records.'))}</p><div class="actions"><button class="btn" data-act="loadExample" data-ex="plants">${h(tl('Load plant example'))}</button><button class="btn" data-act="loadExample" data-ex="animals">${h(tl('Load chicken example'))}</button><button class="btn" data-act="loadExample" data-ex="olive">${h(tl('Load breeding example (chickens)'))}</button>${hasExamples() ? `<button class="btn danger" data-act="removeExamples">${h(tl('Remove example data'))}</button>` : ''}</div>`)}
   ${sec('Backups', null, `<p>${h(tl('Your records and photos live only on this device. A full backup is one zip file with every record and photo, plus spreadsheet copies you can open without Lineage Tracker. Restore it on this device or a new one.'))}</p>
     <p><b>${h(tl('Last full backup:'))}</b> ${s.lastExport ? h(new Date(s.lastExport).toLocaleString()) : 'never'}${s.lastQuick ? `<br><b>${h(tl('Last records-only backup:'))}</b> ${h(new Date(s.lastQuick).toLocaleString())}` : ''}${s.lastExport || s.lastQuick ? `<br>${changesSinceBackup()} changes since then.` : ''}</p>
+    <p class="hint" id="persistNote" aria-live="polite"></p>
+    ${S.sync?.enabled ? `<p class="hint">${h(tl('Automatic daily backups are on, in your'))} ${h(provName())}. ${h(tl('See them under Sync across devices.'))}</p>` : `<p class="hint">${h(tl('Each Back up now makes a new file. Keep the newest two or three somewhere safe and delete older ones. Turn on sync to have backups made and tidied for you.'))}</p>`}
     <div class="actions"><button class="btn tagc" data-act="exportBackup">${h(tl('Back up now'))}</button><button class="btn" data-act="moveToNewPhone">${h(tl('Move to a new phone'))}</button><button class="btn" data-act="importBackup" data-mode="merge">${h(tl('Restore or import a file'))}</button>${on('import') ? `<a class="btn" href="#/import">${h(tl('Import from a spreadsheet or another app'))}</a>` : ''}</div>
     <p class="hint">${h(tl('Restoring adds what\'s missing and updates records only where the file\'s copy is newer, so edits made since the backup are kept. Replace wipes this device\'s records first.'))}</p>
     <div class="actions"><button class="btn" data-act="importBackup" data-mode="replace">${h(tl('Replace everything with a backup'))}</button>${S.undoAt ? `<button class="btn" data-act="undoRestore">Undo last restore (${h(new Date(S.undoAt).toLocaleString())})</button>` : ''}</div>
@@ -11012,6 +11130,7 @@ function mountPage(root, parts = []) {
   ensureLotCodes(); ensureRegions();
   if (root === 'check') mountCheck();
   if (root === 'labels') mountLabels();
+  if (root === 'settings') mountPersist();
   if (root === 'import') mountImport();
   const main = $('#main');
   const filter = $('input[data-filter]', main);
