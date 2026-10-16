@@ -1,5 +1,54 @@
 # Changelog
 
+## Unreleased (examples only, no code change)
+- The three built-in examples now include sample pictures (drawings tagged SAMPLE IMAGE) with photo labels, front and back photos on the squash packets, a Log note that is not linked to anything, and a Breeding plan on each example project (periods, locked-in and planned boxes, planned and recorded crosses, quantity boxes, a block or pen). Built by `tools/make_example_media.py` after `tools/make_examples.py`.
+
+## 0.26.0 (data format: new record type `ltdesign`; new settings only)
+- LT-Print designs in the app (`js34.js`). Labels page, Design: add a `.ltprint` file made in LT-Print (tools.lineagetracker.org). It is checked and cleaned with `ltpClean()` (same rules as LT-Print's `cleanTemplate`), kept as a record `{ type: 'ltdesign', name, design, from }` (so backups and sync carry it), filled in from the ticked plants, animals, lots, places or trays (`ltpRowOf`), and printed offline.
+- No account and no internet are needed to use a design. The design's fonts are embedded in the printed page as data URLs, so "Save as a file" gives a self-contained sheet.
+- Supports everything LT-Print saves: text with `{fields}`, dates with a sum (`{today+3y}`), numbering (`{number}`), QR codes, Code 128 barcodes, shapes, lines, pictures (data URLs only), fold-over, and the design's own typed rows.
+- The sheet is laid out on A4 or Letter (the app's sticker sheets when the size matches, otherwise as many as fit), or one per page for label printers. It keeps the start-at position and cutting outline. Settings: `settings.lab.design`, `ltpPaper`, `ltpOwn`.
+- Designs above about 1.5 MB are refused, to keep sync small. Removing a design moves it to the recycle bin.
+- "Print sticker" on plant, animal and lot pages (when Labels is on, and the record is still on the sticker list) opens `#/labels?what=...&pick=<id>` with that record first and ticked.
+
+## 0.25.0 (translation framework; no data format change; new setting `lang`)
+- English wording is the key: `tl('text', {vars})`, `tlp(n, 'one', 'many')` (also behind `plural()`), `tlx('text')` to mark wording in a table. Language files are `lang-src/<code>.json`, built by `build.py` into `lang/<code>.js` (loaded by script tag so file:// works) and listed in `LT_LANGS`. Missing wording falls back to English. See `docs/TRANSLATING.md`.
+- `?lang=pseudo` shows every translated string as accented text in brackets so unmigrated English is easy to spot.
+- `S.settings.lang`, Settings, Language section (beta label, suggest-a-wording link, device suggestion that is never applied by itself). `<html lang>` and `dir` follow the language. Dates and numbers use `LOC()`.
+- Migrated: page frame (tab bar, labels), + menu, Library page, common buttons, form save buttons, vocabulary words (`word()`), counts (`plural()`).
+- Long words wrap or shorten (CSS), tab labels cut with an ellipsis.
+- `tools/i18n_extract.py` writes `lang-src/en.json`; `tools/i18n_check.py` reports missing wording and placeholder mismatches.
+
+## 0.24.0 (data format: `input.dose`; new settings only)
+- Share several photos (`js30.js`): picker (2 to 12, oldest first), collage JPEG, slideshow MP4 (WebCodecs plus the vendored mp4-muxer, MIT, Vanilagy; falls back to MediaRecorder MP4 or WebM, then a picture set), picture set for carousels. Shapes: tall 1080x1350, square 1080x1080, story 1080x1920. Buttons on the Log, variety, plant and project pages.
+- Share branding option `shareBrand` ('full' default, 'discreet' slim web-address strip) on all share pictures and captions.
+- Library Products tab (record type `product` unchanged); `#/products` still works.
+- Input label scan (Library, Inputs, Scan label) and `input.dose` `{ amt, max, unit, per, perUnit }` (`perUnit`: `L`, `m2`, `plant`, `kg`) with a "how much to add" calculator on the input page and in Log an input. Saved containers in `settings.containers` (`[{ name, l }]`).
+- Sticker label designer (`js32.js`), settings in `settings.lab`; replaces the old three-size label page.
+- Library tab bar scrolls sideways on narrow screens. + menu grouped (Add, Record, View and share) with Share photos. Calculator accepts litres, mL, UK and US gallons, US fl oz, m², ft², yd², kg, g, lb; stand-alone Calculator on the Inputs tab; last size per input kept in `settings.doseLast`.
+- Animal lists say Pairing (planner, new pairing, codes, toasts) instead of Cross.
+- Stickers page: preview sits under the size choices; start-at number moved next to Print.
+
+## 0.23.0 (new record type `vgroup`)
+- Manage groups (`#/groups`): `vgroup` records {name, kind} keep empty groups and sync; rename, merge and delete re-tag every variety or breed of that kind; starter lists (24 plant, 14 animal groups) are suggestions in the Group field, which now follows the plant/animal choice.
+- Crosses and pairings list (`#/crosses`) with hatches and births; reachable from My garden.
+- Library Inputs chips filter by category kind; Place page: Move something here (adds a Moved note) and Log input.
+- Wording: Pairing for animals on plant/animal pages; My garden Backups and Export tiles act on tap.
+
+## 0.22.0 (data format: notes may carry `tags`; new record type `logtag`)
+- Log tags: `note.tags` (array of keys: built-in, automatic `sys-*`, or a `logtag` id). Tag picker and "Add your own tag" in the note form. Automatic tags on Sown, Took cuttings, Moved, Potted up and Sent packs entries.
+- Log filters in the URL (`#/log?about=&tag=&from=&to=&photos=&roll=`): About picker (including general only), tag chips, dates, photos. Roll-up on by default for varieties, projects and places (`roll=0` turns it off).
+- "See all in Log" links on variety, plant and project pages; Manage tags page (`#/tags`) with add, rename, merge, delete; `readable/notes.csv` has a Tags column.
+
+## 0.21.0 (no data format change)
+- Each list has its own wording: examples and your own animal lists say Stock, breeds and animals; plant lists say seed packets and varieties. A new list asks what it keeps (`keeps` on the workspace record).
+- Library header buttons follow the tab: Scan (packets) on Varieties and Lots only and not for animal-only lists, Labels on Lots and Places, Add matches the tab.
+- + menu: View the log, and Set a reminder for everyone.
+- Log: Share and Delete beside Edit; text on the share picture is editable; Settings, Sharing: default caption template (`shareTemplate`, placeholders {text} {tags} {website} {youtube}); standard caption includes the how-to videos link; Settings, Watch how-to videos.
+- Lighter logo in dark mode (light and dark SVGs, chosen by theme).
+- Sync pulls on return to the front and every 4 minutes while open.
+- Library: tapping a group chip on a variety or breed shows only that group. Crosses and what comes from them take their Group from their parents.
+
 ## 0.20.1 (format version 19)
 - Breeding plan, new Cross sheet: choose the time period first, then both parents (from that period, with a switch to include earlier ones), then one way, two ways or selfed, then whether to grow out the offspring in the next period and how many. A cross line stores its period (`periodId`). The separate "Add the next plant?" pop-up is folded into this sheet; the remembered answer is still under More.
 - Breeding plan: boxes can have a quantity (`qty`), shown as x12, set when adding a cross or by editing a box. Locked-in boxes can be changed to a different real plant or animal after a confirmation that lists what is attached; recorded crosses keep their original parents.

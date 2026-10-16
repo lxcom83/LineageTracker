@@ -192,7 +192,17 @@ converts it.
 
 ### `note`
 
-`refId` (any record, or empty for a general note), `date`, `text`, `photoIds`, `photoTags` (see 4.13).
+`refId` (any record, or empty for a general note), `date`, `text`, `photoIds`, `photoTags` (see 4.13), `tags` (optional array of tag keys, new in 0.22).
+
+Tag keys are one of the built-in keys (`observation`, `breeding`, `growing`, `harvest`, `shop`, `swap`, `problem`, `idea`), an automatic key written by the app (`sys-sown`, `sys-cuttings`, `sys-moved`, `sys-pottedup`, `sys-sent`), or the id of a `logtag` record. Unknown keys are ignored.
+
+### `vgroup`: a group you added in Manage groups
+
+`name` (up to 40 characters), `kind` (`plant` or `animal`). Keeps a group in the list when no variety uses it yet. Varieties still carry their group as text in `group`.
+
+### `logtag`: a tag you made for the Log
+
+`name` (up to 40 characters). Synced and exported like any other record. Deleting one sends it to the recycle bin; entries keep its key and show it again if it is restored.
 
 ### `entry`: one logged record of a project's record type
 
@@ -278,7 +288,7 @@ Projects: `tagStyle: { preset, pattern }` where preset is `projgen`, `selection`
 
 ### `input`: something given to plants or animals
 
-`name`, `brand`, `category` (`fert`, `soil`, `pest`, `disease`, `weed`, `med`, `vaccine`, `wormer`, `feed`, `other`), `active` (active ingredient), `unit`, `rate` (as printed on the label), `whp` (withholding periods in days: `{ "harvest", "eggs", "milk", "meat" }`), `organic`, `qty` (amount on hand), `opened`, `expiry`, `notes`, `photoIds`.
+`name`, `brand`, `category` (`fert`, `soil`, `pest`, `disease`, `weed`, `med`, `vaccine`, `wormer`, `feed`, `other`), `active` (active ingredient), `unit`, `rate` (as printed on the label), `dose` (the printed rate in structured form: `{ "amt", "max" (top of a range, or 0), "unit" (`mL`, `L`, `g`, `kg`, `tsp`, `tbsp`, `tablet`, `scoop`, `dose`), "per" (number), "perUnit" (`L` litre of water or mix, `m2`, `plant`, `kg`) }` or null; the app only scales this to a container, never suggests a rate), `whp` (withholding periods in days: `{ "harvest", "eggs", "milk", "meat" }`), `organic`, `qty` (amount on hand), `opened`, `expiry`, `notes`, `photoIds`.
 
 ### `apply`: one use of an input
 
@@ -300,6 +310,16 @@ Projects can also carry `noInputs: true`, meaning members are grown without inpu
 
 Records created by the import wizard also carry `importBatch`, so an import
 can be undone as one group.
+
+### `ltdesign`: a sticker design added from LT-Print (0.26)
+`name`, `from` (the file name it came from) and `design`, the cleaned LT-Print design (`format: 'lt-print-template'`, `v: 1`):
+- `kind` (`individual`, `stock`, `place`, `strain` or `table`), `w`, `h` (mm), `bg`, `radius`, `fold {on, gap}`;
+- `counter {start, step, digits, prefix, suffix, perCopy}`;
+- `own {on, rows}` (typed rows: `_id`, `_on`, `_copies` plus one string per field);
+- `items` (front first; `text`, `qr`, `barcode`, `rect`, `ellipse`, `line`, `image` and `group`, sizes in mm, text sizes in points, `{field}` placeholders);
+- `assets` (pictures as `data:image/...;base64` URLs).
+
+The full format is documented at the top of LT-Print's `print/model.js`. Converters can ignore this record type.
 
 ### 4.11 Record type definitions (inside `project.recordTypes`)
 

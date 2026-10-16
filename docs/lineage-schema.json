@@ -895,6 +895,12 @@
             "photoIds": {
               "$ref": "#/$defs/photoIds"
             },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
             "photoTags": {
               "$ref": "#/$defs/photoTags"
             }
@@ -1391,6 +1397,16 @@
             },
             "rate": {
               "type": "string"
+            },
+            "dose": {
+              "type": ["object", "null"],
+              "properties": {
+                "amt": { "type": "number" },
+                "max": { "type": "number" },
+                "unit": { "type": "string" },
+                "per": { "type": "number" },
+                "perUnit": { "enum": ["L", "m2", "plant", "kg"] }
+              }
             },
             "whp": {
               "type": "object",

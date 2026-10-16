@@ -208,6 +208,10 @@ about your records: copy and paste with your existing Claude or ChatGPT app
   ID (for sync), your site address (used in share links) and an optional
   donation link
 
+## Third-party code
+
+The slideshow video maker bundles mp4-muxer 5.2.2 by Vanilagy, MIT licence (https://github.com/Vanilagy/mp4-muxer). The full notice is in docs/THIRD-PARTY.md.
+
 ## Licence
 
 Lineage Tracker is free to use, and its code is published so anyone can check how it works. It is not open source: copying, modifying or hosting the code needs permission. Clubs, seed libraries and businesses can offer their own relabelled version for free with the "Make it yours" kit at https://lineagetracker.org/partners.html. See LICENSE.md, RELABELLING.md and TRADEMARKS.md.
