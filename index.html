@@ -663,7 +663,7 @@ body.busy::after{content:"";position:fixed;top:0;left:0;right:0;height:3px;z-ind
                                            translated later: tl(tableValue)
    Nothing here is escaped: call sites keep using h() as before.
    =================================================================== */
-const LT_LANGS = /*LANGS*/[["en", "English", false]]/*END*/; /* [code, own name, beta] for every shipped language */
+const LT_LANGS = /*LANGS*/[["en", "English", false], ["es", "Español", true]]/*END*/; /* [code, own name, beta] for every shipped language */
 const I18N = { code: 'en', locale: undefined, strings: {}, plurals: {}, meta: {}, pseudo: false, rtl: false };
 const tlx = s => s;
 function i18nFill(s, vars) { return vars ? String(s).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : String(s); }
@@ -725,7 +725,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.27.2';
+const VERSION = '0.27.3';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -4069,7 +4069,7 @@ if (typeof module !== 'undefined') module.exports = QR;
    animals, both), first-run setup, check before buying, season plan,
    seed-saving guidance, printable labels with QR codes.
    =================================================================== */
-const LEVELS = [['garden', 'Garden', 'I keep seeds and notes, and want to know what I\'ve got.'], ['saver', 'Seed saver', 'I save my own seed or breed the odd litter, and try a few crosses.'], ['breeder', 'Breeder', 'I run breeding projects over several generations.']];
+const LEVELS = [['garden', tlx('Garden'), tlx('I keep seeds and notes, and want to know what I\'ve got.')], ['saver', tlx('Seed saver'), tlx('I save my own seed or breed the odd litter, and try a few crosses.')], ['breeder', tlx('Breeder'), tlx('I run breeding projects over several generations.')]];
 const FEATURES = {
   shopcheck: { l: 1, label: 'Check before buying', desc: 'Look up whether you already have a variety, standing in the shop.' },
   plan: { l: 1, label: 'Season plan', desc: 'List what you\'ll grow this season and check seed, age and crossing.' },
@@ -4156,13 +4156,13 @@ function pSetup(_, q) {
   const pt = typeof partner === 'function' ? partner() : null;
   const step = q.step === '2' || pt?.k ? 2 : 1;
   const levels = LEVELS.filter(([v]) => LEVEL_RANK[v] <= partnerMaxRank());
-  const big = (act, val, icon, t, s) => `<button type="button" class="cap-item plain setup-choice" data-act="${act}" data-v="${val}">${ic(icon)}<span><b>${t}</b><small>${s}</small></span></button>`;
+  const big = (act, val, icon, t, s) => `<button type="button" class="cap-item plain setup-choice" data-act="${act}" data-v="${val}">${ic(icon)}<span><b>${h(tl(t))}</b><small>${h(tl(s))}</small></span></button>`;
   return `<section class="welcome">${pt ? `${pt.l ? `<img class="welcome-logo" src="${h(pt.l)}" alt="" style="object-fit:contain;max-height:200px">` : `<span class="welcome-logo">${LOGO_FULL_THEMED}</span>`}<h1>${h(pt.n)}</h1><p class="lede">${h(tl('Powered by Lineage Tracker'))}</p>${pt.w ? `<p>${h(pt.w)}</p>` : ''}` : `<span class="welcome-logo">${LOGO_FULL_THEMED}</span><h1>${h(tl('Lineage Tracker'))}</h1><p class="lede">${h(tl('Breeding records for plants and animals'))}</p>`}
   ${step === 1 ? `<div class="notice">${h(tl('Free forever, with no ads. Your records stay on this device, no account is needed, and nothing is shared unless you choose.'))} <a href="${SITE()}/privacy.html" target="_blank" rel="noopener">${h(tl('How your data is handled'))}</a></div>` : ''}
   ${step === 1 ? `<h2 style="margin-top:22px">${h(tl('What do you keep?'))}</h2><div class="cap-list">
-    ${big('setKeeps', 'plants', 'library', 'Plants', 'Seeds, vegetables, flowers, fruit')}
-    ${big('setKeeps', 'animals', 'tag', 'Animals', 'Chickens, goats, rabbits and others')}
-    ${big('setKeeps', 'both', 'project', 'Both', 'Plants and animals')}</div>`
+    ${big('setKeeps', 'plants', 'library', tlx('Plants'), tlx('Seeds, vegetables, flowers, fruit'))}
+    ${big('setKeeps', 'animals', 'tag', tlx('Animals'), tlx('Chickens, goats, rabbits and others'))}
+    ${big('setKeeps', 'both', 'project', tlx('Both'), tlx('Plants and animals'))}</div>`
     : `<h2 style="margin-top:22px">${h(tl('How will you use it?'))}</h2><div class="cap-list">
     ${levels.map(([v, t, s]) => big('setLevel', v, v === 'garden' ? 'note' : v === 'saver' ? 'library' : 'tree', t, s)).join('')}</div>
     <p class="hint">${h(tl('You can change both answers any time in Settings, or switch individual features on and off. Nothing you record is ever deleted when you change.'))}</p>`}
@@ -4170,7 +4170,7 @@ function pSetup(_, q) {
 }
 async function finishSetup() {
   S.settings.setupDone = true; S.settings.seenVersion = VERSION; S.settings.firstUse ||= today(); S.settings.checklistStart ||= today(); await saveSettings();
-  toast(`${LEVELS.find(l => l[0] === S.settings.level)[1]} mode`); location.hash = '#/';
+  toast(tl('{name} mode', { name: tl(LEVELS.find(l => l[0] === S.settings.level)[1]) })); location.hash = '#/';
   render();
 }
 /* ---------- Seed-saving guidance (general, conservative) ---------- */
@@ -4383,8 +4383,8 @@ function labelLines(r) {
 function modeSettingsHTML() {
   const s = S.settings;
   return sec('Mode', null, `<form id="modeForm" novalidate>
-    <div class="two">${partner()?.k ? `<input type="hidden" name="keeps" value="${h(s.keeps)}"><label class="fld"><span>${h(tl('What you keep'))}</span><input value="${h({ plants: 'Plants', animals: 'Animals', both: 'Both' }[s.keeps] || 'Both')} (set by ${h(partner().n)})" disabled></label>` : F.select('keeps', 'What you keep', s.keeps || 'both', [['plants', 'Plants'], ['animals', 'Animals'], ['both', 'Both']])}${F.select('level', 'How you use it', s.level || 'breeder', LEVELS.filter(([v]) => LEVEL_RANK[v] <= partnerMaxRank()).map(([v, t]) => [v, t]))}</div>
-    <p class="hint">${h((LEVELS.find(l => l[0] === (s.level || 'breeder')) || LEVELS[2])[2])} Nothing you've recorded is deleted when you change.</p></form>
+    <div class="two">${partner()?.k ? `<input type="hidden" name="keeps" value="${h(s.keeps)}"><label class="fld"><span>${h(tl('What you keep'))}</span><input value="${h(tl({ plants: 'Plants', animals: 'Animals', both: 'Both' }[s.keeps] || 'Both'))} (${h(tl('set by {name}', { name: partner().n }))})" disabled></label>` : F.select('keeps', 'What you keep', s.keeps || 'both', [['plants', 'Plants'], ['animals', 'Animals'], ['both', 'Both']])}${F.select('level', 'How you use it', s.level || 'breeder', LEVELS.filter(([v]) => LEVEL_RANK[v] <= partnerMaxRank()).map(([v, t]) => [v, t]))}</div>
+    <p class="hint">${h(tl((LEVELS.find(l => l[0] === (s.level || 'breeder')) || LEVELS[2])[2]))} ${h(tl('Nothing you\'ve recorded is deleted when you change.'))}</p></form>
     <details style="margin-top:6px"><summary class="muted">${h(tl('Customise features'))}</summary>
     <p class="hint" style="margin-top:8px">${h(tl('Switch individual features on or off. "Automatic" follows your mode.'))}</p>
     <div class="feat-list">${Object.entries(FEATURES).filter(([, f]) => !f.kinds || f.kinds.some(keepsKind) || s.features?.[Object.keys(FEATURES).find(k => FEATURES[k] === f)] != null).map(([k, f]) => { const o = s.features?.[k]; return `<div class="feat"><span><b>${h(f.label)}</b><small>${h(f.desc)}</small></span><select data-feat="${k}" aria-label="${h(f.label)}"><option value="" ${o == null ? 'selected' : ''}>Automatic (${on(k) && o == null ? 'on' : o == null ? 'off' : on(k) ? 'on' : 'off'})</option><option value="on" ${o === true ? 'selected' : ''}>${h(tl('On'))}</option><option value="off" ${o === false ? 'selected' : ''}>${h(tl('Off'))}</option></select></div>`; }).join('')}</div></details>`);
@@ -5706,6 +5706,7 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.27.3': ['Spanish (Español) is here as a beta translation: choose it in Settings, Language. It covers most of the app\'s wording; a few screens are still partly in English and will follow. If something reads oddly, the Suggest a better wording link in Settings tells us.'],
   '0.27.2': ['Seed trays now say how to mark a cell: tap once when it comes up, twice if it did not come up, three times to put it back to waiting. A germination test that is still in progress has a new button, Finish test: the rest didn\'t come up, which closes it with the seeds you counted and treats the others as not coming up.'],
   '0.27.1': ['The built-in examples now have a sample picture for every bird and plant (cartoon drawings marked SAMPLE IMAGE), so the lists and pages are never blank when you try them out or film a demo.'],
   '0.27.0': ['Automatic backups: with sync on, a backup of your records is made every day in your own Google Drive or Dropbox, and old ones are tidied for you. Choose how many to keep (7 daily, 4 weekly and 12 monthly unless you change it).','Settings, Sync now lists your backups: restore one, delete one, or mark it Keep forever so it is never tidied away.'],
@@ -6985,20 +6986,20 @@ function checklistItems() {
   const it = (done, act, icon, t, s, extra = '') => ({ done: !!done, act, icon, t, s, extra });
   const L = [];
   if (onlyA) {
-    L.push(it(all('strain').length, 'newStrain', 'library', 'Add your first breed', 'Where your animals came from'));
-    L.push(it(all('individual').length, 'newInd', 'tag', 'Add your first animal', 'Or a whole flock as a group'));
-    if (on('places')) L.push(it(all('place').length, 'newPlace', 'place', 'Set up a coop, pen or paddock', 'Where your animals live'));
-    if (on('inputs')) L.push(it(all('apply').length, 'logInput', 'spark', 'Log a treatment or feed', 'With withholding dates worked out'));
+    L.push(it(all('strain').length, 'newStrain', 'library', tlx('Add your first breed'), tlx('Where your animals came from')));
+    L.push(it(all('individual').length, 'newInd', 'tag', tlx('Add your first animal'), tlx('Or a whole flock as a group')));
+    if (on('places')) L.push(it(all('place').length, 'newPlace', 'place', tlx('Set up a coop, pen or paddock'), tlx('Where your animals live')));
+    if (on('inputs')) L.push(it(all('apply').length, 'logInput', 'spark', tlx('Log a treatment or feed'), tlx('With withholding dates worked out')));
   } else {
-    L.push(it(all('stock').length, on('scan') ? 'scan' : 'newLot', 'camera', P && A ? 'Add your first seed packet or stock' : 'Add your first seed packet', 'Scan it, or type it in'));
-    if (on('places')) L.push(it(all('place').length, 'newPlace', 'place', P && A ? 'Set up your garden or pens' : 'Set up your garden', 'A bed, pot or greenhouse'));
-    if (on('weather')) L.push(it(all('site').length, 'newSite', 'cloud', 'Add your location', 'For weather that matches your results'));
-    L.push(it(all('individual').length, 'newInd', 'tag', P && A ? 'Add your first plant or animal' : 'Add your first plant', 'Or a whole bed as a group'));
+    L.push(it(all('stock').length, on('scan') ? 'scan' : 'newLot', 'camera', P && A ? tlx('Add your first seed packet or stock') : tlx('Add your first seed packet'), tlx('Scan it, or type it in')));
+    if (on('places')) L.push(it(all('place').length, 'newPlace', 'place', P && A ? tlx('Set up your garden or pens') : tlx('Set up your garden'), tlx('A bed, pot or greenhouse')));
+    if (on('weather')) L.push(it(all('site').length, 'newSite', 'cloud', tlx('Add your location'), tlx('For weather that matches your results')));
+    L.push(it(all('individual').length, 'newInd', 'tag', P && A ? tlx('Add your first plant or animal') : tlx('Add your first plant'), tlx('Or a whole bed as a group')));
   }
-  L.push(it(all('note').length, 'note', 'note', 'Take a photo or write a note', 'About anything at all'));
-  if (on('germ') && !onlyA) L.push(it(all('germ').length, 'nav:#/library?tab=lots', 'library', 'Record a germination test', 'Open a seed packet, then Germination tests'));
-  if (on('projects')) L.push(it(all('project').length, 'newProject', 'project', 'Start a breeding project', 'With your goal and target traits'));
-  L.push(it(S.settings.lastExport || S.settings.lastQuick, 'exportBackup', 'download', 'Make your first backup', 'One file with everything, to keep safe'));
+  L.push(it(all('note').length, 'note', 'note', tlx('Take a photo or write a note'), tlx('About anything at all')));
+  if (on('germ') && !onlyA) L.push(it(all('germ').length, 'nav:#/library?tab=lots', 'library', tlx('Record a germination test'), tlx('Open a seed packet, then Germination tests')));
+  if (on('projects')) L.push(it(all('project').length, 'newProject', 'project', tlx('Start a breeding project'), tlx('With your goal and target traits')));
+  L.push(it(S.settings.lastExport || S.settings.lastQuick, 'exportBackup', 'download', tlx('Make your first backup'), tlx('One file with everything, to keep safe')));
   return L;
 }
 function gettingStartedHTML() {
@@ -7006,16 +7007,16 @@ function gettingStartedHTML() {
   const items = checklistItems(), done = items.filter(x => x.done).length;
   if (done === items.length) {
     if (!S.settings.checklistDone) { S.settings.checklistDone = today(); saveSettings(); }
-    return S.settings.checklistDone === today() ? `<div class="notice ok"><b>${h(tl('All set.'))}</b> You\'ve tried everything on the getting-started list.</div>` : '';
+    return S.settings.checklistDone === today() ? `<div class="notice ok"><b>${h(tl('All set.'))}</b> ${h(tl('You\'ve tried everything on the getting-started list.'))}</div>` : '';
   }
-  return `<section class="sec checklist"><div class="sec-head"><h2>${h(tl('Getting started'))}</h2><span class="muted small">${done} of ${items.length} done</span></div><span class="meter wide"><i style="width:${Math.round(done / items.length * 100)}%"></i></span>
-    <ul class="list">${items.filter(x => !x.done).map(x => x.act.startsWith('nav:') ? `<li><a class="row" href="${x.act.slice(4)}"><span class="thumb">${ic(x.icon)}</span><span class="main"><span class="t">${h(x.t)}</span><span class="s">${h(x.s)}</span></span></a></li>` : `<li><button type="button" class="row plain" data-act="${x.act}"><span class="thumb">${ic(x.icon)}</span><span class="main"><span class="t">${h(x.t)}</span><span class="s">${h(x.s)}</span></span></button></li>`).join('')}</ul>
+  return `<section class="sec checklist"><div class="sec-head"><h2>${h(tl('Getting started'))}</h2><span class="muted small">${h(tl('{done} of {total} done', { done, total: items.length }))}</span></div><span class="meter wide"><i style="width:${Math.round(done / items.length * 100)}%"></i></span>
+    <ul class="list">${items.filter(x => !x.done).map(x => x.act.startsWith('nav:') ? `<li><a class="row" href="${x.act.slice(4)}"><span class="thumb">${ic(x.icon)}</span><span class="main"><span class="t">${h(tl(x.t))}</span><span class="s">${h(tl(x.s))}</span></span></a></li>` : `<li><button type="button" class="row plain" data-act="${x.act}"><span class="thumb">${ic(x.icon)}</span><span class="main"><span class="t">${h(tl(x.t))}</span><span class="s">${h(tl(x.s))}</span></span></button></li>`).join('')}</ul>
     <button class="linkish small" data-act="hideChecklist">${h(tl('Hide this list'))}</button></section>`;
 }
 function quickButtonsHTML() {
-  const b = (act, icon, t) => `<button class="qbtn" data-act="${act}">${ic(icon)}<span>${h(t)}</span></button>`;
-  const a = (href, icon, t) => `<a class="qbtn" href="${href}">${ic(icon)}<span>${h(t)}</span></a>`;
-  return `<div class="qrow">${on('scan') && keepsKind('plant') ? b('scan', 'camera', 'Scan') : ''}${b('note', 'note', 'Note or photo')}${b('newInd', 'tag', `Add ${word('one')}`)}${on('shopcheck') ? a('#/check', 'search', 'Check before buying') : ''}${on('plan') ? a('#/plan', 'cal', 'Season plan') : ''}</div>`;
+  const b = (act, icon, t) => `<button class="qbtn" data-act="${act}">${ic(icon)}<span>${h(tl(t))}</span></button>`;
+  const a = (href, icon, t) => `<a class="qbtn" href="${href}">${ic(icon)}<span>${h(tl(t))}</span></a>`;
+  return `<div class="qrow">${on('scan') && keepsKind('plant') ? b('scan', 'camera', tlx('Scan')) : ''}${b('note', 'note', tlx('Note or photo'))}${b('newInd', 'tag', tl('Add {thing}', { thing: word('one') }))}${on('shopcheck') ? a('#/check', 'search', tlx('Check before buying')) : ''}${on('plan') ? a('#/plan', 'cal', tlx('Season plan')) : ''}</div>`;
 }
 
 /* ---------- Species: choose from your library, type only when it's new ---------- */

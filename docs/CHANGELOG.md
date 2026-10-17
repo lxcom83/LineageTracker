@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.27.3 (no data format change)
+- First real language: Spanish (`lang-src/es.json`, beta, neutral Spanish with tú). All 1,675 migrated phrases and the 10 plural forms are translated; `tools/i18n_check.py` reports 100% and no placeholder problems. Settings, Language now offers English and Español.
+- First-run setup, Getting started checklist and the home quick buttons are now translated (they were plain English before).
+- Still English in Spanish: dashboard counters and the More page tiles, built-in categories and record types, filters, and the example data. These need to be migrated screen by screen, as before.
+
 ## 0.27.2 (no data format change)
 - Seed tray page: the hint above the cells now explains the tap cycle (once = up, twice = didn't come up, three times = back to waiting).
 - Germination test sheet (`germSheet` in `js5.js`): while a test is in progress, a button "Finish test: the rest didn't come up" ticks Test finished and saves, so any counts typed are kept and uncounted seeds simply count as not coming up.
