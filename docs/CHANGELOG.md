@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.27.2 (no data format change)
+- Seed tray page: the hint above the cells now explains the tap cycle (once = up, twice = didn't come up, three times = back to waiting).
+- Germination test sheet (`germSheet` in `js5.js`): while a test is in progress, a button "Finish test: the rest didn't come up" ticks Test finished and saves, so any counts typed are kept and uncounted seeds simply count as not coming up.
+
 ## 0.27.1 (examples only, no code change)
 - Every bird and plant in the three built-in examples now has its own sample picture (cartoon drawings tagged SAMPLE IMAGE, with photo labels): hens, roosters, pullets and cockerels in each breed's colours with leg bands for the generation, chicks, flocks, and squash plants at different stages (seedling, growing, flower, fruit, weak and culled, selected) with a plant tag showing the code. Drawn by `tools/example_art2.py`, added by `tools/make_individual_pictures.py` (run after `make_examples.py` and `make_example_media.py`; re-runnable, ids start `exi-`). No real photos, so nothing to license.
 

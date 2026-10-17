@@ -725,7 +725,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.27.1';
+const VERSION = '0.27.2';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -2035,6 +2035,7 @@ function germSheet({ id, lotId } = {}) {
     ${r.counts.length ? `<ul class="list">${r.counts.map(c => `<li class="bulk-row"><span class="main"><span class="t">Day ${c.day}</span></span><span>${c.n} sprouted</span><button type="button" class="icon-btn" data-rmcount="${c.day}" aria-label="Remove day ${c.day}">${ic('x')}</button></li>`).join('')}</ul>` : ''}
     <div class="two" style="margin-top:12px">${F.text('day', 'Day', dayNow)}${F.text('n', 'Total sprouted so far', '')}</div>
     ${F.check('done', 'Test finished', g.done)}
+    ${g.done ? '' : `<div class="actions tight"><button type="button" class="btn sm" data-finishrest>${h(tl('Finish test: the rest didn\'t come up'))}</button></div><p class="hint">${h(tl('Enter how many came up above first. Any seeds not counted are treated as not coming up.'))}</p>`}
     ${F.area('notes', 'Notes', g.notes, '', 2)}`, {
     onSave: async d => {
       const counts = [...(g.counts || [])];
@@ -2050,6 +2051,7 @@ function germSheet({ id, lotId } = {}) {
     onDelete: async () => { await removeRec(id); return null; },
   });
   el.addEventListener('click', async e => {
+    if (e.target.closest('[data-finishrest]')) { const box = el.querySelector('input[name="done"]'); if (box) box.checked = true; el.querySelector('form').requestSubmit(); return; }
     const b = e.target.closest('[data-rmcount]'); if (!b) return;
     g.counts = (g.counts || []).filter(c => c.day !== +b.dataset.rmcount); await save(g); closeSheet(); germSheet({ id });
   });
@@ -4911,7 +4913,7 @@ function pTray(id) {
   return `<a href="#/trays">${h(tl('Seed trays'))}</a>
   <div class="hero"><span class="tag xl">${h(t.code)}</span><p class="sub">${[s ? `<a href="#/strain/${s.id}">${h(s.name)}</a>` : '', lot ? `from <a href="#/lot/${lot.id}">${title(lot) === s?.name ? `the ${h(lot.source || 'saved')} packet` : h(title(lot))}</a>` : '', `sown ${h(fmtDate(t.date))}`].filter(Boolean).join(', ')}${t.closed ? ` <span class="chip">${h(tl('Finished'))}</span>` : ''}</p></div>
   <div class="wx-cards"><div><span class="k">${h(tl('Came up'))}</span><b>${st.up} of ${st.total}</b><span class="chip ${st.pct >= germThreshold() ? 'ok' : st.up ? '' : ''}">${st.pct}%</span></div><div><span class="k">${h(tl('First up'))}</span><b>${st.first != null ? `Day ${st.first}` : h(tl('Not yet'))}</b></div><div><span class="k">${h(tl('Ready to pot up'))}</span><b>${st.ready}</b></div><div><span class="k">${h(tl('Potted up'))}</span><b>${st.potted}</b></div></div>
-  <p class="hint">${h(tl('Tap a cell to mark it: waiting, up, or didn\'t come up. Today\'s date is recorded when a cell comes up.'))}</p>
+  <p class="hint">${h(tl('Tap a cell once when it comes up, twice if it didn\'t come up, three times to put it back to waiting. Today\'s date is recorded when a cell comes up.'))}</p>
   ${grid}
   <div class="actions"><button class="btn primary" data-act="potUp" data-id="${id}" ${st.ready ? '' : 'disabled'}>${ic('tag')}${h(tl('Pot up survivors'))}</button><button class="btn" data-act="trayAllUp" data-id="${id}">${h(tl('Mark all waiting as up'))}</button>${on('inputs') ? `<button class="btn" data-act="logInput" data-preset="${pre({ scope: { type: 'tray', id }, targets: [id] })}">${ic('spark')}${h(tl('Log input'))}</button>` : ''}<button class="btn" data-act="quickPhoto" data-ref="${id}">${ic('camera')}${h(tl('Photo'))}</button><button class="btn" data-act="note" data-ref="${id}">${ic('note')}${h(tl('Note'))}</button><button class="btn" data-act="editTray" data-id="${id}">${h(tl('Edit'))}</button></div>
   ${lot && on('germ') && st.up + st.failed > 0 ? `<div class="actions tight"><button class="btn sm" data-act="trayGerm" data-id="${id}">Save as a germination test for ${h(title(lot))}</button></div>` : ''}
@@ -5704,6 +5706,7 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.27.2': ['Seed trays now say how to mark a cell: tap once when it comes up, twice if it did not come up, three times to put it back to waiting. A germination test that is still in progress has a new button, Finish test: the rest didn\'t come up, which closes it with the seeds you counted and treats the others as not coming up.'],
   '0.27.1': ['The built-in examples now have a sample picture for every bird and plant (cartoon drawings marked SAMPLE IMAGE), so the lists and pages are never blank when you try them out or film a demo.'],
   '0.27.0': ['Automatic backups: with sync on, a backup of your records is made every day in your own Google Drive or Dropbox, and old ones are tidied for you. Choose how many to keep (7 daily, 4 weekly and 12 monthly unless you change it).','Settings, Sync now lists your backups: restore one, delete one, or mark it Keep forever so it is never tidied away.'],
   '0.26.1': ['Settings, Backups now says whether this device keeps your records permanently, and how much space they use. If the browser has not agreed yet, Ask again tries once more. On iPhone and iPad, add the app to your Home Screen first; Apple is more likely to agree.'],
