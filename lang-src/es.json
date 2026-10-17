@@ -1678,7 +1678,11 @@
   "With withholding dates worked out": "Con las fechas de espera ya calculadas",
   "With your goal and target traits": "Con tu objetivo y tus rasgos objetivo",
   "You've tried everything on the getting-started list.": "Has probado todo lo de la lista de primeros pasos.",
-  "{done} of {total} done": "{done} de {total} hechos"
+  "{done} of {total} done": "{done} de {total} hechos",
+  "The label photo is read for you and the details are filled in below. It is sent to {who}. Check everything against the label.": "La foto de la etiqueta se lee por ti y los datos se rellenan abajo. Se envía a {who}. Revisa todo con la etiqueta.",
+  "Read the label again": "Leer la etiqueta otra vez",
+  "Labels often have more on the back, like the rate or withholding period. Add a second photo if you like, or just fill in the form below.": "Las etiquetas suelen tener más datos detrás, como la dosis o el plazo de espera. Añade una segunda foto si quieres, o rellena el formulario de abajo.",
+  "Two photos added. The most you can add is two: the front and the back.": "Dos fotos añadidas. Puedes añadir como máximo dos: el frente y el reverso."
  },
  "plurals": {
   "breed": {

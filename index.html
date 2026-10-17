@@ -725,7 +725,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.27.3';
+const VERSION = '0.27.4';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -5084,6 +5084,7 @@ function inputSheet({ id, preset = {}, scanPhoto = '' } = {}) {
   const r = id ? get(id) : { name: '', brand: '', category: keepsKind('plant') ? 'fert' : 'med', active: '', unit: 'mL', rate: '', dose: null, whp: {}, organic: false, qty: '', opened: '', expiry: '', notes: '', photoIds: [] };
   let ph;
   const { el, form } = formSheet(id ? `Edit ${r.name}` : 'New input', `
+    <div id="inShots"></div><p class="hint" id="inHint"></p><div class="actions" id="inBtns"></div>
     <div id="inLabelBox">${labelBoxHTML()}</div>
     <div class="two">${F.text('name', 'Name', r.name, 'e.g. Seasol, Ivomec pour-on')}${F.text('brand', 'Brand (optional)', r.brand)}</div>
     <div class="two">${F.select('category', 'Type', r.category, catOptions())}${F.text('unit', 'Usual unit', r.unit, 'mL, L, g, kg, tsp, dose')}</div>
@@ -5098,8 +5099,7 @@ function inputSheet({ id, preset = {}, scanPhoto = '' } = {}) {
     ${F.check('organic', 'Allowed in organic growing', r.organic)}
     <div class="two">${F.text('qty', 'Amount on hand (optional)', r.qty ?? '', 'Taken off as you log it')}${F.date('opened', 'Opened', r.opened)}</div>
     ${F.date('expiry', 'Use by', r.expiry)}`)}
-    ${F.area('notes', 'Notes', r.notes, '', 2)}
-    ${photoField('Label photo')}`, {
+    ${F.area('notes', 'Notes', r.notes, '', 2)}`, {
     onSave: async d => {
       if (!d.name) throw new Error('Give the input a name');
       const whp = {}; for (const [k] of WHP_KINDS) { const v = parseInt(d['whp_' + k], 10); if (v > 0) whp[k] = v; delete d['whp_' + k]; }
@@ -5114,10 +5114,29 @@ function inputSheet({ id, preset = {}, scanPhoto = '' } = {}) {
     },
     onDelete: id && (async () => { await removeRec(id); return '#/library?tab=inputs'; }),
   });
-  ph = mountPhotos(el, r.photoIds, { labels: false });
+  ph = { ids: [...(r.photoIds || [])] };
+  ph.draw = () => {
+    const box = $('#inShots', el);
+    box.innerHTML = ph.ids.length ? `<div class="ph-grid scan-grid">${ph.ids.map(pid => `<div class="ph-c"><div class="ph-t"><img data-photo="${pid}" alt="${h(tl('Label photo'))}"><button type="button" class="ph-x" data-inrm="${pid}" aria-label="${h(tl('Remove photo'))}">${ic('x')}</button></div></div>`).join('')}</div>` : '';
+    hydrate(box);
+    $('#inHint', el).textContent = ph.ids.length === 1 ? tl('Labels often have more on the back, like the rate or withholding period. Add a second photo if you like, or just fill in the form below.') : ph.ids.length >= 2 ? tl('Two photos added. The most you can add is two: the front and the back.') : '';
+    $('#inBtns', el).innerHTML = ph.ids.length >= 2 ? '' : ph.ids.length === 1
+      ? `<button type="button" class="btn tagc" data-inscan="cam">${ic('camera')}${h(tl('Photo of the back'))}</button><button type="button" class="btn" data-inscan="lib">${ic('image')}${h(tl('Choose from gallery'))}</button>`
+      : `<button type="button" class="btn tagc" data-inscan="cam">${ic('camera')}${h(tl('Take photo'))}</button><button type="button" class="btn" data-inscan="lib">${ic('image')}${h(tl('Choose photo'))}</button>`;
+  };
+  ph.draw();
   const showWhp = () => { const c = INPUT_CATS[form.elements.category.value]?.kind; $('.whp-harvest', el).hidden = c === 'animal' || !keepsKind('plant'); for (const k of ['eggs', 'milk', 'meat']) $(`.whp-${k}`, el).hidden = c === 'plant' || !keepsKind('animal'); };
   form.elements.category.addEventListener('change', showWhp); showWhp();
-  mountLabelReader(el, form, ph, showWhp, preset.scanPhoto);
+  const reader = mountLabelReader(el, form, ph, showWhp, preset.scanPhoto);
+  el.addEventListener('click', async e => {
+    const rm = e.target.closest('[data-inrm]');
+    if (rm) { ph.ids = ph.ids.filter(x => x !== rm.dataset.inrm); ph.draw(); reader.afterPhoto(); return; }
+    const b = e.target.closest('[data-inscan]'); if (!b || ph.ids.length >= 2) return;
+    const files = (await pickFiles(b.dataset.inscan === 'cam')).slice(0, 2 - ph.ids.length); if (!files.length) return;
+    busy(true);
+    try { for (const f of files) ph.ids.push(await addPhoto(f)); } catch (err) { toast(err.message || 'That photo could not be read'); } finally { busy(false); }
+    ph.draw(); reader.afterPhoto();
+  });
 }
 function pInput(id) {
   const r = get(id); if (!r || r.type !== 'input') return notFound();
@@ -5706,6 +5725,7 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.27.4': ['Adding an input (fertiliser, snail bait, sprays, medicines, feed) now starts with Take photo and Choose photo at the top, like scanning a seed packet. Add the front and the back of the label and the name, rate and withholding period are filled in for you. Copy and paste with Claude or ChatGPT only appears when smart features are paused or offline.','Scan label in Library, Inputs now opens the same screen.'],
   '0.27.3': ['Spanish (Español) is here as a beta translation: choose it in Settings, Language. It covers most of the app\'s wording; a few screens are still partly in English and will follow. If something reads oddly, the Suggest a better wording link in Settings tells us.'],
   '0.27.2': ['Seed trays now say how to mark a cell: tap once when it comes up, twice if it did not come up, three times to put it back to waiting. A germination test that is still in progress has a new button, Finish test: the rest didn\'t come up, which closes it with the seeds you counted and treats the others as not coming up.'],
   '0.27.1': ['The built-in examples now have a sample picture for every bird and plant (cartoon drawings marked SAMPLE IMAGE), so the lists and pages are never blank when you try them out or film a demo.'],
@@ -9028,17 +9048,17 @@ async function readInputLabelPhotos(photoIds, opts = {}) {
 }
 Object.assign(ACT_GROUPS, {
   doseCalc: () => doseCalcSheet(),
-  scanInput: async () => {
-    const files = await pickFiles(false, 'image/*'); if (!files.length) return;
-    busy(true); let pid;
-    try { pid = await addPhoto(files[0]); } catch (e) { toast(e.message || 'That photo could not be read'); return; } finally { busy(false); }
-    inputSheet({ scanPhoto: pid });
-  },
+  scanInput: () => inputSheet(),
 });
-/* The "read the label" block at the top of the input form: AI when it is on, otherwise copy and paste. */
-function labelBoxHTML() {
-  if (aiAuto()) return `<div class="actions tight" style="margin-top:0"><button type="button" class="btn sm tagc" data-readlabel>${ic('camera')}Read the label with ${aiName()}</button></div><p class="hint" style="margin-top:0">Fills in the name, ingredient, rate and withholding periods as printed. The photo is sent to ${aiName() === 'Gemini' ? h(tl('Google Gemini')) : 'Claude'}. Check everything against the label.</p><div data-labelmsg></div>`;
+/* Under the photo buttons at the top of the input form: AI reads the photo as soon as it is added; copy and paste only when smart features are paused or offline. */
+function manualLabelHTML() {
   return `<div class="manual"><b>${h(tl('Fill this in from the label with your Claude or ChatGPT app'))}</b><ol><li>${h(tl('Copy the instructions.'))}</li><li>${h(tl('In Claude or ChatGPT, attach a photo of the label and paste.'))}</li><li>${h(tl('Copy the whole reply and paste it here.'))}</li></ol><button type="button" class="btn" data-copyprompt>${h(tl('Copy instructions'))}</button><textarea rows="4" placeholder="${h(tl('Paste the reply here'))}" data-paste aria-label="${h(tl('Paste the reply'))}"></textarea><button type="button" class="btn primary" data-fill>${h(tl('Fill in the form'))}</button></div>`;
+}
+function labelBoxHTML() {
+  const mode = aiMode();
+  if (aiAuto()) return `<p class="hint" style="margin-top:0">${h(tl('The label photo is read for you and the details are filled in below. It is sent to {who}. Check everything against the label.', { who: aiName() === 'Gemini' ? tl('Google Gemini') : 'Claude' }))}</p><div data-labelmsg></div><div class="actions tight" data-rereadwrap hidden><button type="button" class="btn sm" data-readlabel>${h(tl('Read the label again'))}</button></div>`;
+  if (mode === 'off') return `<p class="hint">${h(tl('Turn on smart features in Settings to have these details filled in from the photo.'))}</p>`;
+  return `<div data-manualhost></div>`;
 }
 function mountLabelReader(el, form, ph, showWhp, scanPhoto) {
   const box = $('#inLabelBox', el), msg = () => $('[data-labelmsg]', el) || box;
@@ -9074,18 +9094,20 @@ function mountLabelReader(el, form, ph, showWhp, scanPhoto) {
       note(err.message || 'Could not read the label', true);
     }
   };
-  if (scanPhoto) { ph.ids.push(scanPhoto); ph.draw?.(); if (aiAuto()) run(); else toast('Photo added. Copy the instructions below to read it'); }
+  const afterPhoto = () => {
+    $('[data-rereadwrap]', el)?.toggleAttribute('hidden', !ph.ids.length);
+    if (aiAuto()) { if (ph.ids.length) run(); }
+    else if (aiMode() === 'manual') { const host = $('[data-manualhost]', el); if (host) host.innerHTML = ph.ids.length ? manualLabelHTML() : ''; }
+  };
+  if (scanPhoto) { ph.ids.push(scanPhoto); ph.draw?.(); afterPhoto(); }
+  else if (ph.ids.length && aiMode() === 'manual') afterPhoto();
+  else $('[data-rereadwrap]', el)?.toggleAttribute('hidden', !ph.ids.length);
   el.addEventListener('click', async e => {
-    if (e.target.closest('[data-readlabel]')) {
-      if (!ph.ids.length || !confirm('Read the photo already on this form? Choose Cancel to take or choose a new one.')) {
-        const [file] = await pickFiles(false, 'image/*'); if (!file) return;
-        busy(true); try { const pid = await addPhoto(file); ph.ids.push(pid); ph.draw?.(); } catch (er) { toast(er.message); return; } finally { busy(false); }
-      }
-      run(); return;
-    }
-    if (e.target.closest('[data-copyprompt]')) { toast((await copyText(inputLabelPrompt(1))) ? 'Instructions copied' : 'Copy failed. Select and copy by hand'); return; }
+    if (e.target.closest('[data-readlabel]')) { if (ph.ids.length) run(); return; }
+    if (e.target.closest('[data-copyprompt]')) { toast((await copyText(inputLabelPrompt(ph.ids.length || 1))) ? 'Instructions copied' : 'Copy failed. Select and copy by hand'); return; }
     if (e.target.closest('[data-fill]')) { try { fill(parseJSON($('[data-paste]', el).value)); toast('Form filled in. Check it, then save'); } catch (err) { toast(err.message); } }
   });
+  return { afterPhoto };
 }
 /* ===================================================================
    v0.24: sticker labels. Five layouts (small tag, front sticker,

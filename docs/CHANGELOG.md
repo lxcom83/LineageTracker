@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.27.4 (no data format change)
+- Input sheet (`inputSheet` in `js16.js`, `labelBoxHTML`/`mountLabelReader` in `js31.js`): Take photo / Choose photo buttons and the photo thumbnails now sit at the top, in the same layout as the packet scan; up to two photos (front and back); the label is read automatically as soon as a photo is added when smart features are on, with a Read the label again button; the copy-and-paste box shows only in manual mode (paused or offline) after a photo, and a one-line hint shows when smart features are off. Scan label in Library, Inputs opens the same sheet. The bottom Label photo field is gone.
+
 ## 0.27.3 (no data format change)
 - First real language: Spanish (`lang-src/es.json`, beta, neutral Spanish with tú). All 1,675 migrated phrases and the 10 plural forms are translated; `tools/i18n_check.py` reports 100% and no placeholder problems. Settings, Language now offers English and Español.
 - First-run setup, Getting started checklist and the home quick buttons are now translated (they were plain English before).
