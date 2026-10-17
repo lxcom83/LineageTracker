@@ -725,7 +725,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.27.0';
+const VERSION = '0.27.1';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -5704,6 +5704,7 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.27.1': ['The built-in examples now have a sample picture for every bird and plant (cartoon drawings marked SAMPLE IMAGE), so the lists and pages are never blank when you try them out or film a demo.'],
   '0.27.0': ['Automatic backups: with sync on, a backup of your records is made every day in your own Google Drive or Dropbox, and old ones are tidied for you. Choose how many to keep (7 daily, 4 weekly and 12 monthly unless you change it).','Settings, Sync now lists your backups: restore one, delete one, or mark it Keep forever so it is never tidied away.'],
   '0.26.1': ['Settings, Backups now says whether this device keeps your records permanently, and how much space they use. If the browser has not agreed yet, Ask again tries once more. On iPhone and iPad, add the app to your Home Screen first; Apple is more likely to agree.'],
   '0.26.0': ['Your own sticker designs: add a design made in LT-Print (lineagetracker.org) from a file under Labels, Design. It is kept with your records, fills in from your plants, animals, lots and places, and prints without internet. Anyone can send you a design; you do not need an account to use it.','Designs can hold barcodes, automatic numbers, best-before dates and their own typed rows, such as a list of seed packets or customer labels.','Print sticker buttons on each plant, animal and seed lot page open the sticker page with that one ready to print.'],

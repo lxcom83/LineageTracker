@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.27.1 (examples only, no code change)
+- Every bird and plant in the three built-in examples now has its own sample picture (cartoon drawings tagged SAMPLE IMAGE, with photo labels): hens, roosters, pullets and cockerels in each breed's colours with leg bands for the generation, chicks, flocks, and squash plants at different stages (seedling, growing, flower, fruit, weak and culled, selected) with a plant tag showing the code. Drawn by `tools/example_art2.py`, added by `tools/make_individual_pictures.py` (run after `make_examples.py` and `make_example_media.py`; re-runnable, ids start `exi-`). No real photos, so nothing to license.
+
 ## Unreleased (examples only, no code change)
 - The three built-in examples now include sample pictures (drawings tagged SAMPLE IMAGE) with photo labels, front and back photos on the squash packets, a Log note that is not linked to anything, and a Breeding plan on each example project (periods, locked-in and planned boxes, planned and recorded crosses, quantity boxes, a block or pen). Built by `tools/make_example_media.py` after `tools/make_examples.py`.
 
