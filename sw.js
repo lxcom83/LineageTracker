@@ -1,5 +1,5 @@
 // Lineage Tracker offline cache. Bump the version when you change index.html.
-const CACHE = 'lineage-v0.27.4';
+const CACHE = 'lineage-v0.28.0';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon.svg'];
 // Fonts are cached too, but a missing font file must never stop the app from working offline.
 const FONTS = ['./fonts/atkinson-hyperlegible-latin-400-italic.woff2', './fonts/atkinson-hyperlegible-latin-400-normal.woff2', './fonts/atkinson-hyperlegible-latin-700-normal.woff2', './fonts/atkinson-hyperlegible-latin-ext-400-italic.woff2', './fonts/atkinson-hyperlegible-latin-ext-400-normal.woff2', './fonts/atkinson-hyperlegible-latin-ext-700-normal.woff2', './fonts/barlow-condensed-latin-500-normal.woff2', './fonts/barlow-condensed-latin-600-normal.woff2', './fonts/barlow-condensed-latin-700-normal.woff2', './fonts/barlow-condensed-latin-ext-500-normal.woff2', './fonts/barlow-condensed-latin-ext-600-normal.woff2', './fonts/barlow-condensed-latin-ext-700-normal.woff2', './fonts/barlow-condensed-vietnamese-500-normal.woff2', './fonts/barlow-condensed-vietnamese-600-normal.woff2', './fonts/barlow-condensed-vietnamese-700-normal.woff2'];

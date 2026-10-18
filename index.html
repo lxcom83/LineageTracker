@@ -725,7 +725,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.27.4';
+const VERSION = '0.28.0';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -2086,7 +2086,7 @@ function dueItems() {
   const add = it => { const s = st[it.key]; if (s?.until && s.until > t) return; if (s?.skip && s.skip === it.date) return; it.days = daysBetween(t, it.date); items.push(it); };
   // Fruit set checks after hand pollination
   if (on('crosses')) for (const c of all('cross')) if (c.method === 'Hand-pollinated' && c.status === 'Done' && c.date)
-    add({ key: 'fs:' + c.id, date: addDays(c.date, +set.fruitSetDays || 10), icon: 'cross', title: `Check fruit set: ${crossTitle(c)}`, sub: `Hand-pollinated ${fmtDate(c.date)}. Mark the cross Successful or Failed.`, go: { act: 'editCross', id: c.id } });
+    add({ key: 'fs:' + c.id, date: addDays(c.date, +set.fruitSetDays || 10), icon: 'cross', title: tl('Check fruit set: {name}', { name: crossTitle(c) }), sub: tl('Hand-pollinated {date}. Mark the cross Successful or Failed.', { date: fmtDate(c.date) }), go: { act: 'editCross', id: c.id } });
   // Storage and other trial checks
   for (const { rt: c, project } of rtIndex().values()) {
     if (!on('records') || !c.parentRt || c.archived || !endFieldOf(c)) continue;
@@ -2103,7 +2103,7 @@ function dueItems() {
     due.sort();
     const first = due[0], horizon = first > t ? addDays(first, 7) : t;
     const n = due.filter(d => d <= horizon).length;
-    add({ key: `st:${c.id}`, date: first, icon: 'library', title: `${n} ${(parentRt.itemName || 'item').toLowerCase()}${n === 1 ? '' : 's'} due a ${c.name.toLowerCase()}`, sub: `${project.name}. Opens the form to check them all at once.`, go: { act: 'bulk', project: project.id, rt: c.id } });
+    add({ key: `st:${c.id}`, date: first, icon: 'library', title: tl('{n} {items} due a {what}', { n, items: (parentRt.itemName || 'item').toLowerCase() + (n === 1 ? '' : 's'), what: c.name.toLowerCase() }), sub: tl('{name}. Opens the form to check them all at once.', { name: project.name }), go: { act: 'bulk', project: project.id, rt: c.id } });
   }
   // Germination: tests to finish, lots to test, lots to regrow, low stock
   const retest = (+set.germRetestMonths || 12) * 30.4;
@@ -2113,15 +2113,15 @@ function dueItems() {
     if (l.qty != null && l.qty !== '' && l.minQty != null && l.minQty !== '' && +l.qty < +l.minQty && formOf(l) !== 'seed') low.push(l);
     if (formOf(l) !== 'seed') continue;
     const tests = germsFor(l.id), open = tests.find(g => !g.done), last = tests.find(g => g.done);
-    if (open && on('germ')) add({ key: 'gf:' + open.id, date: addDays(open.date, 14), icon: 'library', title: `Finish germination test: ${title(l)}`, sub: `Started ${fmtDate(open.date)} with ${open.sown} seeds.`, go: { act: 'editGerm', id: open.id } });
-    if (last && on('germ')) { const r = germResult(last); if (r.pct != null && r.pct < germThreshold()) add({ key: 'rg:' + l.id, date: last.date, icon: 'library', title: `Regrow or replace: ${title(l)}`, sub: `Last germination test ${r.pct}%, below your ${germThreshold()}% threshold.`, go: { nav: '#/lot/' + l.id } }); }
+    if (open && on('germ')) add({ key: 'gf:' + open.id, date: addDays(open.date, 14), icon: 'library', title: tl('Finish germination test: {name}', { name: title(l) }), sub: tl('Started {date} with {n} seeds.', { date: fmtDate(open.date), n: open.sown }), go: { act: 'editGerm', id: open.id } });
+    if (last && on('germ')) { const r = germResult(last); if (r.pct != null && r.pct < germThreshold()) add({ key: 'rg:' + l.id, date: last.date, icon: 'library', title: tl('Regrow or replace: {name}', { name: title(l) }), sub: tl('Last germination test {pct}%, below your {limit}% threshold.', { pct: r.pct, limit: germThreshold() }), go: { nav: '#/lot/' + l.id } }); }
     const stale = !last || daysBetween(last.date, t) > retest;
     const past = l.bestBefore && l.bestBefore.slice(0, 7) < t.slice(0, 7);
     if (!open && stale && (past || l.status === 'archive' || last)) toTest.push(l);
     if (l.qty != null && l.qty !== '' && l.minQty != null && l.minQty !== '' && +l.qty < +l.minQty) low.push(l);
   }
-  if (toTest.length && on('germ')) add({ key: 'gt', date: t, icon: 'library', title: `${toTest.length} lot${toTest.length === 1 ? '' : 's'} due a germination test`, sub: 'Past best-before, archive backups, or not tested for a while.', go: { nav: '#/library?tab=lots&due=germ' } });
-  if (low.length) add({ key: 'lw', date: t, icon: 'library', title: `${low.length} lot${low.length === 1 ? '' : 's'} running low`, sub: low.slice(0, 3).map(title).join(', ') + (low.length > 3 ? '...' : ''), go: { nav: '#/library?tab=lots&due=low' } });
+  if (toTest.length && on('germ')) add({ key: 'gt', date: t, icon: 'library', title: tl('{n} due a germination test', { n: tlp(toTest.length, 'lot', 'lots') }), sub: tl('Past best-before, archive backups, or not tested for a while.'), go: { nav: '#/library?tab=lots&due=germ' } });
+  if (low.length) add({ key: 'lw', date: t, icon: 'library', title: tl('{n} running low', { n: tlp(low.length, 'lot', 'lots') }), sub: low.slice(0, 3).map(title).join(', ') + (low.length > 3 ? '...' : ''), go: { nav: '#/library?tab=lots&due=low' } });
   // Repeating record types (plant checks, weigh-ins...)
   for (const p of all('project')) for (const rt of p.recordTypes || []) {
     if (!on('records') || rt.archived || rt.parentRt || !(+rt.repeatDays > 0)) continue;
@@ -2133,7 +2133,7 @@ function dueItems() {
     if (!list.length) continue;
     const first = list[0].due, horizon = first > t ? addDays(first, 3) : t;
     const n = list.filter(x => x.due <= horizon).length;
-    add({ key: `rp:${rt.id}`, date: first, icon: 'note', title: `${n} due a ${rt.name.toLowerCase()}`, sub: `${p.name}, every ${rt.repeatDays} days.`, go: { act: 'repeat', rt: rt.id, project: p.id } });
+    add({ key: `rp:${rt.id}`, date: first, icon: 'note', title: tl('{n} due a {what}', { n, what: rt.name.toLowerCase() }), sub: tl('{name}, every {days} days.', { name: p.name, days: rt.repeatDays }), go: { act: 'repeat', rt: rt.id, project: p.id } });
   }
   // Manual reminders
   for (const r of all('reminder')) if (!r.done) {
@@ -2151,8 +2151,8 @@ function dueItems() {
   return items;
 }
 function whenLabel(d) {
-  if (d < -1) return `${-d} days overdue`; if (d === -1) return 'Overdue by a day';
-  if (d === 0) return 'Today'; if (d === 1) return 'Tomorrow'; return `In ${d} days`;
+  if (d < -1) return tl('{n} days overdue', { n: -d }); if (d === -1) return tl('Overdue by a day');
+  if (d === 0) return tl('Today'); if (d === 1) return tl('Tomorrow'); return tl('In {n} days', { n: d });
 }
 function dueRowsHTML(items) {
   return `<ul class="due">${items.map(it => `<li class="due-row${it.days < 0 ? ' late' : ''}"><button type="button" class="due-main" data-act="dueGo" data-key="${h(it.key)}">${ic(it.icon)}<span class="main"><span class="t">${h(it.title)}</span><span class="s">${h(whenLabel(it.days))}. ${h(it.sub || '')}</span></span></button><button type="button" class="icon-btn" data-act="dueMenu" data-key="${h(it.key)}" aria-label="Options for ${h(it.title)}">${ic('more')}</button></li>`).join('')}</ul>`;
@@ -2162,16 +2162,16 @@ function dueHomeHTML() {
   const now = items.filter(i => i.days <= 7), later = items.filter(i => i.days > 7 && i.days <= 30);
   if (!now.length && !later.length) return '';
   const late = now.filter(i => i.days < 0).length;
-  return `<section class="sec"><div class="sec-head"><h2>${h(tl('Due'))}</h2><a href="#/due">${late ? `${late} overdue, ` : ''}see all</a></div>${now.length ? dueRowsHTML(now.slice(0, 6)) : `<p class="muted">${h(tl('Nothing due this week.'))}</p>`}${now.length > 6 || later.length ? `<p><a href="#/due">${now.length > 6 ? `${now.length - 6} more this week` : ''}${now.length > 6 && later.length ? ', ' : ''}${later.length ? `${later.length} coming up` : ''}</a></p>` : ''}</section>`;
+  return `<section class="sec"><div class="sec-head"><h2>${h(tl('Due'))}</h2><a href="#/due">${h(late ? tl('{n} overdue, see all', { n: late }) : tl('See all'))}</a></div>${now.length ? dueRowsHTML(now.slice(0, 6)) : `<p class="muted">${h(tl('Nothing due this week.'))}</p>`}${now.length > 6 || later.length ? `<p><a href="#/due">${now.length > 6 ? `${now.length - 6} more this week` : ''}${now.length > 6 && later.length ? ', ' : ''}${later.length ? `${later.length} coming up` : ''}</a></p>` : ''}</section>`;
 }
 function pDue() {
   const items = dueItems().filter(i => i.days <= 60);
-  const groups = [['Overdue', i => i.days < 0], ['This week', i => i.days >= 0 && i.days <= 7], ['Coming up', i => i.days > 7]];
+  const groups = [[tl('Overdue'), i => i.days < 0], [tl('This week'), i => i.days >= 0 && i.days <= 7], [tl('Coming up'), i => i.days > 7]];
   const cal = S.settings.calendar;
   return `<div class="page-head"><h1>${h(tl('Due'))}</h1><button class="btn" data-act="newReminder">${ic('plus')}${h(tl('Reminder'))}</button></div>
   <p class="muted">${h(tl('Worked out from your crosses, storage trials, germination tests, repeating record types and reminders. It updates itself as you log records.'))}</p>
   ${cal && items.length ? `<div class="actions"><button class="btn" data-act="calBatch" data-span="7">${ic('cal')}${h(tl('Add the next 7 days to my calendar'))}</button></div>` : ''}
-  ${items.length ? groups.map(([g, f]) => { const xs = items.filter(f); return xs.length ? sec(g, xs.length, dueRowsHTML(xs)) : ''; }).join('') : emptyBox('Nothing due in the next two months.', 'newReminder', 'Set a reminder')}
+  ${items.length ? groups.map(([g, f]) => { const xs = items.filter(f); return xs.length ? sec(g, xs.length, dueRowsHTML(xs)) : ''; }).join('') : emptyBox(tl('Nothing due in the next two months.'), 'newReminder', tl('Set a reminder'))}
   <p class="hint" style="margin-top:20px">${h(tl('Change the timings in'))} <a href="#/settings">${h(tl('Settings'))}</a>.</p>`;
 }
 function repeatSheet(rtId, projectId) {
@@ -2574,7 +2574,7 @@ async function loadExampleData(which) {
     await DB.putMany('records', data.records);
     data.records.forEach(r => S.recs.set(r.id, r)); invalidateCaches();
   } finally { busy(false); }
-  toast(`${which === 'animals' ? 'Chicken' : which === 'olive' ? 'Breeding' : 'Plant'} example ready`);
+  toast(which === 'animals' ? tl('Chicken example ready') : which === 'olive' ? tl('Breeding example ready') : which === 'pigs' ? tl('Pig example ready') : tl('Plant example ready'));
   render();
 }
 async function removeExamples() {
@@ -2735,6 +2735,42 @@ function scheduleSync(delay = 15000) {
   clearTimeout(SYNC.timer);
   SYNC.timer = setTimeout(() => syncNow(), delay);
 }
+/* ---------- Sharing smart-feature keys between your own devices (off by default) ----------
+   The keys travel only inside the passphrase-encrypted sync copy in the member's own Drive or Dropbox, and only while this switch is on.
+   Without a passphrase nothing is shared.  Each device opts in; turning it off on one device switches it off on the others. */
+const KEY_FIELDS = ['apiKey', 'model', 'geminiKey', 'geminiModel'];
+function sharedKeysPayload() {
+  if (!S.sync?.shareKeys || !S.sync.encrypt || !SYNC.key) return null;
+  const k = { at: S.settings.keysAt || 0 };
+  for (const f of KEY_FIELDS) if (S.settings[f]) k[f] = S.settings[f];
+  return (k.apiKey || k.geminiKey) ? k : null;
+}
+async function pullSharedKeys(remote) {
+  SYNC.keysWaiting = false;
+  if (!remote || !S.sync.encrypt) return;   // never read keys from an unencrypted copy
+  const off = +remote.keysOffAt || 0;
+  if (off > (S.sync.keysOffAt || 0)) {
+    S.sync.keysOffAt = off;
+    if (S.sync.shareKeys && off > (S.sync.keysOnAt || 0)) { S.sync.shareKeys = false; toast(tl('Key sharing was switched off on another of your devices, so it is off here too. The keys already on this device stay.')); }
+    await saveSync();
+  }
+  const k = remote.keys; if (!k || typeof k !== 'object') return;
+  if (!S.sync.shareKeys) { SYNC.keysWaiting = true; return; }
+  if ((+k.at || 0) <= (S.settings.keysAt || 0)) return;
+  const clip = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
+  S.settings.apiKey = clip(k.apiKey, 300); S.settings.geminiKey = clip(k.geminiKey, 300);
+  S.settings.model = clip(k.model, 80) || S.settings.model; S.settings.geminiModel = clip(k.geminiModel, 80) || S.settings.geminiModel;
+  S.settings.keysAt = +k.at; await saveSettings();
+  toast(tl('Smart-feature keys updated from your other device'));
+}
+async function setKeySharing(on) {
+  if (on && !(S.sync?.encrypt && SYNC.key)) { toast(tl('Protect synced data with a passphrase first. Keys are never shared without one.')); return false; }
+  S.sync.shareKeys = !!on;
+  if (on) { S.sync.keysOnAt = Date.now(); if (!S.settings.keysAt && (S.settings.apiKey || S.settings.geminiKey)) { S.settings.keysAt = Date.now(); await saveSettings(); } }
+  else { S.sync.keysOffAt = Date.now(); S.sync.reseal = true; }
+  await saveSync(); SYNC.keysWaiting = false;
+  syncNow({ interactive: true }); return true;
+}
 async function syncNow({ interactive = false } = {}) {
   if (!S.sync?.enabled || WS.active !== 'main') return;   // only "My records" ever syncs
   if (SYNC.busy) { SYNC.again = true; return; }
@@ -2754,6 +2790,7 @@ async function syncNow({ interactive = false } = {}) {
       try { remote = await openJSON(remote); } catch { SYNC.key = null; await DB.mainDel('meta', 'syncKey'); throw lockedErr('That passphrase didn\'t match'); }
     } else if (remote && S.sync.encrypt && (remote.encAt || 0) > (S.sync.encAt || 0)) { S.sync.encrypt = false; S.sync.encAt = remote.encAt; await saveSync(); }
     if (S.sync.encrypt && !SYNC.key) throw lockedErr();
+    await pullSharedKeys(remote);
     const incoming = [], clashes = [];
     for (const r of remote?.records || []) { const cur = S.recs.get(r.id); const c = detectConflict(cur, r, S.sync.lastSync); if (c) clashes.push(c); if (!cur || (r.updatedAt || 0) > (cur.updatedAt || 0)) incoming.push(r); }
     if (clashes.length) await addConflicts(clashes);
@@ -2765,9 +2802,16 @@ async function syncNow({ interactive = false } = {}) {
     // 2. Push: upload when this device has anything Drive lacks or holds an older copy of
     const known = new Map((remote?.records || []).map(r => [r.id, r.updatedAt || 0]));
     let push = !remote || !!S.sync.reseal;
+    const kp = sharedKeysPayload();
+    if (kp && (kp.at || 0) > (remote?.keys?.at || 0)) push = true;
     for (const r of S.recs.values()) if (!known.has(r.id) || (r.updatedAt || 0) > known.get(r.id)) { push = true; break; }
     if (push) {
       const payload = { app: 'lineage', version: 4, format: 'sync', updatedAt: Date.now(), by: S.sync.deviceId, encAt: S.sync.encAt || 0, records: [...S.recs.values()] };
+      // Keys are only ever written inside the passphrase-encrypted copy. A device with sharing off passes another device's keys through untouched,
+      // unless this device is the one that just switched sharing off.
+      const carry = !kp && S.sync.encrypt && remote?.keys && (S.sync.keysOffAt || 0) <= (+remote.keysOffAt || 0) ? remote.keys : null;
+      if (kp || carry) payload.keys = kp || carry;
+      if (S.sync.keysOffAt) payload.keysOffAt = S.sync.keysOffAt;
       const data = S.sync.encrypt ? await sealJSON(payload) : JSON.stringify(payload);
       await P.writeRecords(data); S.sync.reseal = false;
     }
@@ -2877,16 +2921,24 @@ function syncSettingsHTMLInner() {
     ${SYNC.state === 'locked' ? `<div class="notice warn">${h(tl('Your synced data is protected with a passphrase.'))} <button class="linkish" data-act="syncUnlock">${h(tl('Enter it on this device'))}</button></div>` : ''}
     <div class="actions tight">${st.encrypt ? `<span class="chip ok">${h(tl('Protected with a passphrase'))}</span><button class="btn sm" data-act="syncUnprotect">${h(tl('Turn off protection'))}</button>` : `<button class="btn sm" data-act="syncProtect">${h(tl('Protect synced data with a passphrase'))}</button>`}</div>
     <p class="hint">${st.encrypt ? 'Records and photos are encrypted on this device before they reach your ${h(provName())}. Each device needs the passphrase once.' : 'Optional. Encrypts records and photos before they reach your ${h(provName())}. If the passphrase is lost, the synced copy can\'t be read; your records on each device are unaffected.'}</p>
+    ${keySharingHTML(st)}
     <form id="syncForm" novalidate>${F.check('photos', 'Sync photos as well as records', st.photos !== false)}<p class="hint">${h(tl('Turn off to save storage space or mobile data. Records always sync.'))}</p></form>
     <p class="hint">${h(tl('Changes sync shortly after you make them, when Lineage Tracker opens, and when you tap Sync now. If the same record is changed on two devices before either syncs, the later change wins. Google sign-ins last about an hour, so after a break you may need to tap the cloud button once.'))}</p>
     <p class="hint">${h(tl('Sync is not a backup: deleting something deletes it everywhere. The automatic backups below are your safety net.'))}</p>
     <div id="snapBox" class="snapbox"></div>
     ${advanced}`);
 }
+function keySharingHTML(st) {
+  if (!st.encrypt) return `<p class="hint">${h(tl('Want your Gemini or Claude key on all your devices? Protect synced data with a passphrase first, then a switch to share keys appears here.'))}</p>`;
+  return `<div class="keyshare">${SYNC.keysWaiting && !st.shareKeys ? `<div class="notice ok">${h(tl('Another of your devices has shared its smart-feature keys. Switch sharing on below to use them here.'))}</div>` : ''}
+    <form id="keyShareForm" novalidate>${F.check('shareKeys', tl('Share my smart-feature keys between my devices'), !!st.shareKeys)}</form>
+    <p class="hint">${h(tl('Off by default. When on, your Gemini and Claude keys are encrypted with your passphrase and kept in your own storage, so you only type them once. Anyone who has both your passphrase and your storage could read them. Switching this off on one device switches it off on all of them.'))}</p></div>`;
+}
 function mountSyncSettings() {
   setSyncState(SYNC.state, SYNC.msg);
   loadBackupList();
   $('#cidForm')?.addEventListener('submit', async e => { e.preventDefault(); S.sync = { ...(S.sync || {}), clientId: e.target.elements.clientId.value.trim() }; await saveSync(); toast('Saved'); render(); });
+  $('#keyShareForm')?.addEventListener('change', async e => { const ok = await setKeySharing(e.target.checked); if (!ok) e.target.checked = false; else toast(e.target.checked ? tl('Keys will be shared between your devices') : tl('Keys are no longer shared')); });
   $('#syncForm')?.addEventListener('change', async e => { S.sync.photos = e.target.checked; await saveSync(); toast(e.target.checked ? 'Photos will sync' : 'Only records will sync'); });
 }
 async function initSync() {
@@ -3019,7 +3071,7 @@ function goalDueItems(add) {
     const months = +p.goalReviewMonths || 12;
     const last = [cur.date, p.goalReviewedAt].filter(Boolean).sort().pop();
     const due = addDays(last, Math.round(months * 30.44));
-    add({ key: 'gr:' + p.id, date: due, icon: 'project', title: `Review the goal for ${p.name}`, sub: `Goal v${cur.v}. Still the right target?`, go: { act: 'reviewGoal', id: p.id } });
+    add({ key: 'gr:' + p.id, date: due, icon: 'project', title: tl('Review the goal for {name}', { name: p.name }), sub: tl('Goal v{v}. Still the right target?', { v: cur.v }), go: { act: 'reviewGoal', id: p.id } });
   }
 }
 /* ===================================================================
@@ -3817,7 +3869,19 @@ async function drawShareCard({ photoId, frame, tagText, title, subtitle, body, s
 }
 const YT_URL = 'https://www.youtube.com/@LineageTracker';
 /* Share branding: the full footer is the default; "discreet" is a slim strip with just the web address */
-const shareBrandMode = () => (S.settings.shareBrand === 'discreet' ? 'discreet' : 'full');
+/* Share styles: named choices for where a post is going (for example Substack Notes without hashtags).  Style 1 is the person's old branding and caption
+   setting.  The branding is always on; a style only picks the full footer or the discreet strip. */
+const SHARE_PRESETS = [{ name: 'Substack Notes', hashtags: false }, { name: 'Facebook group', hashtags: false }, { name: 'Instagram', hashtags: true }];
+function shareStyles() {
+  let l = S.settings.shareStyles;
+  if (!Array.isArray(l) || !l.length) l = S.settings.shareStyles = [{ id: 's1', name: 'Standard', hashtags: true, brand: S.settings.shareBrand === 'discreet' ? 'discreet' : 'full', template: String(S.settings.shareTemplate || '') }];
+  return l;
+}
+const shareStyle = () => { const l = shareStyles(); return l.find(x => x.id === S.settings.shareStyleLast) || l[0]; };
+const shareBrandMode = () => (shareStyle().brand === 'discreet' ? 'discreet' : 'full');
+/* Hashtags are optional in a style; the template and the default caption both drop them cleanly */
+const shareTags = tags => (shareStyle().hashtags === false ? '' : tags);
+const shareTidy = t => t.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 const shareSite = () => String(SITE() || 'https://lineagetracker.org').replace(/^https?:\/\//, '').replace(/\/$/, '');
 function shareFullFooter(x, W, H, logo) {
   const FOOT = 96, TAGF = '"Barlow Condensed","Roboto Condensed","Arial Narrow",sans-serif', BODYF = '"Atkinson Hyperlegible",system-ui,Arial,sans-serif';
@@ -3862,10 +3926,9 @@ function shareCaptionParts(r) {
 function shareCaption(r) {
   const site = SITE(), credit = shareCreditOn();
   const { text, tags } = shareCaptionParts(r);
-  const tpl = String(S.settings.shareTemplate || '').trim();
-  if (tpl) return tpl.replace(/\{text\}/g, text).replace(/\{tags\}/g, tags).replace(/\{website\}/g, site || '').replace(/\{youtube\}/g, YT_URL);
-  const tail = shareTail();
-  return `${text}\n\n${tags}${tail}`;
+  const tpl = String(shareStyle().template || '').trim(), tg = shareTags(tags);
+  if (tpl) return shareTidy(tpl.replace(/\{text\}/g, text).replace(/\{tags\}/g, tg).replace(/\{website\}/g, site || '').replace(/\{youtube\}/g, YT_URL));
+  return shareTidy([text, tg].filter(Boolean).join('\n\n') + shareTail());
 }
 async function shareCardForRecord(r, opts = {}) {
   const fr = frameOf(r), pid = coverOf(r);
@@ -3907,6 +3970,7 @@ function shareSheet({ blob, caption, name, giftFor, regen, imgText, recaption })
   const giftOf = el => { if (!giftFor || !$('#giftOn', el)?.checked) return null; const from = $('#giftFrom', el).value.trim() || 'A friend'; S.settings.giftFrom = from; saveSettings(); return new File([giftFile(giftFor, { notes: $('#giftNotes', el).checked, from })], name.replace(/\.png$/, '-gift.json'), { type: 'application/json' }); };
   const el = sheet('Share', `
     ${regen ? `<div class="seg share-shape"><a href="#" data-shape="tall" aria-current="${!S.shareSquare}">${h(tl('Tall'))}</a><a href="#" data-shape="square" aria-current="${!!S.shareSquare}">${h(tl('Square'))}</a></div>` : ''}
+    ${shareStyles().length > 1 ? `<label class="fld share-style"><span>${h(tl('Sharing to'))}</span><select id="shareStyleSel">${shareStyles().map(x => `<option value="${h(x.id)}" ${x.id === shareStyle().id ? 'selected' : ''}>${h(x.name)}</option>`).join('')}</select></label>` : ''}
     ${regen ? `<div class="seg share-brand" role="group" aria-label="${h(tl('Branding'))}"><a href="#" data-brand="full" aria-current="${shareBrandMode() === 'full'}">${h(tl('Full branding'))}</a><a href="#" data-brand="discreet" aria-current="${shareBrandMode() === 'discreet'}">${h(tl('Discreet'))}</a></div>` : ''}
     <img src="${url}" alt="${h(tl('Share card preview'))}" class="share-prev">
     ${imgText != null ? `<label class="fld"><span>${h(tl('Text on the picture'))}</span><textarea id="shareImgText" rows="3">${h(imgText)}</textarea><small class="hint">${h(tl('Change it and the picture updates when you tap away.'))}</small></label>` : ''}
@@ -3921,9 +3985,20 @@ function shareSheet({ blob, caption, name, giftFor, regen, imgText, recaption })
     $$('[data-shape]', el).forEach(a => a.setAttribute('aria-current', String(a === sh)));
     busy(true); try { const nb = await regen($('#shareImgText', el)?.value); url = URL.createObjectURL(nb); file = new File([nb], name, { type: nb.type || 'image/png' }); blob = nb; $('.share-prev', el).src = url; } finally { busy(false); }
   });
+  const redraw = async () => {
+    busy(true); try {
+      if (regen) { const nb = await regen($('#shareImgText', el)?.value); url = URL.createObjectURL(nb); file = new File([nb], name, { type: nb.type || 'image/png' }); blob = nb; $('.share-prev', el).src = url; }
+      if (recaption) { const cap = $('#shareCap', el); if (cap.value === lastAuto) { lastAuto = recaption(); cap.value = lastAuto; } }
+    } finally { busy(false); }
+  };
+  $('#shareStyleSel', el)?.addEventListener('change', async e => {
+    S.settings.shareStyleLast = e.target.value; await saveSettings();
+    $$('[data-brand]', el).forEach(a => a.setAttribute('aria-current', String(a.dataset.brand === shareBrandMode())));
+    await redraw();
+  });
   el.addEventListener('click', async e => {
     const br = e.target.closest('[data-brand]'); if (!br || !regen) return;
-    e.preventDefault(); S.settings.shareBrand = br.dataset.brand; saveSettings();
+    e.preventDefault(); shareStyle().brand = br.dataset.brand; saveSettings();
     $$('[data-brand]', el).forEach(a => a.setAttribute('aria-current', String(a === br)));
     busy(true); try {
       const nb = await regen($('#shareImgText', el)?.value); url = URL.createObjectURL(nb); file = new File([nb], name, { type: nb.type || 'image/png' }); blob = nb; $('.share-prev', el).src = url;
@@ -4121,48 +4196,57 @@ function keepsNow() {
   const ws = typeof WS !== 'undefined' ? WS.cur : null;
   if (ws && ws.id !== 'main') {
     if (ws.keeps) return ws.keeps;
-    if (ws.kind === 'example') return /animals|olive/.test(ws.id) ? 'animals' : 'plants';
+    if (ws.kind === 'example') return /animals|olive|pigs/.test(ws.id) ? 'animals' : 'plants';
   }
   return S.settings.keeps || 'both';
 }
-const keepsKind = k => { const kp = keepsNow(); return kp === 'both' || kp === k + 's'; };
+/* "Other" (products, goods) is a separate switch beside plants/animals: S.settings.other. With neither plants nor animals, keepsNow() is 'none' and only the selling side of the app shows. */
+const keepsKind = k => { if (k === 'product') return !!S.settings.other; const kp = keepsNow(); return kp === 'both' || kp === k + 's'; };
+const KEEP_COMBOS = [['plants', tlx('Plants')], ['animals', tlx('Animals')], ['both', tlx('Plants and animals')], ['none+other', tlx('Other things only (products, goods)')], ['plants+other', tlx('Plants and other things')], ['animals+other', tlx('Animals and other things')], ['both+other', tlx('Plants, animals and other things')]];
+const keepsCombo = () => { const k = S.settings.keeps || 'both'; return S.settings.other ? (k === 'none' ? 'none+other' : k + '+other') : (k === 'none' ? 'plants' : k); };
+const PRODUCT_ONLY = new Set(['labels', 'share', 'lists', 'offers', 'import']);
 function on(key) {
   if (typeof partnerHides === 'function' && partnerHides(key)) return false;
   const f = FEATURES[key]; if (!f) return true;
   const o = S.settings.features?.[key]; if (o === true || o === false) return o;
+  if (keepsNow() === 'none') return PRODUCT_ONLY.has(key);
+  if (key === 'offers' && keepsKind('product')) return true;
   if (f.kinds && !f.kinds.some(keepsKind)) return false;
   return levelN() >= f.l;
 }
 /* Wording that follows what you keep */
 function word(key) {
-  const kp = keepsNow();
+  const kp0 = keepsNow(), kp = ['plants', 'animals', 'none'].includes(kp0) ? kp0 : 'both';
   const W2 = {
-    lots: { plants: tlx('Seed packets'), animals: tlx('Stock'), both: tlx('Lots') },
-    lot: { plants: tlx('seed packet'), animals: tlx('stock lot'), both: tlx('lot') },
-    tagged: { plants: tlx('My plants'), animals: tlx('My animals'), both: levelN() >= 3 ? tlx('Tagged') : tlx('My plants and animals') },
-    taggedTab: { plants: tlx('Plants'), animals: tlx('Animals'), both: tlx('Tagged') },
-    libraryTab: { plants: levelN() === 1 ? tlx('Seeds') : tlx('Library'), animals: tlx('Library'), both: tlx('Library') },
-    one: { plants: tlx('plant'), animals: tlx('animal'), both: tlx('plant or animal') },
+    lots: { plants: tlx('Seed packets'), animals: tlx('Stock'), both: tlx('Lots'), none: tlx('Stock') },
+    lot: { plants: tlx('seed packet'), animals: tlx('stock lot'), both: tlx('lot'), none: tlx('stock lot') },
+    tagged: { plants: tlx('My plants'), animals: tlx('My animals'), both: levelN() >= 3 ? tlx('Tagged') : tlx('My plants and animals'), none: tlx('My items') },
+    taggedTab: { plants: tlx('Plants'), animals: tlx('Animals'), both: tlx('Tagged'), none: tlx('Items') },
+    libraryTab: { plants: levelN() === 1 ? tlx('Seeds') : tlx('Library'), animals: tlx('Library'), both: tlx('Library'), none: tlx('Items') },
+    one: { plants: tlx('plant'), animals: tlx('animal'), both: tlx('plant or animal'), none: tlx('item') },
   };
   return tl(W2[key]?.[kp] || key);
 }
 /* Variety/breed wording follows what the workspace keeps */
-const vbWord = () => { const k = keepsNow(); return k === 'animals' ? 'breed' : k === 'plants' ? 'variety' : 'variety or breed'; };
+const vbWord = () => { const k = keepsNow(); return k === 'none' ? 'item' : (k === 'animals' ? 'breed' : k === 'plants' ? 'variety' : 'variety or breed') + (keepsKind('product') ? ' or item' : ''); };
 const vbCap = () => vbWord().replace(/^./, c => c.toUpperCase());
-const vbTab = () => { const k = keepsNow(); return k === 'animals' ? 'Breeds' : k === 'plants' ? 'Varieties' : 'Varieties and breeds'; };
-const aOne = () => { const k = keepsNow(); return k === 'animals' ? tl('an animal') : k === 'plants' ? tl('a plant') : tl('a plant or animal'); };
+const vbTab = () => { const k = keepsNow(); return k === 'none' ? tlx('Items') : keepsKind('product') ? tlx('Library') : k === 'animals' ? tlx('Breeds') : k === 'plants' ? tlx('Varieties') : tlx('Varieties and breeds'); };
+const aOne = () => { const k = keepsNow(); return k === 'none' ? tl('an item') : keepsKind('product') ? tl('a plant, animal or item') : k === 'animals' ? tl('an animal') : k === 'plants' ? tl('a plant') : tl('a plant or animal'); };
 /* ---------- First-run setup ---------- */
 function pSetup(_, q) {
   const pt = typeof partner === 'function' ? partner() : null;
   const step = q.step === '2' || pt?.k ? 2 : 1;
   const levels = LEVELS.filter(([v]) => LEVEL_RANK[v] <= partnerMaxRank());
+  const picks = (window.__keepPicks ||= new Set());
+  const keepTog = (val, icon, t, s) => `<button type="button" class="cap-item plain setup-choice" data-act="toggleKeep" data-v="${val}" aria-pressed="${picks.has(val)}">${ic(icon)}<span><b>${h(tl(t))}</b><small>${h(tl(s))}</small></span>${picks.has(val) ? ic('check') : ''}</button>`;
   const big = (act, val, icon, t, s) => `<button type="button" class="cap-item plain setup-choice" data-act="${act}" data-v="${val}">${ic(icon)}<span><b>${h(tl(t))}</b><small>${h(tl(s))}</small></span></button>`;
   return `<section class="welcome">${pt ? `${pt.l ? `<img class="welcome-logo" src="${h(pt.l)}" alt="" style="object-fit:contain;max-height:200px">` : `<span class="welcome-logo">${LOGO_FULL_THEMED}</span>`}<h1>${h(pt.n)}</h1><p class="lede">${h(tl('Powered by Lineage Tracker'))}</p>${pt.w ? `<p>${h(pt.w)}</p>` : ''}` : `<span class="welcome-logo">${LOGO_FULL_THEMED}</span><h1>${h(tl('Lineage Tracker'))}</h1><p class="lede">${h(tl('Breeding records for plants and animals'))}</p>`}
   ${step === 1 ? `<div class="notice">${h(tl('Free forever, with no ads. Your records stay on this device, no account is needed, and nothing is shared unless you choose.'))} <a href="${SITE()}/privacy.html" target="_blank" rel="noopener">${h(tl('How your data is handled'))}</a></div>` : ''}
-  ${step === 1 ? `<h2 style="margin-top:22px">${h(tl('What do you keep?'))}</h2><div class="cap-list">
-    ${big('setKeeps', 'plants', 'library', tlx('Plants'), tlx('Seeds, vegetables, flowers, fruit'))}
-    ${big('setKeeps', 'animals', 'tag', tlx('Animals'), tlx('Chickens, goats, rabbits and others'))}
-    ${big('setKeeps', 'both', 'project', tlx('Both'), tlx('Plants and animals'))}</div>`
+  ${step === 1 ? `<h2 style="margin-top:22px">${h(tl('What do you keep?'))}</h2><p class="muted" style="margin-top:0">${h(tl('Tick everything that applies. You can change this any time in Settings.'))}</p><div class="cap-list">
+    ${keepTog('plant', 'library', tlx('Plants'), tlx('Seeds, vegetables, flowers, fruit'))}
+    ${keepTog('animal', 'tag', tlx('Animals'), tlx('Chickens, goats, rabbits and others'))}
+    ${keepTog('product', 'project', tlx('Other things'), tlx('Candles, honey, tools, crafts: anything you make or sell'))}</div>
+    <div class="actions"><button type="button" class="btn primary" data-act="keepsDone">${h(tl('Continue'))}</button></div>`
     : `<h2 style="margin-top:22px">${h(tl('How will you use it?'))}</h2><div class="cap-list">
     ${levels.map(([v, t, s]) => big('setLevel', v, v === 'garden' ? 'note' : v === 'saver' ? 'library' : 'tree', t, s)).join('')}</div>
     <p class="hint">${h(tl('You can change both answers any time in Settings, or switch individual features on and off. Nothing you record is ever deleted when you change.'))}</p>`}
@@ -4367,7 +4451,7 @@ function planSownSheet(label, k) {
 function planDueItems(add) {
   for (const p of all('plan')) for (const it of p.items || []) {
     if (it.sown || !it.sowBy) continue; const s = get(it.strainId); if (!s) continue;
-    add({ key: `sow:${p.id}:${it.strainId}`, date: addDays(it.sowBy, -7), icon: 'library', title: `Sow ${s.name}`, sub: `By ${fmtDate(it.sowBy)}, ${p.season} season plan.`, go: { nav: `#/plan?season=${encodeURIComponent(p.season)}` } });
+    add({ key: `sow:${p.id}:${it.strainId}`, date: addDays(it.sowBy, -7), icon: 'library', title: tl('Sow {name}', { name: s.name }), sub: tl('By {date}, {season} season plan.', { date: fmtDate(it.sowBy), season: p.season }), go: { nav: `#/plan?season=${encodeURIComponent(p.season)}` } });
   }
 }
 /* ---------- Printable labels (the sticker designer is in js32.js) ---------- */
@@ -4383,14 +4467,14 @@ function labelLines(r) {
 function modeSettingsHTML() {
   const s = S.settings;
   return sec('Mode', null, `<form id="modeForm" novalidate>
-    <div class="two">${partner()?.k ? `<input type="hidden" name="keeps" value="${h(s.keeps)}"><label class="fld"><span>${h(tl('What you keep'))}</span><input value="${h(tl({ plants: 'Plants', animals: 'Animals', both: 'Both' }[s.keeps] || 'Both'))} (${h(tl('set by {name}', { name: partner().n }))})" disabled></label>` : F.select('keeps', 'What you keep', s.keeps || 'both', [['plants', 'Plants'], ['animals', 'Animals'], ['both', 'Both']])}${F.select('level', 'How you use it', s.level || 'breeder', LEVELS.filter(([v]) => LEVEL_RANK[v] <= partnerMaxRank()).map(([v, t]) => [v, t]))}</div>
+    <div class="two">${partner()?.k ? `<input type="hidden" name="keeps" value="${h(s.keeps)}"><label class="fld"><span>${h(tl('What you keep'))}</span><input value="${h(tl({ plants: 'Plants', animals: 'Animals', both: 'Both' }[s.keeps] || 'Both'))} (${h(tl('set by {name}', { name: partner().n }))})" disabled></label>` : F.select('keepsCombo', 'What you keep', keepsCombo(), KEEP_COMBOS)}${F.select('level', 'How you use it', s.level || 'breeder', LEVELS.filter(([v]) => LEVEL_RANK[v] <= partnerMaxRank()).map(([v, t]) => [v, t]))}</div>
     <p class="hint">${h(tl((LEVELS.find(l => l[0] === (s.level || 'breeder')) || LEVELS[2])[2]))} ${h(tl('Nothing you\'ve recorded is deleted when you change.'))}</p></form>
     <details style="margin-top:6px"><summary class="muted">${h(tl('Customise features'))}</summary>
     <p class="hint" style="margin-top:8px">${h(tl('Switch individual features on or off. "Automatic" follows your mode.'))}</p>
     <div class="feat-list">${Object.entries(FEATURES).filter(([, f]) => !f.kinds || f.kinds.some(keepsKind) || s.features?.[Object.keys(FEATURES).find(k => FEATURES[k] === f)] != null).map(([k, f]) => { const o = s.features?.[k]; return `<div class="feat"><span><b>${h(f.label)}</b><small>${h(f.desc)}</small></span><select data-feat="${k}" aria-label="${h(f.label)}"><option value="" ${o == null ? 'selected' : ''}>Automatic (${on(k) && o == null ? 'on' : o == null ? 'off' : on(k) ? 'on' : 'off'})</option><option value="on" ${o === true ? 'selected' : ''}>${h(tl('On'))}</option><option value="off" ${o === false ? 'selected' : ''}>${h(tl('Off'))}</option></select></div>`; }).join('')}</div></details>`);
 }
 function mountModeSettings() {
-  $('#modeForm')?.addEventListener('change', async e => { S.settings[e.target.name] = e.target.value; await saveSettings(); toast('Mode updated'); render(); });
+  $('#modeForm')?.addEventListener('change', async e => { if (e.target.name === 'keepsCombo') { const [b, o] = e.target.value.split('+'); S.settings.keeps = b; S.settings.other = o === 'other'; } else S.settings[e.target.name] = e.target.value; await saveSettings(); toast('Mode updated'); render(); });
   $$('[data-feat]').forEach(sel => sel.addEventListener('change', async () => {
     S.settings.features = { ...(S.settings.features || {}) };
     if (sel.value === '') delete S.settings.features[sel.dataset.feat]; else S.settings.features[sel.dataset.feat] = sel.value === 'on';
@@ -4468,12 +4552,12 @@ function animalDueItems(add) {
     const rp = reproFor(get(c.motherId)) || reproFor(get(c.fatherId));
     const due = crossDue(c); const t = today();
     if (rp?.egg && c.eggsSet) {
-      add({ key: 'cn7:' + c.id, date: addDays(c.eggsSet, 7), icon: 'cross', title: `Candle eggs: ${crossTitle(c)}`, sub: `Day 7 of incubation. Remove clear eggs.`, go: { act: 'editCross', id: c.id } });
-      add({ key: 'lk:' + c.id, date: addDays(c.eggsSet, rp.days - 3), icon: 'cross', title: `Stop turning eggs: ${crossTitle(c)}`, sub: `Three days before hatch: raise humidity and stop turning.`, go: { act: 'editCross', id: c.id } });
+      add({ key: 'cn7:' + c.id, date: addDays(c.eggsSet, 7), icon: 'cross', title: tl('Candle eggs: {name}', { name: crossTitle(c) }), sub: tl('Day 7 of incubation. Remove clear eggs.'), go: { act: 'editCross', id: c.id } });
+      add({ key: 'lk:' + c.id, date: addDays(c.eggsSet, rp.days - 3), icon: 'cross', title: tl('Stop turning eggs: {name}', { name: crossTitle(c) }), sub: tl('Three days before hatch: raise humidity and stop turning.'), go: { act: 'editCross', id: c.id } });
     } else if (rp?.egg && !c.eggsSet && c.date && daysBetween(c.date, t) <= 30) {
-      add({ key: 'es:' + c.id, date: addDays(c.date, 7), icon: 'cross', title: `Record when eggs are set: ${crossTitle(c)}`, sub: 'Add the incubation start date to the pairing to get hatch reminders.', go: { act: 'editCross', id: c.id } });
+      add({ key: 'es:' + c.id, date: addDays(c.date, 7), icon: 'cross', title: tl('Record when eggs are set: {name}', { name: crossTitle(c) }), sub: tl('Add the incubation start date to the pairing to get hatch reminders.'), go: { act: 'editCross', id: c.id } });
     }
-    if (due && daysBetween(due, t) <= 21) add({ key: 'bd:' + c.id, date: due, icon: 'cross', title: `${rp?.egg ? 'Hatch' : 'Birth'} due: ${crossTitle(c)}`, sub: `Expected ${fmtDate(due)}. Mark the pairing Successful and record the ${rp?.egg ? 'hatch' : 'litter'} when it happens.`, go: { act: 'editCross', id: c.id } });
+    if (due && daysBetween(due, t) <= 21) add({ key: 'bd:' + c.id, date: due, icon: 'cross', title: rp?.egg ? tl('Hatch due: {name}', { name: crossTitle(c) }) : tl('Birth due: {name}', { name: crossTitle(c) }), sub: rp?.egg ? tl('Expected {date}. Mark the pairing Successful and record the hatch when it happens.', { date: fmtDate(due) }) : tl('Expected {date}. Mark the pairing Successful and record the litter when it happens.', { date: fmtDate(due) }), go: { act: 'editCross', id: c.id } });
   }
 }
 /* ---------- Cross planner ---------- */
@@ -4571,10 +4655,11 @@ const FORMS = {
   eggs: { label: 'Hatching eggs', one: 'egg', unit: 'eggs', kind: 'animal' },
   young: { label: 'Young animals', one: 'young animal', unit: 'animals', kind: 'animal' },
   adults: { label: 'Adult animals', one: 'animal', unit: 'animals', kind: 'animal' },
+  product: { label: tlx('Made items or goods'), one: 'item', unit: 'items', kind: 'product' },
   other: { label: 'Other', one: 'item', unit: '', kind: 'both' },
 };
 const PROP_METHODS = ['Cutting', 'Division', 'Runner or sucker', 'Graft or bud', 'Tissue culture', 'Layering', 'Bulb or tuber offset'];
-const formOf = l => (l?.form && FORMS[l.form] ? l.form : (kindOf(l) === 'animal' ? 'eggs' : 'seed'));
+const formOf = l => (l?.form && FORMS[l.form] ? l.form : (kindOf(l) === 'animal' ? 'eggs' : kindOf(l) === 'product' ? 'product' : 'seed'));
 const formOptions = () => Object.entries(FORMS).filter(([, f]) => f.kind === 'both' || keepsKind(f.kind)).map(([k, f]) => [k, f.label]);
 const isCloneForm = k => !!FORMS[k]?.clone;
 /* Genetic identity: a clone is the same genotype as its source */
@@ -4982,8 +5067,8 @@ function trayDueItems(add) {
   for (const t of all('tray')) {
     if (t.closed) continue;
     const st = trayStats(t), age = daysBetween(t.date, t0);
-    if (st.waiting && age >= 4 && age <= 35) add({ key: `tc:${t.id}:${st.up}`, date: addDays(t.date, 4), icon: 'library', title: `Check tray ${t.code}: ${st.up} of ${st.total} up`, sub: 'Tap the cells that have come up.', go: { nav: '#/tray/' + t.id } });
-    if (st.ready && age >= 14) add({ key: `tp:${t.id}`, date: addDays(t.date, 21), icon: 'tag', title: `Pot up tray ${t.code}: ${st.ready} seedling${st.ready === 1 ? '' : 's'}`, sub: 'Pot up the survivors so each gets its own label.', go: { nav: '#/tray/' + t.id } });
+    if (st.waiting && age >= 4 && age <= 35) add({ key: `tc:${t.id}:${st.up}`, date: addDays(t.date, 4), icon: 'library', title: tl('Check tray {code}: {up} of {total} up', { code: t.code, up: st.up, total: st.total }), sub: tl('Tap the cells that have come up.'), go: { nav: '#/tray/' + t.id } });
+    if (st.ready && age >= 14) add({ key: `tp:${t.id}`, date: addDays(t.date, 21), icon: 'tag', title: tl('Pot up tray {code}: {n}', { code: t.code, n: tlp(st.ready, 'seedling', 'seedlings') }), sub: tl('Pot up the survivors so each gets its own label.'), go: { nav: '#/tray/' + t.id } });
   }
 }
 
@@ -5003,7 +5088,7 @@ async function callGemini(parts, maxTokens = 1200, retried = false) {
     // Google retires models from time to time and names the replacement: follow it once, and remember it
     const next = /use (?:models\/)?(gemini-[\w.-]+)/i.exec(msg)?.[1];
     if (!retried && next && next !== model && /no longer available|deprecated|not found|retired|is not supported/i.test(msg)) {
-      S.settings.geminiModel = next.replace(/[.,;]+$/, ''); await saveSettings();
+      S.settings.geminiModel = next.replace(/[.,;]+$/, ''); S.settings.keysAt = Date.now(); await saveSettings();
       toast(`Gemini model updated to ${S.settings.geminiModel}`);
       return callGemini(parts, maxTokens, true);
     }
@@ -5032,7 +5117,7 @@ const INPUT_CATS = {
 };
 const PLANT_METHODS = ['Watered in', 'Foliar spray', 'Spray', 'Side-dressed', 'Dug in', 'Mulched', 'Drench', 'Other'];
 const ANIMAL_METHODS = ['In water', 'In feed', 'Oral', 'Injection', 'Pour-on or topical', 'Spray', 'Other'];
-const WHP_KINDS = [['harvest', 'harvest'], ['eggs', 'eggs'], ['milk', 'milk'], ['meat', 'meat']];
+const WHP_KINDS = [['harvest', tlx('harvest')], ['eggs', tlx('eggs')], ['milk', tlx('milk')], ['meat', tlx('meat')]];
 const catOptions = () => Object.entries(INPUT_CATS).filter(([, c]) => c.kind === 'both' || keepsKind(c.kind)).map(([k, c]) => [k, c.label]);
 const inputItems = () => all('input').sort(byName).map(r => [r.id, r.name + (r.brand ? ` (${r.brand})` : '')]);
 const appliesOf = id => all('apply').filter(a => (a.targets || []).includes(id)).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -5040,11 +5125,11 @@ const appliesOfInput = id => all('apply').filter(a => a.inputId === id).sort((a,
 const amountText = a => [a.amount !== '' && a.amount != null ? fmtNum(a.amount) : '', a.unit].filter(Boolean).join(' ');
 function scopeText(a) {
   const s = a.scope || {}; const r = get(s.id);
-  if (s.type === 'place' && r) return `everything in ${r.name}`;
-  if (s.type === 'project' && r) return `all of ${r.name}`;
-  if (s.type === 'tray' && r) return `tray ${r.code}`;
+  if (s.type === 'place' && r) return tl('everything in {name}', { name: r.name });
+  if (s.type === 'project' && r) return tl('all of {name}', { name: r.name });
+  if (s.type === 'tray' && r) return tl('tray {code}', { code: r.code });
   const n = (a.targets || []).length;
-  return n === 1 ? (get(a.targets[0]) ? (get(a.targets[0]).code || title(get(a.targets[0]))) : '1 record') : `${n} plants or animals`;
+  return n === 1 ? (get(a.targets[0]) ? (get(a.targets[0]).code || title(get(a.targets[0]))) : tl('1 record')) : tl('{n} plants or animals', { n });
 }
 function whpUntil(a) {
   const inp = get(a.inputId); if (!inp?.whp) return [];
@@ -5081,19 +5166,25 @@ function inputsSectionHTML(ids, { scope = null, title: ttl = 'Inputs' } = {}) {
 /* ---------- Input setup ---------- */
 function inputSheet({ id, preset = {}, scanPhoto = '' } = {}) {
   preset = { ...preset, scanPhoto };
-  const r = id ? get(id) : { name: '', brand: '', category: keepsKind('plant') ? 'fert' : 'med', active: '', unit: 'mL', rate: '', dose: null, whp: {}, organic: false, qty: '', opened: '', expiry: '', notes: '', photoIds: [] };
+  const r = id ? get(id) : { name: '', brand: '', category: keepsKind('plant') ? 'fert' : 'med', active: '', unit: 'mL', prodForm: 'liquid', petWarn: false, rate: '', dose: null, whp: {}, organic: false, qty: '', opened: '', expiry: '', notes: '', photoIds: [] };
   let ph;
   const { el, form } = formSheet(id ? `Edit ${r.name}` : 'New input', `
     <div id="inShots"></div><p class="hint" id="inHint"></p><div class="actions" id="inBtns"></div>
     <div id="inLabelBox">${labelBoxHTML()}</div>
     <div class="two">${F.text('name', 'Name', r.name, 'e.g. Seasol, Ivomec pour-on')}${F.text('brand', 'Brand (optional)', r.brand)}</div>
-    <div class="two">${F.select('category', 'Type', r.category, catOptions())}${F.text('unit', 'Usual unit', r.unit, 'mL, L, g, kg, tsp, dose')}</div>
+    <div class="two">${F.select('category', 'Type', r.category, catOptions())}${F.select('prodForm', 'Form of the product', r.prodForm || (DRY_UNITS.includes(r.dose?.unit || r.unit) && !['mL', 'L'].includes(r.unit) ? 'dry' : 'liquid'), [['liquid', 'Liquid or powder mixed with water'], ['dry', 'Dry: pellets, granules, powder to scatter']])}</div>
+    <div class="two">${F.text('unit', 'Usual unit', r.unit, 'mL, L, g, kg, pellets, handful, dose')}</div>
     <div class="fld"><span>${h(tl('Rate from the label (optional)'))}</span>
       <div class="two"><label class="fld"><span>${h(tl('Amount'))}</span><input name="doseAmt" inputmode="decimal" value="${h(r.dose?.amt ?? '')}" placeholder="e.g. 20"></label><label class="fld"><span>${h(tl('Up to (if a range)'))}</span><input name="doseMax" inputmode="decimal" value="${h(r.dose?.max ?? '')}" placeholder="${h(tl('optional'))}"></label></div>
       <div class="two"><label class="fld"><span>${h(tl('Unit'))}</span><select name="doseUnit">${DOSE_UNITS.map(u => `<option ${((r.dose?.unit || r.unit || 'mL') === u) ? 'selected' : ''}>${u}</option>`).join('')}</select></label><label class="fld"><span>${h(tl('For every'))}</span><input name="dosePer" inputmode="decimal" value="${h(r.dose?.per ?? 1)}"></label></div>
       <label class="fld"><span>of</span><select name="dosePerUnit">${Object.entries(DOSE_PER).map(([k, v]) => `<option value="${k}" ${((r.dose?.perUnit || 'L') === k) ? 'selected' : ''}>${h(v.label)}</option>`).join('')}</select></label>
-      <p class="hint" style="margin-top:0">${h(tl('For example 20 mL for every 1 litre. This lets the app work out how much to add for your container.'))}</p></div>
-    <div class="fld"><span>${h(tl('Withholding period from the label (days, optional)'))}</span><div class="two">${WHP_KINDS.map(([k, w]) => `<label class="fld whp-${k}"><span>Before ${w}</span><input name="whp_${k}" inputmode="numeric" value="${h(r.whp?.[k] ?? '')}"></label>`).join('')}</div></div>
+      <p class="hint" style="margin-top:0">${h(tl('For example 20 mL for every 1 litre. This lets the app work out how much to add for your container.'))}</p>
+      <details class="dry-cover" ${r.prodForm === 'dry' ? '' : 'hidden'}><summary class="muted">${h(tl('The label gives a coverage instead? For example 2.5 kg covers 500 m²'))}</summary>
+        <div class="two"><label class="fld"><span>${h(tl('This much'))}</span><input name="covAmt" inputmode="decimal" placeholder="e.g. 2.5"></label><label class="fld"><span>${h(tl('Measured in'))}</span><select name="covUnit"><option>g</option><option selected>kg</option><option>pellets</option></select></label></div>
+        <div class="two"><label class="fld"><span>${h(tl('Covers this area'))}</span><input name="covArea" inputmode="decimal" placeholder="e.g. 500"></label><label class="fld"><span>${h(tl('Area in'))}</span><select name="covAreaUnit"><option value="m2">m²</option><option value="ft2">ft²</option><option value="yd2">yd²</option></select></label></div>
+        <p class="hint" id="covOut" role="status" aria-live="polite"></p></details></div>
+    <div class="fld dry-pet" ${r.prodForm === 'dry' || r.petWarn ? '' : 'hidden'}>${F.check('petWarn', 'The label warns about pets or wildlife', r.petWarn)}</div>
+    <div class="fld"><span>${h(tl('Withholding period from the label (days, optional)'))}</span><div class="two">${WHP_KINDS.map(([k, w]) => `<label class="fld whp-${k}"><span>${h(tl('Before {what}', { what: tl(w) }))}</span><input name="whp_${k}" inputmode="numeric" value="${h(r.whp?.[k] ?? '')}"></label>`).join('')}</div></div>
     ${more(`${F.text('rate', 'Rate as printed (optional)', r.rate, 'e.g. 5 mL per litre, or a rate that is not per litre')}
     ${F.text('active', 'Active ingredient (optional)', r.active, 'e.g. ivermectin, pyrethrins')}
     ${F.check('organic', 'Allowed in organic growing', r.organic)}
@@ -5106,7 +5197,7 @@ function inputSheet({ id, preset = {}, scanPhoto = '' } = {}) {
       const rec = id ? r : { id: uid(), type: 'input' };
       const num = v => (v === '' || v == null ? '' : isFinite(+String(v).replace(',', '.')) ? +String(v).replace(',', '.') : '');
       const dose = +num(d.doseAmt) > 0 ? { amt: +num(d.doseAmt), max: +num(d.doseMax) > +num(d.doseAmt) ? +num(d.doseMax) : 0, unit: d.doseUnit, per: +num(d.dosePer) > 0 ? +num(d.dosePer) : 1, perUnit: d.dosePerUnit } : null;
-      for (const k of ['doseAmt', 'doseMax', 'doseUnit', 'dosePer', 'dosePerUnit']) delete d[k];
+      for (const k of ['doseAmt', 'doseMax', 'doseUnit', 'dosePer', 'dosePerUnit', 'covAmt', 'covUnit', 'covArea', 'covAreaUnit']) delete d[k];
       if (dose && !String(d.rate || '').trim()) d.rate = doseRateText(doseOf({ dose }));
       Object.assign(rec, d, { dose, whp, qty: num(d.qty), photoIds: ph.ids });
       await save(rec); closeSheet(); toast('Saved');
@@ -5127,6 +5218,25 @@ function inputSheet({ id, preset = {}, scanPhoto = '' } = {}) {
   ph.draw();
   const showWhp = () => { const c = INPUT_CATS[form.elements.category.value]?.kind; $('.whp-harvest', el).hidden = c === 'animal' || !keepsKind('plant'); for (const k of ['eggs', 'milk', 'meat']) $(`.whp-${k}`, el).hidden = c === 'plant' || !keepsKind('animal'); };
   form.elements.category.addEventListener('change', showWhp); showWhp();
+  /* Dry products: show the coverage helper and the pet warning, and start the rate on grams per square metre if nothing is typed yet */
+  const E_ = k => form.elements[k];
+  const showDry = () => { const dry = E_('prodForm').value === 'dry'; const dc = $('.dry-cover', el); dc.hidden = !dry; $('.dry-pet', el).hidden = !dry && !E_('petWarn').checked; };
+  const coverOut = () => {
+    const cr = coverageToRate(E_('covAmt').value, E_('covUnit').value, E_('covArea').value, E_('covAreaUnit').value), out = $('#covOut', el);
+    if (!cr) { out.textContent = ''; return; }
+    E_('doseAmt').value = cr.amt; E_('doseMax').value = ''; E_('doseUnit').value = cr.unit; E_('dosePer').value = 1; E_('dosePerUnit').value = 'm2';
+    if (!E_('unit').value.trim() || ['mL', 'L'].includes(E_('unit').value.trim())) E_('unit').value = cr.unit;
+    out.textContent = tl('That works out to {rate}. It is filled in above.', { rate: doseRateText({ amt: cr.amt, max: 0, unit: cr.unit, per: 1, perUnit: 'm2' }) });
+  };
+  E_('prodForm').addEventListener('change', () => {
+    E_('prodForm').dataset.touched = '1';
+    if (E_('prodForm').value === 'dry' && !String(E_('doseAmt').value).trim()) { E_('doseUnit').value = 'g'; E_('dosePerUnit').value = 'm2'; if (['mL', 'L', ''].includes(E_('unit').value.trim())) E_('unit').value = 'g'; }
+    if (E_('prodForm').value === 'liquid' && !String(E_('doseAmt').value).trim()) { E_('doseUnit').value = 'mL'; E_('dosePerUnit').value = 'L'; if (['g', 'kg', 'pellets', 'handful', ''].includes(E_('unit').value.trim())) E_('unit').value = 'mL'; }
+    showDry();
+  });
+  E_('petWarn').addEventListener('change', showDry);
+  for (const k of ['covAmt', 'covUnit', 'covArea', 'covAreaUnit']) E_(k).addEventListener('input', coverOut);
+  showDry();
   const reader = mountLabelReader(el, form, ph, showWhp, preset.scanPhoto);
   el.addEventListener('click', async e => {
     const rm = e.target.closest('[data-inrm]');
@@ -5141,11 +5251,12 @@ function inputSheet({ id, preset = {}, scanPhoto = '' } = {}) {
 function pInput(id) {
   const r = get(id); if (!r || r.type !== 'input') return notFound();
   const uses = appliesOfInput(id);
-  const whp = WHP_KINDS.filter(([k]) => +r.whp?.[k] > 0).map(([k, w]) => `${r.whp[k]} days before ${w}`);
+  const whp = WHP_KINDS.filter(([k]) => +r.whp?.[k] > 0).map(([k, w]) => tl('{n} days before {what}', { n: r.whp[k], what: tl(w) }));
   return `<a href="#/library?tab=inputs">${h(tl('Inputs'))}</a>
   <div class="hero"><h1>${h(r.name)}</h1><p class="sub">${h([INPUT_CATS[r.category]?.label, r.brand, r.active].filter(Boolean).join(', '))}${r.organic ? ` <span class="chip ok">${h(tl('Organic'))}</span>` : ''}</p></div>
   ${r.expiry && r.expiry < today() ? `<div class="notice warn">${h(tl('Past its use-by date.'))}</div>` : ''}
-  <dl class="facts">${fact('Rate (from the label)', doseOf(r) ? doseRateText(doseOf(r)) : r.rate)}${whp.length ? fact('Withholding', whp.join(', ')) : ''}${r.qty !== '' && r.qty != null ? fact('On hand', `${fmtNum(r.qty)} ${r.unit || ''}`) : ''}${r.opened ? fact('Opened', fmtDate(r.opened)) : ''}${r.expiry ? fact('Use by', fmtDate(r.expiry)) : ''}</dl>
+  ${r.petWarn ? `<div class="notice warn">${h(tl('The label warns about pets or wildlife. Keep them off the treated area as it says.'))}</div>` : ''}
+  <dl class="facts">${r.prodForm === 'dry' ? fact('Form', 'Dry: pellets, granules or powder') : ''}${fact('Rate (from the label)', doseOf(r) ? doseRateText(doseOf(r)) : r.rate)}${whp.length ? fact('Withholding', whp.join(', ')) : ''}${r.qty !== '' && r.qty != null ? fact('On hand', `${fmtNum(r.qty)} ${r.unit || ''}`) : ''}${r.opened ? fact('Opened', fmtDate(r.opened)) : ''}${r.expiry ? fact('Use by', fmtDate(r.expiry)) : ''}</dl>
   ${doseOf(r) ? sec('How much to add', null, doseCalcHTML(r, { id: 'dcPage' })) : `<p class="muted small"><button class="linkish" data-act="editInput" data-id="${id}">${h(tl('Add the label rate'))}</button> ${h(tl('to get a "how much to add" helper for your buckets and sprayers.'))}</p>`}
   ${r.notes ? `<p class="prose">${h(r.notes)}</p>` : ''}
   <div class="actions"><button class="btn primary" data-act="logInput" data-preset="${pre({ inputId: id })}">${ic('plus')}${h(tl('Log a use'))}</button><button class="btn" data-act="editInput" data-id="${id}">${h(tl('Edit'))}</button></div>
@@ -5217,7 +5328,7 @@ function logInputSheet({ id, preset = {} } = {}) {
     const warn = [];
     const zero = [...new Set(targets.map(t => get(t)).filter(r => r?.type === 'individual' && r.projectId).map(r => topProject(get(r.projectId))).filter(p => p?.noInputs))];
     if (zero.length) warn.push({ w: true, t: `${zero.map(p => p.name).join(', ')} ${zero.length === 1 ? 'is' : 'are'} set to no inputs. Logging this records that those plants or animals had an input.` });
-    if (inp) { const w = whpUntil({ inputId: inp.id, date: form.elements.date.value || today() }); if (w.length) warn.push({ t: `Withholding: ${w.map(x => `no ${x.word} until ${fmtDate(x.until)}`).join(', ')}.` }); if (inp.rate || doseOf(inp)) warn.push({ t: `Label rate: ${doseOf(inp) ? doseRateText(doseOf(inp)) : inp.rate}.` }); if (inp.expiry && inp.expiry < today()) warn.push({ w: true, t: 'This input is past its use-by date.' }); }
+    if (inp) { const w = whpUntil({ inputId: inp.id, date: form.elements.date.value || today() }); if (w.length) warn.push({ t: `Withholding: ${w.map(x => `no ${x.word} until ${fmtDate(x.until)}`).join(', ')}.` }); if (inp.rate || doseOf(inp)) warn.push({ t: `Label rate: ${doseOf(inp) ? doseRateText(doseOf(inp)) : inp.rate}.` }); if (inp.expiry && inp.expiry < today()) warn.push({ w: true, t: 'This input is past its use-by date.' }); if (inp.petWarn) warn.push({ w: true, t: 'The label warns about pets or wildlife. Keep them off the treated area.' }); }
     $('#logWarn', el).innerHTML = warn.map(x => `<div class="notice${x.w ? ' warn' : ''}">${h(x.t)}</div>`).join('');
   };
   const drawDose = () => {
@@ -5237,10 +5348,10 @@ function inputDueItems(add) {
   const t = today(); const apps = all('apply');
   for (const a of apps) {
     const inp = get(a.inputId); if (!inp) continue;
-    for (const w of whpUntil(a)) if (w.until >= t) add({ key: `wh:${a.id}:${w.kind}`, date: a.date, icon: 'clock', title: `Withholding: no ${w.word} from ${scopeText(a)} until ${fmtDate(w.until)}`, sub: `${inp.name}, given ${fmtDate(a.date)}.`, go: { act: 'editApply', id: a.id } });
+    for (const w of whpUntil(a)) if (w.until >= t) add({ key: `wh:${a.id}:${w.kind}`, date: t, icon: 'clock', title: tl('Withholding: no {word} from {scope} until {date}', { word: tl(w.word), scope: scopeText(a), date: fmtDate(w.until) }), sub: tl('{name}, given {date}.', { name: inp.name, date: fmtDate(a.date) }), go: { act: 'editApply', id: a.id } });
     if (+a.repeatDays > 0) {
       const later = apps.some(b => b !== a && b.inputId === a.inputId && b.date > a.date && (b.targets || []).some(x => (a.targets || []).includes(x)));
-      if (!later) add({ key: `rp:${a.id}`, date: addDays(a.date, +a.repeatDays), icon: 'spark', title: `${inp.name} due: ${scopeText(a)}`, sub: `Every ${a.repeatDays} days. Last ${fmtDate(a.date)}${amountText(a) ? `, ${amountText(a)}` : ''}.`, go: { act: 'logInput', preset: { inputId: a.inputId, targets: a.targets, scope: a.scope } } });
+      if (!later) add({ key: `rp:${a.id}`, date: addDays(a.date, +a.repeatDays), icon: 'spark', title: tl('{name} due: {scope}', { name: inp.name, scope: scopeText(a) }), sub: amountText(a) ? tl('Every {days} days. Last {date}, {amount}.', { days: a.repeatDays, date: fmtDate(a.date), amount: amountText(a) }) : tl('Every {days} days. Last {date}.', { days: a.repeatDays, date: fmtDate(a.date) }), go: { act: 'logInput', preset: { inputId: a.inputId, targets: a.targets, scope: a.scope } } });
     }
   }
 }
@@ -5358,7 +5469,7 @@ async function wsRemove(id) {
 /* Examples open in their own workspace, never mixed with your records */
 async function openExample(which) {
   const id = `example-${which}`;
-  const name = which === 'animals' ? 'Chicken example' : which === 'olive' ? 'Breeding example (chickens)' : 'Plant example';
+  const name = which === 'animals' ? 'Chicken example' : which === 'olive' ? 'Breeding example (chickens)' : which === 'pigs' ? 'Pig example' : 'Plant example';
   if (!WS.list.find(w => w.id === id)) { await wsCreate({ id, name, kind: 'example', keeps: which === 'plants' ? 'plants' : 'animals' }); await wsPending({ wsId: id, kind: 'example', which }); }
   wsSwitch(id, '#/');
 }
@@ -5703,6 +5814,7 @@ function passphraseSheet(mode) {
 }
 async function syncUnprotect() {
   if (!confirm('Turn off passphrase protection? Your synced records and photos will be stored in your Google Drive unencrypted again.')) return;
+  if (S.sync.shareKeys) { S.sync.shareKeys = false; S.sync.keysOffAt = Date.now(); toast(tl('Key sharing is off now, because keys are only shared when synced data is protected.')); }
   S.sync.encrypt = false; S.sync.encAt = Date.now(); S.sync.reseal = true; await saveSync();
   await syncNow({ interactive: true }); render();
 }
@@ -5725,6 +5837,8 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.28.0': ['New: Other things. Keep candles, honey, tools or crafts as well as plants and animals, or on their own. Tick what you keep in Settings, and the app shows only what fits.','Items you make or sell have a name, photos, a group, stock and a price, and go onto lists and catalogues like everything else.','Sharing a catalogue now lets you choose the picture size, so pages stay small.','Fixed a crash on Settings when the due list was switched off.'],
+  '0.27.5': ['New Kunekune pig example: three breeds, twenty tagged pigs, litters, a pregnant sow with a birth due reminder, paddocks, worming and vaccines. Open it from Try an example.','Sharing a seed list now points sellers to LT-Catalogue, the free tool that makes a branded catalogue page.','The due list no longer shows a withholding notice as overdue while it is still active.','More of the app is translated into Spanish, including the due list, the Log filters and sticker presets.'],
   '0.27.4': ['Adding an input (fertiliser, snail bait, sprays, medicines, feed) now starts with Take photo and Choose photo at the top, like scanning a seed packet. Add the front and the back of the label and the name, rate and withholding period are filled in for you. Copy and paste with Claude or ChatGPT only appears when smart features are paused or offline.','Scan label in Library, Inputs now opens the same screen.'],
   '0.27.3': ['Spanish (Español) is here as a beta translation: choose it in Settings, Language. It covers most of the app\'s wording; a few screens are still partly in English and will follow. If something reads oddly, the Suggest a better wording link in Settings tells us.'],
   '0.27.2': ['Seed trays now say how to mark a cell: tap once when it comes up, twice if it did not come up, three times to put it back to waiting. A germination test that is still in progress has a new button, Finish test: the rest didn\'t come up, which closes it with the seeds you counted and treats the others as not coming up.'],
@@ -5790,8 +5904,8 @@ window.addEventListener('error', e => { if (e.error) showErrorBar(e.error); });
 window.addEventListener('unhandledrejection', e => { const m = e.reason?.message || ''; if (/read-only|AbortError|cancel/i.test(m) || e.reason?.name === 'AbortError') return; showErrorBar(e.reason); });
 /* "Try an example" links from the website: app.lineagetracker.org/#/try/plants */
 async function tryExample(which) {
-  which = which === 'animals' || which === 'olive' ? which : 'plants';
-  if (!S.settings.setupDone) { Object.assign(S.settings, { keeps: which === 'olive' ? 'animals' : which, level: 'breeder', setupDone: true, seenVersion: VERSION, checklistStart: today() }); await saveSettings(); }
+  which = ['animals', 'olive', 'pigs'].includes(which) ? which : 'plants';
+  if (!S.settings.setupDone) { Object.assign(S.settings, { keeps: which === 'olive' || which === 'pigs' ? 'animals' : which, level: 'breeder', setupDone: true, seenVersion: VERSION, checklistStart: today() }); await saveSettings(); }
   await openExample(which);
 }
 /* ===================================================================
@@ -5804,7 +5918,7 @@ const PRODUCT_PRESETS = [
   ['Tomatoes', 'plant', 'kg', false], ['Pumpkins', 'plant', 'fruit', true], ['Zucchini', 'plant', 'kg', false], ['Beans', 'plant', 'kg', false], ['Herbs', 'plant', 'bunches', false], ['Cut flowers', 'plant', 'stems', false], ['Seed saved', 'plant', 'g', false],
 ];
 const farmWord = () => (keepsKind('animal') ? 'farm' : 'garden');
-const farmTitle = () => tl(keepsKind('animal') ? 'My farm' : 'My garden');
+const farmTitle = () => (keepsKind('animal') ? tl('My farm') : tl('My garden'));
 const productItems = () => all('product').sort(byName).map(r => [r.id, `${r.name} (${r.unit || 'count'})`]);
 const yieldsOf = id => all('yield').filter(y => (y.targets || []).includes(id)).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 const yieldsOfProduct = id => all('yield').filter(y => y.productId === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -5931,67 +6045,90 @@ function pFarm() {
   const tile = (icon, t, sub, href, add, addLabel) => `<div class="ftile">${href.startsWith('act:') ? `<button type="button" class="ftile-main" data-act="${href.slice(4)}">${ic(icon)}<span><b>${h(t)}</b><small>${h(sub)}</small></span></button>` : `<a class="ftile-main" href="${href}">${ic(icon)}<span><b>${h(t)}</b><small>${h(sub)}</small></span></a>`}${add ? `<button class="ftile-add" ${add} aria-label="${h(addLabel || 'Add')}">${ic('plus')}</button>` : ''}</div>`;
   const group = (t, tiles) => (tiles.filter(Boolean).length ? `<section class="fgroup"><h2>${h(t)}</h2><div class="ftiles">${tiles.filter(Boolean).join('')}</div></section>` : '');
   const sites = all('site'), places = all('place');
-  const placeWord = keepsKind('animal') && !keepsKind('plant') ? 'Coops, pens and paddocks' : keepsKind('plant') && !keepsKind('animal') ? 'Beds, pots and greenhouses' : 'Beds, pens and other places';
+  const placeWord = keepsKind('animal') && !keepsKind('plant') ? tl('Coops, pens and paddocks') : keepsKind('plant') && !keepsKind('animal') ? tl('Beds, pots and greenhouses') : tl('Beds, pens and other places');
   const openTrays = all('tray').filter(t => !t.closed).length;
   const openOffers = all('offer').filter(o => o.status === 'open').length;
   const due = typeof dueItems === 'function' ? dueItems().filter(i => i.date <= today()).length : 0;
   const lots = all('stock').filter(l => l.status !== 'used').length;
   return `<h1>${h(farmTitle())}</h1>
-  <p class="muted">Everything you set up for your ${farmWord()}, in one place. For how the app itself behaves, see Settings.</p>
-  ${group(`Your ${farmWord()}`, [
-    on('places') || places.length ? tile('place', placeWord, places.length ? `${places.length} set up` : 'None yet', '#/library?tab=places', 'data-act="newPlace"', 'Add a place') : tile('place', placeWord, 'Turn on Places in Settings to use them', '#/settings', ''),
-    on('weather') ? tile('cloud', 'Weather', sites.length ? sites.map(s => s.name).slice(0, 2).join(', ') : 'Add your location', '#/weather', 'data-act="newSite"', 'Add a site') : tile('cloud', 'Weather', 'Turn on Weather in Settings to use it', '#/settings', ''),
+  <p class="muted">${h(keepsKind('animal') ? tl('Everything you set up for your farm, in one place. For how the app itself behaves, see Settings.') : tl('Everything you set up for your garden, in one place. For how the app itself behaves, see Settings.'))}</p>
+  ${group(keepsKind('animal') ? tl('Your farm') : tl('Your garden'), [
+    on('places') || places.length ? tile('place', placeWord, places.length ? tl('{n} set up', { n: places.length }) : tl('None yet'), '#/library?tab=places', 'data-act="newPlace"', tl('Add a place')) : tile('place', placeWord, tl('Turn on Places in Settings to use them'), '#/settings', ''),
+    on('weather') ? tile('cloud', tl('Weather'), sites.length ? sites.map(s => s.name).slice(0, 2).join(', ') : tl('Add your location'), '#/weather', 'data-act="newSite"', tl('Add a site')) : tile('cloud', tl('Weather'), tl('Turn on Weather in Settings to use it'), '#/settings', ''),
   ])}
-  ${group('What goes in', [on('inputs') ? tile('spark', keepsKind('animal') && !keepsKind('plant') ? 'Medicines and feed' : 'Inputs', (() => { const d = keepsKind('animal') && !keepsKind('plant') ? 'Medicines, wormers, vaccines and feed' : keepsKind('plant') && !keepsKind('animal') ? 'Fertiliser, sprays and compost' : 'Fertiliser, sprays, medicines and feed'; const n = all('input').length; return n ? `${n} set up. ${d}` : d; })(), '#/library?tab=inputs', 'data-act="newInput"', 'Add an input') : ''])}
-  ${group('What comes out', [on('outputs') ? tile('library', keepsKind('plant') && !keepsKind('animal') ? 'Harvests' : 'Products', all('product').length ? `${all('product').length} set up, ${all('yield').filter(y => planSeason(y.date) === planSeason()).length} records this season` : keepsKind('animal') ? 'Eggs, milk, honey, harvests' : 'Tomatoes, pumpkins, herbs, flowers', '#/library?tab=products', 'data-act="newProduct"', 'Add a product') : ''])}
-  ${group(keepsKind('plant') && !keepsKind('animal') ? 'Seed library' : 'Seed and stock', [
-    tile('library', keepsKind('animal') && !keepsKind('plant') ? 'Breeds' : keepsKind('plant') && !keepsKind('animal') ? 'Varieties' : 'Varieties and breeds', `${all('strain').length} in your library`, '#/library', 'data-act="newStrain"', 'Add a variety or breed'),
-    tile('tag', word('lots'), `${lots} in stock`, '#/library?tab=lots', 'data-act="newLot"', 'Add'),
-    tile('tag', word('tagged'), `${live.length} active`, '#/tagged', 'data-act="newInd"', 'Add'),
+  ${group(tl('What goes in'), [on('inputs') ? tile('spark', keepsKind('animal') && !keepsKind('plant') ? tl('Medicines and feed') : tl('Inputs'), (() => { const d = keepsKind('animal') && !keepsKind('plant') ? tl('Medicines, wormers, vaccines and feed') : keepsKind('plant') && !keepsKind('animal') ? tl('Fertiliser, sprays and compost') : tl('Fertiliser, sprays, medicines and feed'); const n = all('input').length; return n ? tl('{n} set up. {what}', { n, what: d }) : d; })(), '#/library?tab=inputs', 'data-act="newInput"', tl('Add an input')) : ''])}
+  ${group(tl('What comes out'), [on('outputs') ? tile('library', keepsKind('plant') && !keepsKind('animal') ? tl('Harvests') : tl('Products'), all('product').length ? tl('{n} set up, {r} records this season', { n: all('product').length, r: all('yield').filter(y => planSeason(y.date) === planSeason()).length }) : keepsKind('animal') ? tl('Eggs, milk, honey, harvests') : tl('Tomatoes, pumpkins, herbs, flowers'), '#/library?tab=products', 'data-act="newProduct"', tl('Add a product')) : ''])}
+  ${group(keepsKind('plant') && !keepsKind('animal') ? tl('Seed library') : tl('Seed and stock'), [
+    tile('library', keepsKind('animal') && !keepsKind('plant') ? tl('Breeds') : keepsKind('plant') && !keepsKind('animal') ? tl('Varieties') : tl('Varieties and breeds'), tl('{n} in your library', { n: all('strain').length }), '#/library', 'data-act="newStrain"', tl('Add a variety or breed')),
+    tile('tag', tl(word('lots')), tl('{n} in stock', { n: lots }), '#/library?tab=lots', 'data-act="newLot"', tl('Add')),
+    tile('tag', tl(word('tagged')), tl('{n} active', { n: live.length }), '#/tagged', 'data-act="newInd"', tl('Add')),
   ])}
-  ${group('Planning', [
-    on('plan') ? tile('cal', 'Season plan', (() => { const pl = planOf(planSeason()); return pl?.items?.length ? `${pl.items.length} planned for ${planSeason()}` : `Plan ${planSeason()}`; })(), '#/plan', '') : '',
-    on('trays') ? tile('library', 'Seed trays', openTrays ? `${openTrays} in progress` : 'None in progress', '#/trays', 'data-act="newTray"', 'Sow a tray') : '',
-    on('labels') ? tile('tag', 'Labels', keepsNow() === 'animals' ? 'Print leg band, pen and cage labels with QR codes' : 'Print stake and packet labels with QR codes', '#/labels', '') : '',
-    on('due') ? tile('clock', 'Due list and reminders', due ? `${due} due now` : 'Nothing due right now', '#/due', 'data-act="newReminder"', 'Set a reminder') : '',
+  ${group(tl('Planning'), [
+    on('plan') ? tile('cal', tl('Season plan'), (() => { const pl = planOf(planSeason()); return pl?.items?.length ? tl('{n} planned for {season}', { n: pl.items.length, season: planSeason() }) : tl('Plan {season}', { season: planSeason() }); })(), '#/plan', '') : '',
+    on('trays') ? tile('library', tl('Seed trays'), openTrays ? tl('{n} in progress', { n: openTrays }) : tl('None in progress'), '#/trays', 'data-act="newTray"', tl('Sow a tray')) : '',
+    on('labels') ? tile('tag', tl('Labels'), keepsNow() === 'animals' ? tl('Print leg band, pen and cage labels with QR codes') : tl('Print stake and packet labels with QR codes'), '#/labels', '') : '',
+    on('due') ? tile('clock', tl('Due list and reminders'), due ? tl('{n} due now', { n: due }) : tl('Nothing due right now'), '#/due', 'data-act="newReminder"', tl('Set a reminder')) : '',
   ])}
-  ${group('Breeding', [on('projects') ? tile('project', 'Projects', `${all('project').filter(p => !p.parentId).length} projects`, '#/projects', 'data-act="newProject"', 'New project') : '', on('crosses') ? tile('cross', keepsNow() === 'animals' ? 'Pairings, hatches and births' : 'Crosses and pairings', `${all('cross').length} recorded${all('clutch').length ? `, ${all('clutch').length} hatches or births` : ''}`, '#/crosses', 'data-act="newCross"', 'Record one') : ''])}
-  ${group('Lists', [tile('log', 'Lists', `${all('list').length} of your own${all('received').length ? `, ${all('received').length} from others` : ''}`, '#/lists', 'data-act="newMyList"', 'New list')])}
-  ${group('Records', [
-    on('workspaces') ? tile('project', 'Workspaces', `${(WS.list || []).length} on this device`, '#/settings', '') : '',
-    on('import') ? tile('download', 'Import', 'Spreadsheets and records from elsewhere', '#/import', '') : '',
-    tile('log', 'Activity log', 'Everything recorded, newest first', '#/log', ''),
-    tile('download', 'Backups', 'Make a backup or restore one in Settings', 'act:exportBackup'),
-    tile('share', 'Export ' + vbTab().toLowerCase(), 'Save a list file for a club version or to share', 'act:exportVarieties'),
+  ${group(tl('Breeding'), [on('projects') ? tile('project', tl('Projects'), tlp(all('project').filter(p => !p.parentId).length, 'project', 'projects'), '#/projects', 'data-act="newProject"', tl('New project')) : '', on('crosses') ? tile('cross', keepsNow() === 'animals' ? tl('Pairings, hatches and births') : tl('Crosses and pairings'), all('clutch').length ? tl('{n} recorded, {c} hatches or births', { n: all('cross').length, c: all('clutch').length }) : tl('{n} recorded', { n: all('cross').length }), '#/crosses', 'data-act="newCross"', tl('Record one')) : ''])}
+  ${group(tl('Lists'), [tile('log', tl('Lists'), all('received').length ? tl('{n} of your own, {m} from others', { n: all('list').length, m: all('received').length }) : tl('{n} of your own', { n: all('list').length }), '#/lists', 'data-act="newMyList"', tl('New list'))])}
+  ${group(tl('Records'), [
+    on('workspaces') ? tile('project', tl('Workspaces'), tl('{n} on this device', { n: (WS.list || []).length }), '#/settings', '') : '',
+    on('import') ? tile('download', tl('Import'), tl('Spreadsheets and records from elsewhere'), '#/import', '') : '',
+    tile('log', tl('Activity log'), tl('Everything recorded, newest first'), '#/log', ''),
+    tile('download', tl('Backups'), tl('Make a backup or restore one in Settings'), 'act:exportBackup'),
+    tile('share', tl('Export {what}', { what: tl(vbTab()).toLowerCase() }), tl('Save a list file for a club version or to share'), 'act:exportVarieties'),
   ])}`;
 }
 /* ===================================================================
    v0.15: partner versions ("Make it yours"). A club, seed library or
    society makes a link on lineagetracker.org with their name, logo,
-   colours and the features they want. The link carries everything, so
-   nothing is hosted or approved by hand. Partner versions always say
+   colours and the features they want. Since 0.28 a link needs a website
+   account and staff approval, is signed by Lineage Tracker (the app checks
+   the signature and the expiry on the device) and can be switched off.
+   Nothing is hosted for them. Partner versions always say
    "Powered by Lineage Tracker", keep Lineage Tracker's support links,
    and keep records on each person's device.
    =================================================================== */
+/*PARTNER-VERIFY-START*/
 const PARTNER_HIDEABLE = ['offers', 'projects', 'crosses', 'planner', 'bplan', 'coi', 'workspaces', 'import', 'ask', 'labels', 'weather', 'trays', 'outputs', 'inputs', 'shopcheck', 'plan', 'guidance', 'germ', 'propagate'];
 const LEVEL_RANK = { garden: 1, saver: 2, breeder: 3 };
+/* Partner links are signed by Lineage Tracker.  The public keys that check the signature live here (the private key is a server secret).
+   No key listed = no partner link can be opened, which is the safe state.  A new key gets a new id (k2, k3), so old links keep working
+   until they expire. */
+const PARTNER_KEYS = { k1: {"kty":"EC","crv":"P-256","x":"LufYjSoR6UYE5PzFw8zwLfUFB3VNfCpdtGQxXOa4_YY","y":"CABX5MMErApQZli4TLJG8mlYBfSF5euWOAxlmsPSldg"} };
+const PARTNER_API = 'https://zlekqqzvkstdcrrupzfs.supabase.co/functions/v1/partners';
+const fromB64url = t => { const s = String(t).replace(/-/g, '+').replace(/_/g, '/'); return Uint8Array.from(atob(s + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0)); };
+function cleanPartner(j) {
+  const str = (v, n) => String(v || '').replace(/[<>]/g, '').trim().slice(0, n);
+  const url = v => (/^https:\/\/[^\s"'<>]+$/i.test(String(v || '')) ? String(v).slice(0, 500) : '');
+  const col = v => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v) : '');
+  if (!j || typeof j !== 'object') return null;
+  const p = { v: 1, L: typeof j.L === 'string' && /^[A-Za-z0-9_-]{8,60000}$/.test(j.L) ? j.L : '', n: str(j.n, 40), o: str(j.o, 60), l: url(j.l), p: col(j.p) || '#1F3557', a: col(j.a) || '#D9915F', w: str(j.w, 300), u: url(j.u), k: ['plants', 'animals', 'both'].includes(j.k) ? j.k : '', m: LEVEL_RANK[j.m] ? j.m : '', h: Array.isArray(j.h) ? j.h.filter(x => PARTNER_HIDEABLE.includes(x)).slice(0, 30) : [], c: url(j.c) };
+  return p.n ? p : null;
+}
+/* Checks a signed partner link ("#/partner?s=...") on this device, with no connection.  Returns { ok, p } or { ok: false, why }.
+   why: bad (not a link we can read), key (signed with a key this app does not know), nocrypto, signature (altered or forged), expired. */
+async function verifyPartnerLink(code, nowMs) {
+  try {
+    if (!code || typeof code !== 'string' || code.length > 250000) return { ok: false, why: 'bad' };
+    const env = JSON.parse(new TextDecoder().decode(fromB64url(code)));
+    if (!env || env.v !== 2 || typeof env.c !== 'string' || typeof env.s !== 'string' || typeof env.k !== 'string' || !/^[0-9a-f-]{36}$/.test(String(env.i)) || !Number.isFinite(env.e)) return { ok: false, why: 'bad' };
+    const jwk = PARTNER_KEYS[env.k]; if (!jwk) return { ok: false, why: 'key' };
+    if (!globalThis.crypto || !crypto.subtle) return { ok: false, why: 'nocrypto' };
+    const key = await crypto.subtle.importKey('jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    const text = ['lt-partner-v2', env.k, env.i, String(env.e), env.f || '', env.c].join('\n');
+    if (!(await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, fromB64url(env.s), new TextEncoder().encode(text)))) return { ok: false, why: 'signature' };
+    if (env.e * 1000 <= nowMs) return { ok: false, why: 'expired' };
+    const p = cleanPartner(JSON.parse(env.c)); if (!p) return { ok: false, why: 'bad' };
+    p.id = env.i; p.exp = env.e; p.flags = String(env.f || ''); p.kid = env.k; p.signed = 2;
+    return { ok: true, p };
+  } catch { return { ok: false, why: 'bad' }; }
+}
+/*PARTNER-VERIFY-END*/
 const partner = () => S.settings.partner || null;
 const poss = name => (/s$/i.test(name) ? `${name}'` : `${name}'s`);
 const creditName = () => (partner() ? `${partner().n}, powered by Lineage Tracker (free)` : 'Lineage Tracker');
 function fnv(s) { let h = 0x811c9dc5; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); }
-function decodePartner(code) {
-  try {
-    const b = atob(String(code).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(code).length + 3) % 4));
-    const j = JSON.parse(new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0))));
-    const str = (v, n) => String(v || '').replace(/[<>]/g, '').trim().slice(0, n);
-    const url = v => (/^https:\/\/[^\s"'<>]+$/i.test(String(v || '')) ? String(v).slice(0, 500) : '');
-    const col = v => (/^#[0-9a-f]{6}$/i.test(String(v || '')) ? String(v) : '');
-    const p = { v: 1, L: typeof j.L === 'string' && /^[A-Za-z0-9_-]{8,60000}$/.test(j.L) ? j.L : '', n: str(j.n, 40), o: str(j.o, 60), l: url(j.l), p: col(j.p) || '#1F3557', a: col(j.a) || '#D9915F', w: str(j.w, 300), u: url(j.u), k: ['plants', 'animals', 'both'].includes(j.k) ? j.k : '', m: LEVEL_RANK[j.m] ? j.m : '', h: Array.isArray(j.h) ? j.h.filter(x => PARTNER_HIDEABLE.includes(x)).slice(0, 30) : [], c: url(j.c) };
-    if (!p.n) return null;
-    p.id = fnv(`${p.n}|${p.o}|${p.u}`);
-    return p;
-  } catch { return null; }
-}
 const lum = hex => { const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
 function applyPartnerTheme() {
   const p = partner();
@@ -6018,16 +6155,27 @@ function applyPartnerTheme() {
   document.title = `${p.n} (powered by Lineage Tracker)`;
   S.settings.shareCredit = true;
 }
-async function joinPartner(code) {
-  const p = decodePartner(code);
-  if (!p) { toast('That link looks incomplete. Ask for a fresh one.'); return; }
-  if (partner()?.id === p.id) { applyPartnerTheme(); return; }
+async function joinPartner(code, legacy) {
+  if (legacy) { toast('That link is from an older version of Make it yours and no longer works. Ask for a new one.'); return; }
+  const r = await verifyPartnerLink(code, Date.now());
+  if (!r.ok) { toast(r.why === 'expired' ? 'That link has expired. Ask for a fresh one.' : 'That link could not be checked. Ask for a fresh one.'); return; }
+  const p = r.p;
+  if (partner()?.id === p.id) { S.settings.partner = { ...p, joined: partner().joined || today() }; await saveSettings(); applyPartnerTheme(); return; }
   if (partner() && !confirm(`Switch to ${p.n}? Your records stay exactly as they are.`)) return;
   S.settings.partner = { ...p, joined: today() };
   if (p.k) S.settings.keeps = p.k;
   if (p.m && (LEVEL_RANK[S.settings.level] || 3) > LEVEL_RANK[p.m]) S.settings.level = p.m;
   await saveSettings(); applyPartnerTheme();
   toast(`Welcome to ${p.n}`); render();
+}
+/* At start: a version made before links were signed, or one that has run out, goes back to plain Lineage Tracker.  Records are never touched. */
+async function retireOldPartner() {
+  const p = partner(); if (!p) return;
+  const old = p.signed !== 2, expired = !old && p.exp && p.exp * 1000 <= Date.now();
+  if (!old && !expired) return;
+  delete S.settings.partner; await saveSettings(); applyPartnerTheme();
+  toast(expired ? 'This version has run out. You\'re now using Lineage Tracker; your records are unchanged. Ask for the club\'s new link to use it again.' : 'This version needs a new link. You\'re now using Lineage Tracker; your records are unchanged.');
+  render();
 }
 async function leavePartner() {
   const p = partner(); if (!p) return;
@@ -6071,15 +6219,16 @@ async function addPartnerCatalogue() {
     location.hash = '#/import'; toast('Check the list, then import');
   } catch { toast('Their variety list couldn\'t be loaded. Try again later.'); } finally { busy(false); }
 }
-/* A partner link can be withdrawn (for misuse) by listing its id on lineagetracker.org */
+/* A partner version can be switched off by Lineage Tracker (misuse, or the owner took it away).  Once a day, if this person allows it,
+   the app asks which links are off.  The request carries nothing but the question; the answer is the same for everyone. */
 async function checkPartnerWithdrawn() {
   const p = partner(); if (!p || !navigator.onLine || !clubCheckAllowed()) return;
   if (S.settings.partnerChecked === today()) return;
   try {
-    const r = await fetch(`${SITE()}/partners-withdrawn.json?d=${today()}`, { cache: 'no-cache' }); if (!r.ok) return;
-    const ids = await r.json();
+    const r = await fetch(PARTNER_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'revoked' }), cache: 'no-store' }); if (!r.ok) return;
+    const j = await r.json(); if (!j || j.ok !== true) return;
     S.settings.partnerChecked = today();
-    if (Array.isArray(ids) && ids.includes(p.id)) { delete S.settings.partner; applyPartnerTheme(); toast('This version is no longer offered. You\'re now using Lineage Tracker; your records are unchanged.'); render(); }
+    if (j.live === false || (Array.isArray(j.ids) && j.ids.includes(p.id))) { delete S.settings.partner; applyPartnerTheme(); toast('This version is no longer offered. You\'re now using Lineage Tracker; your records are unchanged.'); render(); }
     await saveSettings();
   } catch { /* offline or blocked: try another day */ }
 }
@@ -6550,7 +6699,7 @@ function pickItemsSheet(listId) {
 function listItemSheet(listId, k) {
   const l = get(listId), it = l.items[k]; if (!it) return;
   const ss = sellerSettings(), r = get(it.ref), kind = kindOf(itemStrain(it) || {}) || 'plant';
-  const offerOpts = Object.entries(OFFER_TYPES).filter(([, o]) => !keepsKind('animal') || !keepsKind('plant') ? o.kind === (keepsKind('animal') && !keepsKind('plant') ? 'animal' : 'plant') : o.kind === kind).map(([v, o]) => [v, o.label]);
+  const offerOpts = Object.entries(OFFER_TYPES).filter(([, o]) => kind === 'product' ? o.kind === 'product' : !keepsKind('animal') || !keepsKind('plant') ? o.kind === (keepsKind('animal') && !keepsKind('plant') ? 'animal' : 'plant') : o.kind === kind).map(([v, o]) => [v, o.label]);
   const stock = itemStock(it.ref);
   const { el, form } = formSheet(itemName(it), `
     ${F.select('offer', "What you're offering", offerOf(it), offerOpts)}
@@ -6634,7 +6783,7 @@ function receivedSwapSheet(listId, k) {
 function loanDueItems(add) {
   for (const ln of all('loan')) {
     if (ln.returned || !ln.due) continue; const s = itemStrain({ ref: ln.ref });
-    add({ key: `loan:${ln.id}`, date: addDays(ln.due, -14), icon: 'library', title: `Seed due back from ${ln.who}: ${s?.name || 'seed'}`, sub: `Lent ${fmtDate(ln.date)}, due ${fmtDate(ln.due)}.`, go: { nav: `#/list/${ln.listId}` } });
+    add({ key: `loan:${ln.id}`, date: addDays(ln.due, -14), icon: 'library', title: tl('Seed due back from {who}: {name}', { who: ln.who, name: s?.name || tl('seed') }), sub: tl('Lent {date}, due {due}.', { date: fmtDate(ln.date), due: fmtDate(ln.due) }), go: { nav: `#/list/${ln.listId}` } });
   }
 }
 
@@ -6643,7 +6792,8 @@ function pLists(_, q) {
   const tab = ['others', 'wish', 'lending'].includes(q.tab) ? q.tab : 'mine';
   const loans = all('loan').filter(l => !l.returned);
   const wish = wishlistItems();
-  const tabs = [['mine', 'My lists'], ['others', `From others${receivedOf().length ? ` (${receivedOf().length})` : ''}`], ['wish', `Wishlist${wish.length ? ` (${wish.length})` : ''}`], ...(loans.length || all('list').some(l => l.ltype === 'library') ? [['lending', `Lending${loans.length ? ` (${loans.length})` : ''}`]] : [])];
+  const cnt = n => (n ? ` (${n})` : '');
+  const tabs = [['mine', tl('My lists')], ['others', tl('From others') + cnt(receivedOf().length)], ['wish', tl('Wishlist') + cnt(wish.length)], ...(loans.length || all('list').some(l => l.ltype === 'library') ? [['lending', tl('Lending') + cnt(loans.length)]] : [])];
   let body = '';
   if (tab === 'mine') {
     const ls = listsOf();
@@ -6683,14 +6833,27 @@ function pList(id) {
     ${trade && (l.items || []).length ? `<p class="hint">${h(tl('Bags available are worked out from your stock, minus what you keep in reserve, divided by the bag size. Change these by tapping ⋯ on an item. Received seed in a swap? Open the item and use Received.'))}</p>` : ''}`;
 }
 /* ---------- Sharing a list ---------- */
-async function thumbFor(s) { const pid = s && coverOf(s); if (!pid) return ''; const p = await DB.get('photos', pid); return p?.thumb ? blobToDataURL(p.thumb) : ''; }
-async function listPayload(l) {
+/* Picture size for shared catalogues: [longest side in px, JPEG quality]. Smaller pictures make smaller pages. */
+const SHARE_Q = { small: [200, 0.6], medium: [320, 0.72], large: [560, 0.8] };
+async function resizeShare(blob, maxSide, q) {
+  const bmp = await createImageBitmap(blob), sc = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bmp.width * sc)); c.height = Math.max(1, Math.round(bmp.height * sc));
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); if (bmp.close) bmp.close();
+  const out = await new Promise(r => c.toBlob(r, 'image/jpeg', q)); return out ? blobToDataURL(out) : '';
+}
+async function thumbFor(s, quality = 'medium') {
+  const pid = s && coverOf(s); if (!pid) return ''; const p = await DB.get('photos', pid); if (!p) return '';
+  const [side, q] = SHARE_Q[quality] || SHARE_Q.medium, src = quality === 'large' ? (p.full || p.thumb) : (p.thumb || p.full);
+  try { if (src) { const r = await resizeShare(src, side, q); if (r) return r; } } catch { /* fall back to the stored thumbnail */ }
+  return p.thumb ? blobToDataURL(p.thumb) : '';
+}
+async function listPayload(l, quality = 'medium') {
   const sender = { userId: me().userId, name: me().displayName || '', contact: isTrade(l) ? l.contact : '', area: isTrade(l) ? l.area : '' };
   const trade = isTrade(l);
   const items = [];
   for (const it of l.items || []) {
     const r = get(it.ref); if (!r) continue; const s = itemStrain(it); const lot = r.type === 'stock' ? r : null;
-    items.push({ key: it.ref, name: listItemName(it), variety: s?.name || '', kind: s?.kind || 'plant', group: s?.group || '', species: s?.species || '', hybrid: !!s?.hybrid, form: lot ? formOf(lot) : '', description: String(s?.description || '').slice(0, 400), bag: trade ? (+it.bag || '') : '', per: trade ? perText(it) : '', offer: trade ? OFFER_TYPES[offerOf(it)].label : '', price: trade ? priceOf(l, it) : '', available: trade ? itemAvailable(l, it) : null, note: it.note || '', photo: items.length < 40 ? await thumbFor(s) : '' });
+    items.push({ key: it.ref, name: listItemName(it), variety: s?.name || '', kind: s?.kind || 'plant', group: s?.group || '', species: s?.species || '', hybrid: !!s?.hybrid, form: lot ? formOf(lot) : '', description: String(s?.description || '').slice(0, 400), bag: trade ? (+it.bag || '') : '', per: trade ? perText(it) : '', offer: trade ? OFFER_TYPES[offerOf(it)].label : '', price: trade ? priceOf(l, it) : '', available: trade ? itemAvailable(l, it) : null, note: it.note || '', photo: items.length < 40 ? await thumbFor(s, quality) : '' });
   }
   return { app: 'lineage', format: 'catalogue', version: 1, catalogueId: l.id, sender, list: { name: l.name, notes: l.notes || '', type: trade ? l.ltype : 'list', postage: trade ? postageText({ postage: l.postage }) : '', postsTo: trade ? (POSTS_TO[l.postsTo] || '') : '' }, items, updated: today() };
 }
@@ -6711,18 +6874,21 @@ async function shareListSheet(id) {
   const l = typeof id === 'object' ? id : get(id); if (!l) return;
   if (!(l.items || []).length) { toast('Add something to the list first'); return; }
   const el = sheet(`Share ${l.name}`, `<p class="muted" style="margin-top:0">Only what's on this list is shared${isTrade(l) ? ', with bag sizes, prices and availability' : ''}. Never your other records or personal details beyond the name you choose.</p>
+    <label class="fld"><span>${h(tl('Picture size'))}</span><select name="shareQ">${[['small', tlx('Small (smallest page)')], ['medium', tlx('Medium')], ['large', tlx('Large (sharpest, biggest page)')]].map(([v, t]) => `<option value="${v}"${(S.settings.shareQ || 'medium') === v ? ' selected' : ''}>${h(tl(t))}</option>`).join('')}</select><small>${h(tl('Pictures are shrunk when you share, so your records are not changed.'))}</small></label>
     <div class="cap-list">
       <button type="button" class="cap-item" data-sl="file">${ic('share')}<span><b>${h(tl('Catalogue file'))}</b><small>${h(tl('For other Lineage Tracker users to browse, star and import'))}</small></span></button>
       <button type="button" class="cap-item" data-sl="pdf">${ic('download')}<span><b>${h(tl('PDF catalogue'))}</b><small>${h(tl('To print, email or upload. Choose Save as PDF'))}</small></span></button>
-      <button type="button" class="cap-item" data-sl="web">${ic('download')}<span><b>${h(tl('Web page'))}</b><small>${h(tl('A single page file for your website or Google Drive'))}</small></span></button>
+      <button type="button" class="cap-item" data-sl="web">${ic('download')}<span><b>${h(tl('Web page'))}</b><small>${h(tl('A single page file to put on your own website'))}</small></span></button>
       <button type="button" class="cap-item" data-sl="text">${ic('note')}<span><b>${h(tl('Text list'))}</b><small>${h(tl('To paste into Facebook groups, Discord or newsletters'))}</small></span></button>
-    </div>`);
+    </div>
+    <p class="muted" style="margin:12px 0 0"><small>${h(tl('Selling seeds or things you make? Take the catalogue file to LT-Catalogue for a branded page with search, quick links and ordering by email, plus matching labels and flyers. Free with a website account.'))} <a href="https://tools.lineagetracker.org/catalogue/" target="_blank" rel="noopener">${h(tl('Open LT-Catalogue'))}</a></small></p>`);
+  el.addEventListener('change', async e => { if (e.target.name === 'shareQ') { S.settings.shareQ = e.target.value; await saveSettings(); } });
   el.addEventListener('click', async e => {
     const b = e.target.closest('[data-sl]'); if (!b) return;
     if (b.dataset.sl !== 'text' && !me().displayName) await askDisplayName();
     busy(true);
     try {
-      const pl = await listPayload(l); const base = `lineage-${slug(l.name).toLowerCase()}`;
+      const pl = await listPayload(l, S.settings.shareQ || 'medium'); const base = `lineage-${slug(l.name).toLowerCase()}`;
       if (b.dataset.sl === 'file') { const blob = new Blob([JSON.stringify(pl)], { type: 'application/json' }); const f = new File([blob], `${base}.lineage-list.json`, { type: 'application/json' }); if (navigator.canShare && navigator.canShare({ files: [f] })) { try { await navigator.share({ files: [f], text: `${l.name}: open this file in Lineage Tracker to browse it. Free at https://lineagetracker.org` }); } catch (x) { if (x?.name !== 'AbortError') download(blob, f.name); } } else download(blob, f.name); toast('Catalogue file ready'); }
       if (b.dataset.sl === 'pdf') { const html = listHTML(pl, true); const w = window.open('', '_blank'); if (w) { w.document.open(); w.document.write(html); w.document.close(); } else download(new Blob([html], { type: 'text/html' }), `${base}.html`); }
       if (b.dataset.sl === 'web') { download(new Blob([listHTML(pl, false)], { type: 'text/html' }), `${base}.html`); toast('Web page saved'); }
@@ -6931,13 +7097,37 @@ function groupSettingsHTML() {
     ${F.select('groupPlants', word('tagged'), S.settings.groupPlants || 'type', GROUP_OPTS.filter(([v]) => v !== 'place' || on('places')).map(([v, t]) => [v, t === 'By type' ? 'By type (Pumpkin, Tomato, Chicken…)' : t]))}
   </div><p class="hint">${h(tl('Short lists stay as one list. Grouping starts once there are more than 12 items. Searching always shows every match.'))}</p></form>`);
 }
+let shareEditId = '';
+const shareEditing = () => { const l = shareStyles(); return l.find(x => x.id === shareEditId) || l.find(x => x.id === shareStyle().id) || l[0]; };
 function shareSettingsHTML() {
-  return sec('Log tags', null, `<p>${h(tl('Group your Log entries with tags, then filter the Log by tag.'))} <a href="#/tags">${h(tl('Manage tags'))}</a></p>`) + sec('Sharing', null, `<form id="shareForm" novalidate>${F.select('shareBrand', 'Branding on shared pictures', shareBrandMode(), [['full', 'Full footer with logo and web address (default)'], ['discreet', 'Discreet: a slim strip with just the web address']])}<label class="fld"><span>${h(tl('My default caption (optional)'))}</span><textarea name="shareTemplate" rows="4" placeholder="{text}&#10;&#10;{tags} #mygarden">${h(S.settings.shareTemplate || '')}</textarea></label>
-    <p class="hint">Used for every share. Leave it empty to use the standard wording with the website and how-to videos. You can use {text} for the entry's wording, {tags} for suggested hashtags, {website} and {youtube}. The picture always carries the Lineage Tracker website, and you can still edit the caption before each share.</p></form>`);
+  const st = shareEditing(), list = shareStyles();
+  return sec('Log tags', null, `<p>${h(tl('Group your Log entries with tags, then filter the Log by tag.'))} <a href="#/tags">${h(tl('Manage tags'))}</a></p>`) + sec('Sharing', null, `
+    <p class="muted" style="margin-top:0">${h(tl('Make a style for each place you share to, for example one for Substack Notes without hashtags. You pick the style each time you share, and it remembers your last choice. The Lineage Tracker credit stays on in every style.'))}</p>
+    <label class="fld"><span>${h(tl('Style to edit'))}</span><select id="shareEditSel">${list.map(x => `<option value="${h(x.id)}" ${x.id === st.id ? 'selected' : ''}>${h(x.name)}</option>`).join('')}</select></label>
+    <form id="shareForm" novalidate>${F.text('ssName', 'Style name', st.name, 'e.g. Facebook group')}${F.check('ssTags', 'Add suggested hashtags', st.hashtags !== false)}${F.select('ssBrand', 'Branding on shared pictures', st.brand === 'discreet' ? 'discreet' : 'full', [['full', 'Full footer with logo and web address (default)'], ['discreet', 'Discreet: a slim strip with just the web address']])}<label class="fld"><span>${h(tl('Caption for this style (optional)'))}</span><textarea name="ssTemplate" rows="4" placeholder="{text}&#10;&#10;{tags} #mygarden">${h(st.template || '')}</textarea></label>
+    <p class="hint">Leave the caption empty to use the standard wording with the website and how-to videos. You can use {text} for the entry's wording, {tags} for suggested hashtags (empty when hashtags are off), {website} and {youtube}. The picture always carries the Lineage Tracker website, and you can still edit the caption before each share.</p></form>
+    <div class="actions tight">${list.length < 6 ? SHARE_PRESETS.filter(p => !list.some(x => x.name === p.name)).map(p => `<button type="button" class="btn sm" data-ssadd="${h(p.name)}">${ic('plus')}${h(tl('Add'))} ${h(p.name)}</button>`).join('') + `<button type="button" class="btn sm" data-ssadd="">${ic('plus')}${h(tl('Add another style'))}</button>` : ''}${list.length > 1 ? `<button type="button" class="btn sm" data-ssdel>${h(tl('Remove this style'))}</button>` : ''}</div>`);
 }
 function mountShareSettings() {
   const f = $('#shareForm'); if (!f) return;
-  f.addEventListener('change', async () => { S.settings.shareTemplate = f.elements.shareTemplate.value; S.settings.shareBrand = f.elements.shareBrand.value; await saveSettings(); toast('Saved'); });
+  const st = shareEditing();
+  $('#shareEditSel').addEventListener('change', e => { shareEditId = e.target.value; render(); });
+  f.addEventListener('change', async () => {
+    st.name = f.elements.ssName.value.trim().slice(0, 40) || st.name; st.hashtags = f.elements.ssTags.checked; st.brand = f.elements.ssBrand.value; st.template = f.elements.ssTemplate.value;
+    if (st.id === 's1') { S.settings.shareBrand = st.brand; S.settings.shareTemplate = st.template; }   // keeps the old settings in step for older copies
+    await saveSettings(); toast('Saved'); if ($('#shareEditSel').selectedOptions[0].textContent !== st.name) render();
+  });
+  f.addEventListener('submit', e => e.preventDefault());
+  $$('[data-ssadd]').forEach(b => b.addEventListener('click', async () => {
+    const list = shareStyles(); if (list.length >= 6) return;
+    const preset = SHARE_PRESETS.find(p => p.name === b.dataset.ssadd);
+    const n = { id: 's' + Date.now().toString(36), name: preset ? preset.name : `Style ${list.length + 1}`, hashtags: preset ? preset.hashtags : true, brand: 'full', template: '' };
+    list.push(n); shareEditId = n.id; await saveSettings(); toast('Style added'); render();
+  }));
+  $('[data-ssdel]')?.addEventListener('click', async () => {
+    if (!confirm(`Remove the style "${st.name}"?`)) return;
+    S.settings.shareStyles = shareStyles().filter(x => x.id !== st.id); if (S.settings.shareStyleLast === st.id) S.settings.shareStyleLast = ''; shareEditId = ''; await saveSettings(); toast('Style removed'); render();
+  });
 }
 function mountGroupSettings() {
   const f = $('#groupForm'); if (!f) return;
@@ -7005,7 +7195,11 @@ function checklistItems() {
   const A = keepsKind('animal'), P = keepsKind('plant'), onlyA = A && !P;
   const it = (done, act, icon, t, s, extra = '') => ({ done: !!done, act, icon, t, s, extra });
   const L = [];
-  if (onlyA) {
+  if (keepsNow() === 'none') {
+    L.push(it(all('strain').length, 'newStrain', 'library', tlx('Add your first item'), tlx('A name, a photo and a group')));
+    L.push(it(all('stock').length, 'newLot', 'tag', tlx('Say how many you have'), tlx('So stock and availability can be worked out')));
+    L.push(it(all('list').length, 'nav:#/lists', 'project', tlx('Make a list to sell from'), tlx('Then share it as a catalogue')));
+  } else if (onlyA) {
     L.push(it(all('strain').length, 'newStrain', 'library', tlx('Add your first breed'), tlx('Where your animals came from')));
     L.push(it(all('individual').length, 'newInd', 'tag', tlx('Add your first animal'), tlx('Or a whole flock as a group')));
     if (on('places')) L.push(it(all('place').length, 'newPlace', 'place', tlx('Set up a coop, pen or paddock'), tlx('Where your animals live')));
@@ -7017,6 +7211,7 @@ function checklistItems() {
     L.push(it(all('individual').length, 'newInd', 'tag', P && A ? tlx('Add your first plant or animal') : tlx('Add your first plant'), tlx('Or a whole bed as a group')));
   }
   L.push(it(all('note').length, 'note', 'note', tlx('Take a photo or write a note'), tlx('About anything at all')));
+  if (keepsNow() === 'none') { L.push(it(S.settings.lastExport || S.settings.lastQuick, 'exportBackup', 'download', tlx('Make your first backup'), tlx('One file with everything, to keep safe'))); return L; }
   if (on('germ') && !onlyA) L.push(it(all('germ').length, 'nav:#/library?tab=lots', 'library', tlx('Record a germination test'), tlx('Open a seed packet, then Germination tests')));
   if (on('projects')) L.push(it(all('project').length, 'newProject', 'project', tlx('Start a breeding project'), tlx('With your goal and target traits')));
   L.push(it(S.settings.lastExport || S.settings.lastQuick, 'exportBackup', 'download', tlx('Make your first backup'), tlx('One file with everything, to keep safe')));
@@ -7200,8 +7395,9 @@ const OFFER_TYPES = {
   division: { label: 'Divisions', per: 'Pieces per lot', bag: 'lot', kind: 'plant' }, scion: { label: 'Scions or budwood', per: 'Scions per bundle', bag: 'bundle', kind: 'plant' },
   egg: { label: 'Hatching eggs', per: 'Eggs per box', bag: 'box', kind: 'animal' }, young: { label: 'Young (chicks, kits, kids)', per: 'Animals per lot', bag: 'lot', kind: 'animal' },
   adult: { label: 'Adults', per: 'Animals per lot', bag: 'lot', kind: 'animal' }, pair: { label: 'Pairs or trios', per: 'Animals per group', bag: 'group', kind: 'animal' },
+  product: { label: 'Products', per: tlx('Items per pack (for example 1 jar, 200 g)'), bag: 'pack', kind: 'product' },
 };
-const FORM_TO_OFFER = { seed: 'seed', cuttings: 'cutting', tubers: 'slip', fruit: 'slip', seedlings: 'seedling', divisions: 'division', scions: 'scion', tissue: 'seedling', eggs: 'egg', young: 'young', adults: 'adult' };
+const FORM_TO_OFFER = { product: 'product', seed: 'seed', cuttings: 'cutting', tubers: 'slip', fruit: 'slip', seedlings: 'seedling', divisions: 'division', scions: 'scion', tissue: 'seedling', eggs: 'egg', young: 'young', adults: 'adult' };
 function offerOf(it) {
   if (it.offer && OFFER_TYPES[it.offer]) return it.offer;
   const r = get(it.ref); if (!r) return 'seed';
@@ -7209,7 +7405,7 @@ function offerOf(it) {
   const forms = all('stock').filter(l => l.strainId === r.id && l.status !== 'used').map(l => formOf(l));
   const nonSeed = forms.filter(f => f && f !== 'seed');
   if (forms.length && nonSeed.length === forms.length) return FORM_TO_OFFER[nonSeed[0]] || 'seed';
-  return kindOf(r) === 'animal' ? 'adult' : 'seed';
+  return kindOf(r) === 'animal' ? 'adult' : kindOf(r) === 'product' ? 'product' : 'seed';
 }
 const bagWord = (it, n = 1) => { const b = OFFER_TYPES[offerOf(it)].bag; return n === 1 ? b : (b === 'box' ? 'boxes' : b + 's'); };
 const perText = it => (it.bag ? `${it.bag} per ${bagWord(it)}` : '');
@@ -8497,18 +8693,18 @@ function pLog(_, q = {}) {
   const chips = usable.map(t => { const on_ = tags.includes(t.key), next = on_ ? tags.filter(k => k !== t.key) : [...tags, t.key]; return `<a class="chip" href="${logHash(q, { tag: next.join(',') })}" aria-pressed="${on_}">${h(t.label)}${use[t.key] ? ` <small>${use[t.key]}</small>` : ''}</a>`; }).join('');
   const total = all('note').length;
   return `<div class="page-head"><h1>${h(tl('Log'))}</h1><span class="head-btns"><button class="btn" data-act="sharePhotos">${ic('share')}${h(tl('Share photos'))}</button><button class="btn primary" data-act="note"${aboutRec ? ` data-ref="${aboutRec.id}"` : ''}>${ic('note')}${h(tl('Add note'))}</button></span></div>
-  ${searchBox('Search notes')}
-  <details class="logfilt" ${nFilters && (q.about || q.from || q.to || q.photos) ? 'open' : ''}><summary>Filters${nFilters ? ` (${nFilters} on)` : ''}</summary>
+  ${searchBox(tl('Search notes'))}
+  <details class="logfilt" ${nFilters && (q.about || q.from || q.to || q.photos) ? 'open' : ''}><summary>${h(nFilters ? tl('Filters ({n} on)', { n: nFilters }) : tl('Filters'))}</summary>
     <form id="logFilter" class="frm" novalidate>
       <label class="fld"><span>${h(tl('About'))}</span><select name="about">${aboutOptionsHTML(q.about || '')}</select></label>
-      ${aboutRec && ['strain', 'project', 'place'].includes(aboutRec.type) ? `<label class="chk"><input type="checkbox" name="roll" ${q.roll === '0' ? '' : 'checked'}><span>Include its ${aboutRec.type === 'strain' ? 'plants, animals and packets' : aboutRec.type === 'project' ? 'members and crosses' : 'plants and animals'}</span></label>` : ''}
+      ${aboutRec && ['strain', 'project', 'place'].includes(aboutRec.type) ? `<label class="chk"><input type="checkbox" name="roll" ${q.roll === '0' ? '' : 'checked'}><span>${h(aboutRec.type === 'strain' ? tl('Include its plants, animals and packets') : aboutRec.type === 'project' ? tl('Include its members and crosses') : tl('Include its plants and animals'))}</span></label>` : ''}
       <div class="two"><label class="fld"><span>${h(tl('From'))}</span><input type="date" name="from" value="${h(q.from || '')}"></label><label class="fld"><span>${h(tl('To'))}</span><input type="date" name="to" value="${h(q.to || '')}"></label></div>
       <label class="chk"><input type="checkbox" name="photos" ${q.photos === '1' ? 'checked' : ''}><span>${h(tl('Only entries with photos'))}</span></label>
     </form>
   </details>
   ${chips ? `<div class="filters log-tagbar">${chips}</div>` : ''}
-  <p class="muted small log-count">${nFilters ? `${notes.length} of ${total} entries. <a href="#/log">${h(tl('Clear filters'))}</a> · ` : ''}<a href="#/tags">${h(tl('Manage tags'))}</a></p>
-  ${notes.length ? logList(notes, { showRef: true }) : emptyBox(nFilters ? 'Nothing matches these filters.' : 'Every note and photo you add appears here, newest first.', 'note', 'Add a note')}`;
+  <p class="muted small log-count">${nFilters ? `${h(tl('{n} of {total} entries.', { n: notes.length, total }))} <a href="#/log">${h(tl('Clear filters'))}</a> · ` : ''}<a href="#/tags">${h(tl('Manage tags'))}</a></p>
+  ${notes.length ? logList(notes, { showRef: true }) : emptyBox(h(nFilters ? tl('Nothing matches these filters.') : tl('Every note and photo you add appears here, newest first.')), 'note', h(tl('Add a note')))}`;
 }
 function mountLog() {
   const f = $('#logFilter'); if (!f) return;
@@ -8581,7 +8777,7 @@ function groupNamesFor(kind) {
   const mine = new Set();
   for (const s of all('strain')) if (s.group && (!kind || (s.kind || 'plant') === kind)) mine.add(s.group.trim());
   for (const g of all('vgroup')) if (!kind || (g.kind || 'plant') === kind) mine.add(g.name);
-  const starters = kind ? STARTER_GROUPS[kind] : [...STARTER_GROUPS.plant, ...STARTER_GROUPS.animal];
+  const starters = kind ? (STARTER_GROUPS[kind] || []) : [...STARTER_GROUPS.plant, ...STARTER_GROUPS.animal];
   const out = [...mine].sort((a, b) => a.localeCompare(b));
   for (const g of starters) if (![...mine].some(m => sameName(m, g))) out.push(g);
   return out;
@@ -8851,9 +9047,9 @@ function sharePhotosSheet(notes, { title = '', kind = '' } = {}) {
 const ppDateRange = (ids, dates) => { const ds = ids.map(i => dates[i]).filter(Boolean).sort(); return ds.length ? (ds[0] === ds[ds.length - 1] ? fmtDate(ds[0]) : `${fmtDate(ds[0])} to ${fmtDate(ds[ds.length - 1])}`) : ''; };
 function photoShareCaption(o) {
   const base = o.kind === 'animal' ? '#animalbreeding' : '#plantbreeding #seedsaving';
-  const tpl = String(S.settings.shareTemplate || '').trim(), text = [o.title, ppDateRange(o.ids, o.dates)].filter(Boolean).join(', ');
-  if (tpl) return tpl.replace(/\{text\}/g, text).replace(/\{tags\}/g, base).replace(/\{website\}/g, SITE() || '').replace(/\{youtube\}/g, YT_URL);
-  return `${text || 'Growing over time'}\n\n${base}${shareTail()}`;
+  const tpl = String(shareStyle().template || '').trim(), text = [o.title, ppDateRange(o.ids, o.dates)].filter(Boolean).join(', ');
+  if (tpl) return shareTidy(tpl.replace(/\{text\}/g, text).replace(/\{tags\}/g, shareTags(base)).replace(/\{website\}/g, SITE() || '').replace(/\{youtube\}/g, YT_URL));
+  return shareTidy([text || 'Growing over time', shareTags(base)].filter(Boolean).join('\n\n') + shareTail());
 }
 async function runPhotoShare(o) {
   busy(true);
@@ -8929,7 +9125,18 @@ const sharePhotosBtn = id => (photoCandidates(logFiltered({ about: id }).notes).
    printed rate to the container, area or number of plants the person
    chooses. It never suggests a rate of its own.
    =================================================================== */
-const DOSE_UNITS = ['mL', 'L', 'g', 'kg', 'tsp', 'tbsp', 'tablet', 'scoop', 'dose'];
+const DOSE_UNITS = ['mL', 'L', 'g', 'kg', 'tsp', 'tbsp', 'tablet', 'scoop', 'dose', 'pellets', 'handful'];
+/* Dry products (pellets, granules, powder to scatter) are counted or weighed, and a label may give a coverage ("2.5 kg covers 500 m²") instead of a rate. */
+const DRY_UNITS = ['g', 'kg', 'pellets', 'handful', 'tsp', 'tbsp', 'scoop'];
+const doseUnitText = (u, n) => (u === 'pellets' ? (+n === 1 ? 'pellet' : 'pellets') : u === 'handful' ? (+n === 1 ? 'handful' : 'handfuls') : u);
+const AREA_TO_M2 = { m2: 1, ft2: 0.092903, yd2: 0.836127 };
+/* "2.5 kg covers 500 m²" becomes grams per square metre. Only arithmetic on the printed numbers. */
+function coverageToRate(amt, unit, area, areaUnit) {
+  amt = parseFloat(String(amt).replace(',', '.')); area = parseFloat(String(area).replace(',', '.'));
+  if (!(amt > 0) || !(area > 0) || !AREA_TO_M2[areaUnit] || !['g', 'kg', 'pellets'].includes(unit)) return null;
+  const m2 = area * AREA_TO_M2[areaUnit], per = (unit === 'kg' ? amt * 1000 : amt) / m2;
+  return { amt: per >= 100 ? Math.round(per) : Math.round(per * 100) / 100, unit: unit === 'kg' ? 'g' : unit };
+}
 const DOSE_PER = {
   L: { label: 'litre of water or mix', short: 'litre', ask: 'How big is your container?', plural: 'litres' },
   m2: { label: 'square metre', short: 'm²', ask: 'How big is the area?', plural: 'm²' },
@@ -8951,14 +9158,15 @@ const doseOf = inp => {
 };
 const doseRateText = d => {
   const a = fmtNum(d.amt) + (d.max ? ` to ${fmtNum(d.max)}` : ''), per = d.per === 1 ? DOSE_PER[d.perUnit].short : `${fmtNum(d.per)} ${DOSE_PER[d.perUnit].plural}`;
-  return `${a} ${d.unit}`.trim() + ` per ${per}`;
+  return `${a} ${doseUnitText(d.unit, d.max || d.amt)}`.trim() + ` per ${per}`;
 };
 function doseRound(v) { return v >= 100 ? Math.round(v) : v >= 10 ? Math.round(v * 10) / 10 : Math.round(v * 100) / 100; }
 function doseAmounts(d, qty) {
   const k = qty / d.per, lo = d.amt * k, hi = d.max ? d.max * k : 0;
   const conv = (v, unit) => (unit === 'mL' && v >= 1000 ? [v / 1000, 'L'] : unit === 'g' && v >= 1000 ? [v / 1000, 'kg'] : [v, unit]);
   const [l, u] = conv(lo, d.unit), [hh] = hi ? conv(hi, d.unit) : [0];
-  return { lo: doseRound(l), hi: hh ? doseRound(hh) : 0, unit: u, rawLo: lo, rawHi: hi, rawUnit: d.unit };
+  const rd = u === 'pellets' ? Math.round : doseRound;   // pellets are counted, so whole numbers
+  return { lo: rd(l), hi: hh ? rd(hh) : 0, unit: u, rawLo: lo, rawHi: hi, rawUnit: d.unit };
 }
 const doseSpoon = a => (a.rawUnit === 'mL' && a.rawLo >= 2.5 && (a.rawHi || a.rawLo) <= 100 ? ` That is about ${fmtNum(Math.round(a.rawLo / 5 * 10) / 10)}${a.rawHi ? ` to ${fmtNum(Math.round(a.rawHi / 5 * 10) / 10)}` : ''} teaspoons (5 mL each).` : '');
 const savedContainers = () => (Array.isArray(S.settings.containers) ? S.settings.containers : []).filter(c => +c.l > 0);
@@ -8975,6 +9183,7 @@ function doseCalcHTML(inp, { onUse = false, id = 'dose' } = {}) {
     <label class="fld"><span>${h(tl('Measured in'))}</span><select data-du ${units.length < 2 ? 'disabled' : ''}>${units.map(u => `<option value="${u[0]}">${h(u[1])}</option>`).join('')}</select></label></div>
     <div class="dc-out" data-dout role="status" aria-live="polite"><span class="muted">${h(tl('Choose or type a size to see how much to add.'))}</span></div>
     <div class="actions tight dc-act">${onUse ? `<button type="button" class="btn sm primary" data-duse hidden>${h(tl('Use this amount'))}</button>` : ''}${d.perUnit === 'L' ? `<button type="button" class="btn sm" data-dsave hidden>${h(tl('Remember this container'))}</button>` : ''}</div>
+    ${inp.petWarn ? `<div class="notice warn">${h(tl('The label warns about pets or wildlife. Keep them off the treated area as it says.'))}</div>` : ''}
     <p class="hint">Worked out from the rate printed on the label. Always follow the label${keepsKind('animal') ? ' or your vet' : ''}.</p>
   </div>`;
 }
@@ -8991,7 +9200,7 @@ function mountDoseCalc(root, inp, { onUse, initial } = {}) {
     box.querySelectorAll('[data-dl]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.dl === num() && b.dataset.dlu === u.value)));
     if (!n) { cur = null; out.innerHTML = `<span class="muted">${h(tl('Choose or type a size to see how much to add.'))}</span>`; if (use) use.hidden = true; if (sv) sv.hidden = true; return; }
     const a = doseAmounts(d, n); cur = a;
-    const amt = a.hi ? `${fmtNum(a.lo)} to ${fmtNum(a.hi)} ${a.unit}` : `${fmtNum(a.lo)} ${a.unit}`;
+    const amt = a.hi ? `${fmtNum(a.lo)} to ${fmtNum(a.hi)} ${doseUnitText(a.unit, a.hi)}` : `${fmtNum(a.lo)} ${doseUnitText(a.unit, a.lo)}`;
     const target = d.perUnit === 'L' ? `your ${fmtNum(num())} ${unitName()} container` : d.perUnit === 'plant' ? `${fmtNum(num())} ${unitName()}` : `${fmtNum(num())} ${unitName()}`;
     out.innerHTML = `<div class="dc-big">${h(tl('Add'))} <b>${h(amt)}</b></div><div class="dc-for muted">for ${h(target)}.${h(doseSpoon(a))}</div>`;
     if (use) use.hidden = false;
@@ -9037,8 +9246,8 @@ function doseCalcSheet() {
 /* ---------- Reading a label ---------- */
 function inputLabelPrompt(n = 1) {
   return `${n > 1 ? 'These are photos' : 'This is a photo'} of a garden, farm or veterinary product label. Copy what is printed; do not guess, calculate or add advice. Reply with JSON only:
-{"name":"","brand":"","category":"fert|soil|pest|disease|weed|med|vaccine|wormer|feed|other","active":"active ingredient(s) as printed","organic":false,"useBy":"YYYY-MM-DD or empty","dose":{"amt":null,"max":null,"unit":"mL|L|g|kg|tsp|tbsp|tablet|scoop|dose","per":null,"perUnit":"L|m2|plant|kg"},"rate":"the main rate as printed, short","whp":{"harvest":null,"eggs":null,"milk":null,"meat":null},"notes":"other rates, warnings or directions worth keeping, short"}
-Rules: "dose" is the usual or general rate for the main use, as a number of units per number of litres of water (perUnit "L"), per square metre ("m2"), per plant or pot ("plant") or per kilogram ("kg"). For example "20 mL per litre" is {"amt":20,"max":null,"unit":"mL","per":1,"perUnit":"L"} and "10 to 15 mL per 9 L" is {"amt":10,"max":15,"unit":"mL","per":9,"perUnit":"L"}. If a label only gives a rate per 10 L or per 100 L, keep that number in "per". If the rate is not per litre, square metre, plant or kilogram, leave dose empty and put the printed rate in "rate". If the label lists several rates, use the general one and put the others in "notes". Use numbers of days for any withholding periods printed. "organic" is true only if the label says it is allowed in organic growing.`;
+{"name":"","brand":"","category":"fert|soil|pest|disease|weed|med|vaccine|wormer|feed|other","active":"active ingredient(s) as printed","organic":false,"useBy":"YYYY-MM-DD or empty","form":"liquid|dry","petWarn":false,"dose":{"amt":null,"max":null,"unit":"mL|L|g|kg|tsp|tbsp|tablet|scoop|dose|pellets|handful","per":null,"perUnit":"L|m2|plant|kg"},"cover":{"amt":null,"unit":"g|kg|pellets","area":null,"areaUnit":"m2|ft2"},"rate":"the main rate as printed, short","whp":{"harvest":null,"eggs":null,"milk":null,"meat":null},"notes":"other rates, warnings or directions worth keeping, short"}
+Rules: "dose" is the usual or general rate for the main use, as a number of units per number of litres of water (perUnit "L"), per square metre ("m2"), per plant or pot ("plant") or per kilogram ("kg"). For example "20 mL per litre" is {"amt":20,"max":null,"unit":"mL","per":1,"perUnit":"L"} and "10 to 15 mL per 9 L" is {"amt":10,"max":15,"unit":"mL","per":9,"perUnit":"L"}. If a label only gives a rate per 10 L or per 100 L, keep that number in "per". If the rate is not per litre, square metre, plant or kilogram, leave dose empty and put the printed rate in "rate". If the label lists several rates, use the general one and put the others in "notes". Use numbers of days for any withholding periods printed. "organic" is true only if the label says it is allowed in organic growing. "form" is "dry" for pellets, granules, powder or crystals that are scattered or dug in, and "liquid" for anything mixed with water or used as a liquid. For a dry product, "70 pellets per square metre" is {"amt":70,"max":null,"unit":"pellets","per":1,"perUnit":"m2"} and "one handful per plant" is {"amt":1,"max":null,"unit":"handful","per":1,"perUnit":"plant"}. If the label gives how much area a pack or amount covers, such as "2.5 kg covers 500 m2", copy it into "cover" exactly as printed and leave dose empty; do not work out a rate yourself. "petWarn" is true only if the label warns about pets, children's pets, birds or wildlife.`;
 }
 async function readInputLabelPhotos(photoIds, opts = {}) {
   const content = [];
@@ -9075,6 +9284,12 @@ function mountLabelReader(el, form, ph, showWhp, scanPhoto) {
       E('dosePer').value = parseFloat(dz.per) > 0 ? parseFloat(dz.per) : 1; E('dosePerUnit').value = dz.perUnit;
       if (!E('unit').value.trim() || E('unit').value.trim() === 'mL') E('unit').value = dz.unit || E('unit').value;
     }
+    if (!String(E('doseAmt').value).trim() && j.cover && E('covAmt')) {
+      const cr = coverageToRate(j.cover.amt, j.cover.unit, j.cover.area, j.cover.areaUnit);
+      if (cr) { E('covAmt').value = parseFloat(j.cover.amt); E('covUnit').value = j.cover.unit; E('covArea').value = parseFloat(j.cover.area); E('covAreaUnit').value = j.cover.areaUnit; E('doseAmt').value = cr.amt; E('doseUnit').value = cr.unit; E('dosePer').value = 1; E('dosePerUnit').value = 'm2'; if (!E('unit').value.trim() || E('unit').value.trim() === 'mL') E('unit').value = cr.unit; if (j.form !== 'liquid') E('prodForm').value = 'dry'; }
+    }
+    if (E('prodForm') && (j.form === 'dry' || j.form === 'liquid') && !(E('prodForm').dataset.touched)) E('prodForm').value = j.form;
+    if (j.petWarn === true && E('petWarn')) E('petWarn').checked = true;
     for (const [k] of WHP_KINDS) if (+j.whp?.[k] > 0 && !E('whp_' + k).value) E('whp_' + k).value = +j.whp[k];
     if (j.organic === true) E('organic').checked = true;
     showWhp();
@@ -9088,7 +9303,7 @@ function mountLabelReader(el, form, ph, showWhp, scanPhoto) {
     try {
       const j = await readInputLabelPhotos(ph.ids.slice(-2), { provider, onRetry: n => { if (my === token) msg().innerHTML = aiWaitHTML(`${who} is busy, trying again (${n} of 2)…`); } });
       if (my !== token) return;
-      fill(j); note(j.dose?.amt ? 'Filled in from the label. Check the rate and the rest, then save.' : 'Filled in from the label. No rate per litre, area or plant was found, so add one below if you want the "how much to add" helper.');
+      fill(j); note(j.dose?.amt || (j.cover?.amt && j.cover?.area) ? 'Filled in from the label. Check the rate and the rest, then save.' : 'Filled in from the label. No rate per litre, area or plant was found, so add one below if you want the "how much to add" helper.');
     } catch (err) {
       if (my !== token) return;
       note(err.message || 'Could not read the label', true);
@@ -9123,17 +9338,17 @@ const LAB_STOCK = {
   l7651: { cols: 5, rows: 13, top: 10.7, left: 4.7, gx: 2.5, gy: 0 },
 };
 const LAB_LAYOUTS = {
-  tag: { name: 'Small tag', desc: 'Name, a couple of details and a QR code. For stakes, pots, tubes and cage fronts.', fs: 1, sizes: [['75x25', '75 × 25 mm', 75, 25], ['50x20', '50 × 20 mm', 50, 20], ['l7651', '38.1 × 21.2 mm (65 per A4 sheet)', 38.1, 21.2, 'l7651']] },
-  front: { name: 'Front sticker', desc: 'A bigger name with details and a QR code. For jars, boxes and trays.', fs: 1, sizes: [['60x40', '60 × 40 mm', 60, 40], ['l7160', '63.5 × 38.1 mm (21 per A4 sheet)', 63.5, 38.1, 'l7160'], ['l7163', '99.1 × 38.1 mm (14 per A4 sheet)', 99.1, 38.1, 'l7163']] },
-  branded: { name: 'Branded packet sticker', desc: 'A header band with the logo, then the details and a QR code. For seed packets, egg boxes and jars.', fs: 1, sizes: [['90x55', '90 × 55 mm', 90, 55], ['l7165', '99.1 × 67.7 mm (8 per A4 sheet)', 99.1, 67.7, 'l7165'], ['75x50', '75 × 50 mm', 75, 50]] },
-  fold: { name: 'Wrap-around fold-over', desc: 'Two halves that fold round a stake, wire or tube. The back half is printed upside down so both sides read the right way up.', fs: 1, fold: true, sizes: [['50x25', '50 × 25 mm each side', 50, 25], ['75x25', '75 × 25 mm each side', 75, 25], ['60x35', '60 × 35 mm each side', 60, 35]] },
-  pen: { name: 'Cage or pen', desc: 'Large and easy to read from a distance.', fs: 1.3, sizes: [['100x70', '100 × 70 mm', 100, 70], ['l7165', '99.1 × 67.7 mm (8 per A4 sheet)', 99.1, 67.7, 'l7165'], ['148x105', '148 × 105 mm (A6)', 148, 105]] },
+  tag: { name: tlx('Small tag'), desc: tlx('Name, a couple of details and a QR code. For stakes, pots, tubes and cage fronts.'), fs: 1, sizes: [['75x25', '75 × 25 mm', 75, 25], ['50x20', '50 × 20 mm', 50, 20], ['l7651', '38.1 × 21.2 mm (65 per A4 sheet)', 38.1, 21.2, 'l7651']] },
+  front: { name: tlx('Front sticker'), desc: tlx('A bigger name with details and a QR code. For jars, boxes and trays.'), fs: 1, sizes: [['60x40', '60 × 40 mm', 60, 40], ['l7160', '63.5 × 38.1 mm (21 per A4 sheet)', 63.5, 38.1, 'l7160'], ['l7163', '99.1 × 38.1 mm (14 per A4 sheet)', 99.1, 38.1, 'l7163']] },
+  branded: { name: tlx('Branded packet sticker'), desc: tlx('A header band with the logo, then the details and a QR code. For seed packets, egg boxes and jars.'), fs: 1, sizes: [['90x55', '90 × 55 mm', 90, 55], ['l7165', '99.1 × 67.7 mm (8 per A4 sheet)', 99.1, 67.7, 'l7165'], ['75x50', '75 × 50 mm', 75, 50]] },
+  fold: { name: tlx('Wrap-around fold-over'), desc: tlx('Two halves that fold round a stake, wire or tube. The back half is printed upside down so both sides read the right way up.'), fs: 1, fold: true, sizes: [['50x25', '50 × 25 mm each side', 50, 25], ['75x25', '75 × 25 mm each side', 75, 25], ['60x35', '60 × 35 mm each side', 60, 35]] },
+  pen: { name: tlx('Cage or pen'), desc: tlx('Large and easy to read from a distance.'), fs: 1.3, sizes: [['100x70', '100 × 70 mm', 100, 70], ['l7165', '99.1 × 67.7 mm (8 per A4 sheet)', 99.1, 67.7, 'l7165'], ['148x105', '148 × 105 mm (A6)', 148, 105]] },
 };
 const LAB_FIELDS = {
-  individual: [['name', 'Nickname', r => r.name], ['strain', 'Variety or breed', r => get(r.strainId)?.name], ['gen', 'Generation', r => (r.generation ? `Generation ${r.generation}` : '')], ['date', 'Started on', r => (r.startDate ? `${W(r).start} ${fmtDate(r.startDate)}` : '')], ['place', 'Place', r => get(r.placeId)?.name], ['parents', 'Parents', r => { const [m, f] = parentsOf(r); return m || f ? `${m ? shortName(m) : '?'} × ${f ? shortName(f) : '?'}` : ''; }], ['sex', 'Sex', r => r.sex]],
-  stock: [['strain', 'Variety or breed', r => get(r.strainId)?.name], ['source', 'Source', r => r.source], ['batch', 'Batch', r => (r.batch ? `Batch ${r.batch}` : '')], ['year', 'Packed or bought', r => r.year], ['qty', 'Quantity', r => qtyText(r)], ['best', 'Best before', r => (r.bestBefore ? `Best before ${fmtDate(r.bestBefore)}` : '')], ['where', 'Stored where', r => r.location]],
-  place: [['method', 'Method', r => r.method], ['details', 'Details', r => r.details]],
-  tray: [['strain', 'Variety', r => get(r.strainId)?.name], ['sown', 'Sown', r => (r.date ? `Sown ${fmtDate(r.date)}` : '')]],
+  individual: [['name', tlx('Nickname'), r => r.name], ['strain', tlx('Variety or breed'), r => get(r.strainId)?.name], ['gen', tlx('Generation'), r => (r.generation ? `Generation ${r.generation}` : '')], ['date', tlx('Started on'), r => (r.startDate ? `${W(r).start} ${fmtDate(r.startDate)}` : '')], ['place', tlx('Place'), r => get(r.placeId)?.name], ['parents', tlx('Parents'), r => { const [m, f] = parentsOf(r); return m || f ? `${m ? shortName(m) : '?'} × ${f ? shortName(f) : '?'}` : ''; }], ['sex', tlx('Sex'), r => r.sex]],
+  stock: [['strain', tlx('Variety or breed'), r => get(r.strainId)?.name], ['source', tlx('Source'), r => r.source], ['batch', tlx('Batch'), r => (r.batch ? `Batch ${r.batch}` : '')], ['year', tlx('Packed or bought'), r => r.year], ['qty', tlx('Quantity'), r => qtyText(r)], ['best', tlx('Best before'), r => (r.bestBefore ? `Best before ${fmtDate(r.bestBefore)}` : '')], ['where', tlx('Stored where'), r => r.location]],
+  place: [['method', tlx('Method'), r => r.method], ['details', tlx('Details'), r => r.details]],
+  tray: [['strain', tlx('Variety'), r => get(r.strainId)?.name], ['sown', tlx('Sown'), r => (r.date ? `Sown ${fmtDate(r.date)}` : '')]],
 };
 const LAB_DEFAULTS = {
   individual: ['strain', 'gen', 'date', 'place', 'parents'], stock: ['source', 'batch', 'year', 'qty', 'best', 'where'], place: ['method', 'details'], tray: ['strain', 'sown'],
@@ -9256,18 +9471,18 @@ function labelsPage(kind, items, base, pick) {
   return `<h1>${h(tl('Print stickers'))}</h1>
   <p class="muted">${h(tl('Each sticker has a QR code. Scan it with your phone camera to open that record. Print on white sticker paper, or plain paper and laminate.'))}</p>
   ${base ? '' : `<div class="notice">${h(tl('QR codes can only open records when Lineage Tracker runs from its web address. From a file, the code holds the name instead.'))}</div>`}
-  <div class="seg">${[['tagged', word('tagged')], ['lots', word('lots')], ...(on('trays') ? [['trays', 'Trays']] : []), ...(on('places') ? [['places', 'Places']] : [])].map(([k, t]) => `<a href="#/labels?what=${k}" aria-current="${kind === k}">${h(t)}</a>`).join('')}</div>
+  <div class="seg">${[['tagged', word('tagged')], ['lots', word('lots')], ...(on('trays') ? [['trays', tl('Trays')]] : []), ...(on('places') ? [['places', tl('Places')]] : [])].map(([k, t]) => `<a href="#/labels?what=${k}" aria-current="${kind === k}">${h(t)}</a>`).join('')}</div>
   ${ltpPickerHTML(c, dz, rk)}
   <form id="labForm" class="frm" novalidate ${dz ? 'hidden' : ''}>
-    <label class="fld" style="margin-top:12px"><span>${h(tl('Sticker'))}</span><select name="layout">${Object.entries(LAB_LAYOUTS).map(([k, l]) => `<option value="${k}" ${c.layout === k ? 'selected' : ''}>${h(l.name)}</option>`).join('')}</select></label>
-    <p class="hint" style="margin-top:-4px" id="labDesc">${h(L.desc)}</p>
+    <label class="fld" style="margin-top:12px"><span>${h(tl('Sticker'))}</span><select name="layout">${Object.entries(LAB_LAYOUTS).map(([k, l]) => `<option value="${k}" ${c.layout === k ? 'selected' : ''}>${h(tl(l.name))}</option>`).join('')}</select></label>
+    <p class="hint" style="margin-top:-4px" id="labDesc">${h(tl(L.desc))}</p>
     <div class="two"><label class="fld"><span>${h(tl('Size'))}</span><select name="size">${L.sizes.map(s => `<option value="${s[0]}" ${sz.key === s[0] ? 'selected' : ''}>${h(s[1])}</option>`).join('')}<option value="custom" ${sz.key === 'custom' ? 'selected' : ''}>${h(tl('Custom size (mm)'))}</option></select></label>
     <label class="fld"><span>${h(tl('Paper'))}</span><select name="paper"><option value="a4" ${c.paper !== 'letter' ? 'selected' : ''}>A4</option><option value="letter" ${c.paper === 'letter' ? 'selected' : ''}>${h(tl('US Letter'))}</option></select></label></div>
     <div class="two" id="labCustom" ${sz.key === 'custom' ? '' : 'hidden'}><label class="fld"><span>${h(tl('Width (mm)'))}</span><input name="cw" inputmode="decimal" value="${h(c.custom.w)}"></label><label class="fld"><span>Height (mm${L.fold ? ', each side' : ''})</span><input name="ch" inputmode="decimal" value="${h(c.custom.h)}"></label></div>
     <label class="fld" id="labGap" ${L.fold ? '' : 'hidden'}><span>${h(tl('Fold gap in the middle'))}</span><select name="gap">${[[2, '2 mm (thin card or tube)'], [5, '5 mm (stake or wire)'], [10, '10 mm (thick stake)']].map(([v, t]) => `<option value="${v}" ${+c.gap === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
     <p class="hint" id="labFit" style="margin-top:-4px"></p>
     <div class="fld"><span>${h(tl('Preview'))}</span><div id="labPrev" class="lab-prev"><iframe title="${h(tl('Sticker preview'))}" sandbox="" scrolling="no"></iframe></div><p class="hint" id="labPrevNote"></p></div>
-    <div class="fld"><span>${h(tl('What to print'))}</span><div class="filters lab-fields">${fields.map(([k, t]) => `<label class="chip lab-f"><input type="checkbox" data-f="${k}" ${on_.includes(k) ? 'checked' : ''}><span>${h(t)}</span></label>`).join('')}</div>
+    <div class="fld"><span>${h(tl('What to print'))}</span><div class="filters lab-fields">${fields.map(([k, t]) => `<label class="chip lab-f"><input type="checkbox" data-f="${k}" ${on_.includes(k) ? 'checked' : ''}><span>${h(tl(t))}</span></label>`).join('')}</div>
       <div class="filters lab-fields"><label class="chip lab-f"><input type="checkbox" name="qr" ${c.qr ? 'checked' : ''}><span>${h(tl('QR code'))}</span></label><label class="chip lab-f"><input type="checkbox" name="write" ${c.write ? 'checked' : ''}><span>${h(tl('Line to write on'))}</span></label><label class="chip lab-f"><input type="checkbox" name="guides" ${c.guides ? 'checked' : ''}><span>${h(tl('Cutting outline'))}</span></label></div></div>
     <details class="more" style="margin:6px 0"><summary>${h(tl('Branding'))}</summary>
       <div class="two"><label class="fld"><span>${h(tl('Lineage Tracker mark'))}</span><select name="mark">${[['small', 'Web address only'], ['full', 'Logo line and web address'], ['off', 'None']].map(([v, t]) => `<option value="${v}" ${c.mark === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
@@ -9309,7 +9524,7 @@ function mountLabels() {
     $('#labPrevNote').textContent = `${sample ? 'Sample label. Tick an item below to preview it. ' : ''}${fmtNum(sz.w)} × ${fmtNum(Math.round(hh * 10) / 10)} mm, ${grid.tooBig ? 'too big for the page' : `${grid.perPage} per page`}.`;
     const nLines = (LAB_FIELDS[rk] ? labFields(c, rk) : []).filter(k2 => LAB_FIELDS[rk].some(x => x[0] === k2)).length, cap = fold.on ? g.cap + Math.min(2, g.cap) : g.cap;
     $('#labFit').textContent = `This size fits about ${cap} detail ${cap === 1 ? 'line' : 'lines'}${nLines > cap ? `. You have ${nLines} ticked, so the last ${nLines - cap} will be left off` : ''}.`;
-    $('#labDesc').textContent = LAB_LAYOUTS[c.layout].desc;
+    $('#labDesc').textContent = tl(LAB_LAYOUTS[c.layout].desc);
     $('#labCustom').hidden = sz.key !== 'custom'; $('#labGap').hidden = !fold.on; $('#labSkipW').hidden = grid.perPage <= 1;
   };
   const apply = async () => { const c = read(); await labSaveCfg(c); prev(); };
@@ -9384,7 +9599,7 @@ function netPanel() {
         aiKeyMode() ? sw('netAi', !s.aiPaused, off) : `<a class="btn sm" href="#/settings" data-close>${h(tl('Set up'))}</a>`)}
       ${row('Weather lookups', sites ? `The location of your ${sites === 1 ? 'site' : sites + ' sites'}, rounded to about 1 km, goes to Open-Meteo to fetch rain and temperatures. No records.` : 'Off until you add a site with a location (My garden, Weather).',
         sites ? sw('netWx', !s.wxOff, off) : '')}
-      ${typeof partner === 'function' && partner() ? row('Club version check', 'Once a day, asks lineagetracker.org whether this club version is still active. Only the club code is sent.', sw('netClub', !s.clubCheckOff, off)) : ''}
+      ${typeof partner === 'function' && partner() ? row('Club version check', 'Once a day, asks Lineage Tracker whether this club version is still switched on. Nothing about you or your records is sent.', sw('netClub', !s.clubCheckOff, off)) : ''}
       ${row('App updates', 'When online, the app checks app.lineagetracker.org for a newer version. No records or personal details are sent. This keeps running so you still get fixes.', `<span class="chip">${h(tl('Always'))}</span>`)}
     </ul>
     <p class="hint">${h(tl('Links to the website, help and how-to videos only open your browser; they send nothing from your records.'))}</p>
@@ -9402,6 +9617,16 @@ function netPanel() {
   $('#netClub', el)?.addEventListener('change', async e => { s.clubCheckOff = !e.target.checked; await save(); netPanel(); });
 }
 Object.assign(ACT_GROUPS, { netPanel: () => netPanel() });
+
+/* ---------- First-run card: "You're in control". Shown once on the home page, to new and existing people alike. ---------- */
+function controlCardHTML() {
+  if (!S.settings.setupDone || S.settings.controlSeen || WS.active !== 'main') return '';
+  return `<div class="notice ok control-card" role="region" aria-label="${h(tl('You are in control'))}"><b>${h(tl('You\'re in control'))}</b>
+    <p style="margin:6px 0">${h(tl('Lineage Tracker works fully offline, with no account. Anything that needs the internet is a switch you turn on yourself, and every one is off until you do:'))}</p>
+    <ul class="ticks small"><li>${h(tl('Sync between your devices, through your own Google Drive or Dropbox.'))}</li><li>${h(tl('Reading label photos and answering questions, with your own free AI key.'))}</li><li>${h(tl('Weather for your sites.'))}</li></ul>
+    <p class="small" style="margin:6px 0">${h(tl('Find them all behind the cloud button at the top, and pause everything at once with Work offline.'))}</p>
+    <div class="actions tight"><button class="btn sm primary" data-act="controlShow">${h(tl('Show me the switches'))}</button><button class="btn sm" data-act="controlSeen">${h(tl('Got it'))}</button><a class="btn sm" href="https://lineagetracker.org/control.html" target="_blank" rel="noopener">${h(tl('Read more'))}</a></div></div>`;
+}
 /* ===================================================================
    v0.26: LT-Print designs in the app. A design made on
    tools.lineagetracker.org (LT-Print) is a small .ltprint file. Anyone
@@ -9938,8 +10163,8 @@ function pHome() {
       <p>${levelN() === 1 ? h(tl('Keep track of the seed you have, what you\'re growing this season, and notes and photos as things grow.')) : levelN() === 2 ? h(tl('Keep your seed and stock library, save seed and offspring from your best plants and animals, record crosses, and keep a dated log of how everything does.')) : h(tl('Keep your seed and stock library, tag individual plants and animals, record crosses and pairings, and build a dated log of how every line performs.'))} Everything stays on this device.</p>
       <div class="actions">${on('scan') && keepsKind('plant') ? `<button class="btn tagc" data-act="scan">${ic('camera')}${h(tl('Scan your first packet or label'))}</button>` : ''}<button class="btn${on('scan') && keepsKind('plant') ? '' : ' tagc'}" data-act="newStrain">${ic('plus')}Add a ${keepsKind('plant') ? 'variety' : 'breed'}</button>${on('projects') ? `<button class="btn" data-act="newProject">${ic('project')}${h(tl('Start a breeding project'))}</button>` : ''}<button class="btn" data-act="importBackup" data-mode="merge">${h(tl('Restore a backup or open a gift file'))}</button>${on('import') ? `<a class="btn" href="#/import">${h(tl('Bring in records from a spreadsheet or another app'))}</a>` : ''}</div>
       <h2 style="margin-top:28px">${h(tl('Just looking around?'))}</h2>
-      <p>${h(tl('Load an example to see how everything fits together: a squash project with an F2 family and storage trials, or a chicken laying line across three generations. Remove it any time from Settings.'))}</p>
-      <div class="actions">${keepsKind('plant') ? `<button class="btn" data-act="loadExample" data-ex="plants">${ic('library')}${h(tl('Explore a plant example'))}</button>` : ''}${keepsKind('animal') ? `<button class="btn" data-act="loadExample" data-ex="animals">${ic('tag')}${h(tl('Explore a chicken example'))}</button><button class="btn" data-act="loadExample" data-ex="olive">${ic('tree')}${h(tl('Explore a breeding example'))}</button>` : ''}</div></section>`;
+      <p>${h(tl('Load an example to see how everything fits together: a squash project with an F2 family and storage trials, a chicken laying line across three generations, or a Kunekune pig herd with litters and paddocks. Remove it any time from Settings.'))}</p>
+      <div class="actions">${keepsKind('plant') ? `<button class="btn" data-act="loadExample" data-ex="plants">${ic('library')}${h(tl('Explore a plant example'))}</button>` : ''}${keepsKind('animal') ? `<button class="btn" data-act="loadExample" data-ex="animals">${ic('tag')}${h(tl('Explore a chicken example'))}</button><button class="btn" data-act="loadExample" data-ex="olive">${ic('tree')}${h(tl('Explore a breeding example'))}</button><button class="btn" data-act="loadExample" data-ex="pigs">${ic('tag')}${h(tl('Explore a pig example'))}</button>` : ''}</div></section>`;
   }
   const strains = all('strain'), lots = all('stock'), inds = all('individual');
   const projs = all('project').filter(p => !p.parentId || !get(p.parentId)).sort(byName);
@@ -9955,16 +10180,16 @@ function pHome() {
   ${hasExamples() && WS.cur.kind !== 'example' ? `<div class="notice">${h(tl('You\'re exploring example data.'))} <button class="linkish" style="font-size:inherit;color:inherit;font-weight:700" data-act="removeExamples">${h(tl('Remove example data'))}</button> ${h(tl('when you\'re ready to start your own records.'))}</div>` : ''}
   ${gettingStartedHTML()}
   ${quickButtonsHTML()}
-  <div class="counts"><a class="chip" href="#/library">${strains.length} ${keepsKind('animal') && !keepsKind('plant') ? (strains.length === 1 ? 'breed' : 'breeds') : keepsKind('plant') && !keepsKind('animal') ? (strains.length === 1 ? 'variety' : 'varieties') : 'varieties and breeds'}</a><a class="chip" href="#/library?tab=lots">${lots.length} ${h(word('lots').toLowerCase())}</a><a class="chip" href="#/tagged">${inds.length} ${h(word('tagged').toLowerCase().replace(/^my /, ''))}</a>${on('projects') ? `<a class="chip" href="#/projects">${all('project').length} projects</a>` : ''}</div>
-  ${needsBackup || photosStale ? `<div class="notice" style="margin-top:16px">${days === null ? h(tl('You haven\'t made a backup yet.')) : needsBackup ? `${changes} changes since your last backup ${days} day${days === 1 ? '' : 's'} ago.` : `Your photos were last backed up ${fullDays === null ? 'never' : fullDays + ' days ago'}.`} A lost or broken phone shouldn't cost you seasons of records. <button class="linkish" style="font-size:inherit;color:inherit;font-weight:700" data-act="exportBackup">${h(tl('Back up now'))}</button></div>` : ''}
+  <div class="counts"><a class="chip" href="#/library">${h(keepsKind('animal') && !keepsKind('plant') ? tlp(strains.length, 'breed', 'breeds') : keepsKind('plant') && !keepsKind('animal') ? tlp(strains.length, 'variety', 'varieties') : tl('{n} varieties and breeds', { n: strains.length }))}</a><a class="chip" href="#/library?tab=lots">${h(lots.length)} ${h(tl(word('lots')).toLowerCase())}</a><a class="chip" href="#/tagged">${h(inds.length)} ${h(tl(word('tagged')).toLowerCase().replace(/^(my|mis|mi|mes|meine|meus|minhas) /, ''))}</a>${on('projects') ? `<a class="chip" href="#/projects">${h(tlp(all('project').length, 'project', 'projects'))}</a>` : ''}</div>
+  ${needsBackup || photosStale ? `<div class="notice" style="margin-top:16px">${days === null ? h(tl('You haven\'t made a backup yet.')) : needsBackup ? h(tl('{changes} changes since your last backup, {ago} ago.', { changes, ago: tlp(days, 'day', 'days') })) : h(fullDays === null ? tl('Your photos have never been backed up.') : tl('Your photos were last backed up {n} days ago.', { n: fullDays }))} ${h(tl('A lost or broken phone shouldn\'t cost you seasons of records.'))} <button class="linkish" style="font-size:inherit;color:inherit;font-weight:700" data-act="exportBackup">${h(tl('Back up now'))}</button></div>` : ''}
   ${partnerLibraryNotice()}
   ${all('trial').filter(t => !t.sentAt).map(t => `<div class="notice"><b>Tester trial ${h(t.code)}</b>: ${h(t.variety?.name || 'seed')} from ${h(t.sender?.name || 'a breeder')}. <a href="#/trial/${t.id}">${h(tl('Record results'))}</a></div>`).join('')}
   ${on('due') ? dueHomeHTML() : ''}
   ${on('trays') && all('tray').some(t => !t.closed) ? sec('Seed trays', null, `<ul class="list">${all('tray').filter(t => !t.closed).sort((a, b) => (a.code || '').localeCompare(b.code || '')).map(t => { const st = trayStats(t); return `<li><a class="row" href="#/tray/${t.id}"><span class="thumb">${ic('library')}</span><span class="main"><span class="tag sm">${h(t.code)}</span><span class="s">${h([get(t.strainId)?.name, `${st.up} of ${st.total} up`, `day ${daysBetween(t.date, today())}`].filter(Boolean).join(', '))}</span></span>${st.ready ? `<span class="chip ok">${st.ready} ready</span>` : ''}</a></li>`; }).join('')}</ul>`) : ''}
   ${!on('projects') ? '' : sec('Projects', null, projs.length ? `<div class="hscroll">${projs.map(pCard).join('')}</div>` : emptyBox('A project groups your lines, target traits and best candidates.', 'newProject', 'Start a project'))}
-  ${sec('Recent notes', null, (notes.length ? logList(notes, { showRef: true }) : `<p class="muted">${h(tl('Notes you add to varieties, plants, animals and projects appear here.'))}</p>`) + '<p><a href="#/log">Open the full log</a></p>')}
+  ${sec('Recent notes', null, (notes.length ? logList(notes, { showRef: true }) : `<p class="muted">${h(tl('Notes you add to varieties, plants, animals and projects appear here.'))}</p>`) + `<p><a href="#/log">${h(tl('Open the full log'))}</a></p>`)}
   ${on('weather') && all('site').length ? sec('Weather', null, `<ul class="list">${all('site').sort(byName).map(s => { const w = wxOf(s), t = today(); const r30 = w ? wxAgg(rangeDays(w, addDays(t, -29), t), s).rain : null; return `<li><a class="row" href="#/site/${s.id}"><span class="thumb">${ic('cloud')}</span><span class="main"><span class="t">${h(s.name)}</span><span class="s">${r30 != null ? `${fmtNum(Math.round(r30))} mm in the last 30 days` : h(tl('Open to download weather'))}</span></span></a></li>`; }).join('')}</ul>`) : ''}
-  ${on('ask') ? `<section class="sec"><a class="ask-card" href="#/ask">${ic('spark')}<span><b>${h(tl('Ask about your records'))}</b><small>For example, which ${keepsNow() === 'animals' ? 'animals' : 'plants'} did best last season</small></span></a></section>` : ''}`;
+  ${on('ask') ? `<section class="sec"><a class="ask-card" href="#/ask">${ic('spark')}<span><b>${h(tl('Ask about your records'))}</b><small>${h(keepsNow() === 'animals' ? tl('For example, which animals did best last season') : tl('For example, which plants did best last season'))}</small></span></a></section>` : ''}`;
 }
 
 function pLibrary(_, q) {
@@ -10007,7 +10232,7 @@ function pLibrary(_, q) {
   <div class="seg"><a href="${href('varieties', kind)}" aria-current="${tab === 'varieties'}">${h(vbTab())}</a><a href="${href('lots', kind)}" aria-current="${tab === 'lots'}">${h(word('lots'))}</a>${on('places') ? `<a href="${href('places', kind)}" aria-current="${tab === 'places'}">${h(tl('Places'))}</a>` : ''}${on('inputs') ? `<a href="${href('inputs', kind)}" aria-current="${tab === 'inputs'}">${h(tl('Inputs'))}</a>` : ''}${on('outputs') ? `<a href="${href('products', kind)}" aria-current="${tab === 'products'}">${h(productsWord())}</a>` : ''}</div>
   ${searchBox(tab === 'lots' ? tl('Search {what}, batches, sources', { what: word('lots').toLowerCase() }) : tab === 'places' ? tl('Search places') : tab === 'inputs' ? tl('Search inputs') : tab === 'products' ? tl('Search {what}', { what: productsWord().toLowerCase() }) : tl('Search {what}, species, groups', { what: vbTab().toLowerCase() }))}
   ${tab === 'varieties' ? `<p class="muted small" style="margin:4px 0 8px"><a href="#/groups">${h(tl('Manage groups'))}</a></p>` : ''}
-  ${keepsNow() === 'both' ? `<div class="filters">${[['all', tl('All')], ['plant', tl('Plants')], ['animal', tl('Animals')]].map(([k, l]) => `<a class="chip" href="${href(tab, k)}" aria-pressed="${kind === k}">${h(l)}</a>`).join('')}</div>` : ''}
+  ${[keepsKind('plant'), keepsKind('animal'), keepsKind('product')].filter(Boolean).length > 1 ? `<div class="filters">${[['all', tl('All')], keepsKind('plant') && ['plant', tl('Plants')], keepsKind('animal') && ['animal', tl('Animals')], keepsKind('product') && ['product', tl('Other')]].filter(Boolean).map(([k, l]) => `<a class="chip" href="${href(tab, k)}" aria-pressed="${kind === k}">${h(l)}</a>`).join('')}</div>` : ''}
   ${body}`;
 }
 
@@ -10237,7 +10462,7 @@ function pSettings() {
     <div class="actions"><button class="btn primary" type="submit">${h(tl('Save'))}</button></div></form>`)}
   ${on('workspaces') ? workspacesHTML() : ''}
   ${sec('Photos', null, `<form id="photoForm" novalidate>${F.check('askPhotoLabel', 'After a quick photo, ask what it shows', s.askPhotoLabel !== false)}<p class="hint">${h(tl('Labels like Seedling or Harvest are kept with each photo, so they can be told apart later. You can skip any time, label photos when you edit a note, or open a photo to change its label.'))}</p></form>`)}
-  ${sec('Example data', null, `<p>${h(tl('Explore Lineage Tracker with made-up records. Examples open in their own workspace, so they never mix with your records.'))}</p><div class="actions"><button class="btn" data-act="loadExample" data-ex="plants">${h(tl('Load plant example'))}</button><button class="btn" data-act="loadExample" data-ex="animals">${h(tl('Load chicken example'))}</button><button class="btn" data-act="loadExample" data-ex="olive">${h(tl('Load breeding example (chickens)'))}</button>${hasExamples() ? `<button class="btn danger" data-act="removeExamples">${h(tl('Remove example data'))}</button>` : ''}</div>`)}
+  ${sec('Example data', null, `<p>${h(tl('Explore Lineage Tracker with made-up records. Examples open in their own workspace, so they never mix with your records.'))}</p><div class="actions"><button class="btn" data-act="loadExample" data-ex="plants">${h(tl('Load plant example'))}</button><button class="btn" data-act="loadExample" data-ex="animals">${h(tl('Load chicken example'))}</button><button class="btn" data-act="loadExample" data-ex="olive">${h(tl('Load breeding example (chickens)'))}</button><button class="btn" data-act="loadExample" data-ex="pigs">${h(tl('Load pig example'))}</button>${hasExamples() ? `<button class="btn danger" data-act="removeExamples">${h(tl('Remove example data'))}</button>` : ''}</div>`)}
   ${sec('Backups', null, `<p>${h(tl('Your records and photos live only on this device. A full backup is one zip file with every record and photo, plus spreadsheet copies you can open without Lineage Tracker. Restore it on this device or a new one.'))}</p>
     <p><b>${h(tl('Last full backup:'))}</b> ${s.lastExport ? h(new Date(s.lastExport).toLocaleString()) : 'never'}${s.lastQuick ? `<br><b>${h(tl('Last records-only backup:'))}</b> ${h(new Date(s.lastQuick).toLocaleString())}` : ''}${s.lastExport || s.lastQuick ? `<br>${changesSinceBackup()} changes since then.` : ''}</p>
     <p class="hint" id="persistNote" aria-live="polite"></p>
@@ -10360,17 +10585,20 @@ function nameCode(strainId, kind, exceptId) {
   const codes = new Set(all('individual').filter(i => i.id !== exceptId).map(i => (i.code || '').toLowerCase()));
   let n = 1; while (codes.has(`${base} ${n}`.toLowerCase())) n++; return `${base} ${n}`;
 }
+/* Plant / animal / other choices, limited to what is kept (an existing record always keeps its own kind) */
+const kindChoices = cur => [['plant', tlx('Plant')], ['animal', tlx('Animal')], ['product', tlx('Other (product or goods)')]].filter(([k]) => keepsKind(k) || k === cur);
 function strainSheet({ id, preset = {} } = {}) {
   const onlyA = keepsKind('animal') && !keepsKind('plant');
-  const s = id ? get(id) : { kind: onlyA ? 'animal' : 'plant', ...preset };
+  const onlyO = keepsNow() === 'none';
+  const s = id ? get(id) : { kind: onlyO ? 'product' : onlyA ? 'animal' : 'plant', ...preset };
   let ph;
   const { el } = formSheet(id ? `Edit ${vbWord()}` : `New ${vbWord()}`, `
     ${F.text('name', 'Name', s.name, 'e.g. Moneymaker, Australorp')}
-    <div class="two">${F.select('kind', 'Plant or animal', s.kind || 'plant', [['plant', 'Plant'], ['animal', 'Animal']])}${F.text('group', 'Group', s.group, onlyA ? 'Chicken, Goat, Rabbit' : 'Pumpkin, Herb, Chicken')}</div>
-    ${F.text('species', 'Species (scientific name)', s.species, onlyA ? 'e.g. Gallus gallus domesticus' : 'e.g. Cucurbita moschata')}
+    <div class="two">${kindChoices(s.kind).length > 1 ? F.select('kind', keepsKind('product') ? tlx('What is it') : tlx('Plant or animal'), s.kind || 'plant', kindChoices(s.kind)) : `<input type="hidden" name="kind" value="${h(s.kind || 'plant')}">`}${F.text('group', 'Group', s.group, s.kind === 'product' || onlyO ? tlx('Candles, Honey, Tools') : onlyA ? 'Chicken, Goat, Rabbit' : 'Pumpkin, Herb, Chicken')}</div>
+    <div data-pf="breed"${s.kind === 'product' ? ' hidden' : ''}>${F.text('species', 'Species (scientific name)', s.species, onlyA ? 'e.g. Gallus gallus domesticus' : 'e.g. Cucurbita moschata')}
     ${F.check('hybrid', onlyA ? 'Hybrid or first cross (its offspring won\'t breed true)' : 'F1 hybrid (seed saved from it won\'t grow true)', s.hybrid ?? /\bf1\b/i.test(s.name || ''))}
     ${more(F.check('speciesVerified', 'Species confirmed from the packet, breeder or registry', s.speciesVerified))}
-    ${F.text('origin', 'Breeder or source', s.origin)}
+    ${F.text('origin', 'Breeder or source', s.origin)}</div>
     ${F.area('description', 'Description', s.description, 'What it is and why you keep it')}
     ${photoField()}`, {
     onSave: async d => {
@@ -10390,6 +10618,7 @@ function strainSheet({ id, preset = {} } = {}) {
     },
     onDelete: id && (async () => { await removeRec(id); return '#/library'; }),
   });
+  { const ks = el.querySelector('select[name=kind]'); if (ks) ks.addEventListener('change', () => { const p = ks.value === 'product'; el.querySelectorAll('[data-pf=breed]').forEach(x => { x.hidden = p; }); const g = el.querySelector('input[name=group]'); if (g) g.placeholder = p ? tl('Candles, Honey, Tools') : tl('Pumpkin, Herb, Chicken'); }); }
   ph = mountPhotos(el, s.photoIds, { tags: s.photoTags, kind: kindOf(s) });
   attachGroupSuggestions(el.querySelector('input[name=group]')); attachSpeciesSuggestions(el.querySelector('input[name=species]'));
 }
@@ -10398,6 +10627,7 @@ function lotSheet({ id, preset = {} } = {}) {
   const l = id ? get(id) : { status: 'active', ...preset };
   const onlyA = keepsKind('animal') && !keepsKind('plant');
   if (!id && !l.form && onlyA && !get(l.strainId)) l.form = 'eggs';
+  if (!id && !l.form && keepsNow() === 'none' && !get(l.strainId)) l.form = 'product';
   let ph;
   const { el } = formSheet(id ? 'Edit lot' : 'New lot', `
     ${F.ref('strainId', vbCap(), l.strainId, [{ label: 'Varieties and breeds', items: strainItems() }], onlyA ? 'None (from my own pairing)' : 'None (seed saved from my own cross)')}
@@ -10667,8 +10897,8 @@ function captureSheet() {
     <h3 class="cap-h">${h(tl('Add'))}</h3>
     ${item('note', 'note', tl('Add a note or photo'), tl('An observation about anything'))}
     ${P && on('scan') ? item('scan', 'camera', tl('Scan a packet or label'), tl('Adds it to your library')) : ''}
-    ${item('newInd', 'tag', tl('Add {thing}', { thing: aOne() }), tl('Gives it its own photo history'))}
-    ${item('newGroup', 'tag', gw, onlyA ? tl('A flock or pen, as one entry') : tl('A bed or patch, as one entry'))}
+    ${keepsNow() === 'none' ? item('newStrain', 'library', tl('Add an item'), tl('Name, photo and group')) : item('newInd', 'tag', tl('Add {thing}', { thing: aOne() }), tl('Gives it its own photo history'))}
+    ${keepsNow() === 'none' ? '' : item('newGroup', 'tag', gw, onlyA ? tl('A flock or pen, as one entry') : tl('A bed or patch, as one entry'))}
     ${P && on('trays') ? item('newTray', 'library', tl('Sow a seed tray'), tl('Tray ID and cells, then pot up the survivors')) : ''}
     <h3 class="cap-h">${h(tl('Record'))}</h3>
     ${on('inputs') ? item('logInput', 'spark', onlyA ? tl('Log a treatment or feed') : tl('Log an input'), onlyA ? tl('Medicine, wormer, vaccine or feed') : onlyP ? tl('Fertiliser, spray or compost') : tl('Fertiliser, spray, medicine or feed')) : ''}
@@ -10777,7 +11007,7 @@ function scanSheet() {
     <form class="frm" novalidate>
       ${F.text('name', 'Variety or breed', '', 'As printed on the label')}
       <p class="hint" id="matchInfo"></p>
-      <div class="two">${F.select('kind', 'Plant or animal', 'plant', [['plant', 'Plant'], ['animal', 'Animal']])}${F.text('group', 'Group', '', 'Pumpkin, Herb, Chicken')}</div>
+      <div class="two">${F.select('kind', keepsKind('product') ? tlx('What is it') : tlx('Plant or animal'), keepsNow() === 'none' ? 'product' : 'plant', kindChoices('plant'))}${F.text('group', 'Group', '', tlx('Pumpkin, Herb, Chicken, Candles'))}</div>
       ${F.text('species', 'Species (scientific name)', '')}
       ${F.check('speciesVerified', 'Species is printed on the label or confirmed', false)}
       ${F.text('origin', 'Breeder or seller', '')}
@@ -11012,7 +11242,7 @@ const ACT = {
   reviseGoal: el => reviseGoalSheet(el.dataset.id),
   newProduct: () => productSheet(), editProduct: el => productSheet({ id: el.dataset.id }), logOutput: el => logOutputSheet({ preset: P(el) }), editYield: el => logOutputSheet({ id: el.dataset.id }),
   whatsNew: () => whatsNewSheet(true),
-  syncResume: () => syncNow({ interactive: true }), syncNextSeen: async () => { S.sync.nextStepSeen = true; await saveSync(); render(); },
+  syncResume: () => syncNow({ interactive: true }), syncNextSeen: async () => { S.sync.nextStepSeen = true; await saveSync(); render(); }, controlSeen: async () => { S.settings.controlSeen = true; await saveSettings(); render(); }, controlShow: async () => { S.settings.controlSeen = true; await saveSettings(); render(); netPanel(); },
   moveToNewPhone: () => moveSheet_(), moveMake: () => { closeSheet(); doExport(); },
   flowerMark: async el => { const i = get(el.dataset.id); i.flowers = { ...(i.flowers || {}), [el.dataset.k]: today() }; await save(i); toast(el.dataset.k === 'end' ? 'Flowering finished' : 'Noted'); render(); },
   flowerEdit: el => flowerEditSheet(el.dataset.id), newGene: () => newGeneSheet(), saveGenetics: () => saveGenetics(),
@@ -11041,6 +11271,8 @@ const ACT = {
   offersImage: async () => { const list = all('offer').filter(o => o.status === 'open' && get(o.itemId)); if (!list.length) return; busy(true); try { const blob = await catalogueCard(list); shareSheet({ blob, caption: offersText(list), name: `lineage-available-${today()}.png` }); } finally { busy(false); } },
   offersText: async () => { const list = all('offer').filter(o => o.status === 'open' && get(o.itemId)); toast((await copyText(offersText(list))) ? 'List copied. Paste it into your group or post' : 'Copy failed'); },
   offersPrint: () => { const list = all('offer').filter(o => o.status === 'open' && get(o.itemId)); const html = catalogueHTML(list); const w = window.open('', '_blank'); if (w) { w.document.open(); w.document.write(html); w.document.close(); } else download(new Blob([html], { type: 'text/html' }), `lineage-catalogue-${today()}.html`); },
+  toggleKeep: el => { const p = (window.__keepPicks ||= new Set()), k = el.dataset.v; p.has(k) ? p.delete(k) : p.add(k); render(); },
+  keepsDone: async () => { const p = window.__keepPicks || new Set(); if (!p.size) { toast(tl('Tick at least one')); return; } const pl = p.has('plant'), an = p.has('animal'); S.settings.keeps = pl && an ? 'both' : pl ? 'plants' : an ? 'animals' : 'none'; S.settings.other = p.has('product'); await saveSettings(); location.hash = '#/?step=2'; },
   setKeeps: async el => { S.settings.keeps = el.dataset.v; await saveSettings(); location.hash = '#/?step=2'; },
   setLevel: async el => { S.settings.level = el.dataset.v; await finishSetup(); },
   planAdd: el => planItemSheet(el.dataset.season), planEdit: el => planItemSheet(el.dataset.season, +el.dataset.k), planSown: el => planSownSheet(el.dataset.season, +el.dataset.k),
@@ -11126,18 +11358,18 @@ function render() {
   const main = $('#main');
   let html;
   if (parts[0] === 'try') { history.replaceState(null, '', '#/'); tryExample(parts[1]); return; }
-  if (parts[0] === 'partner') { history.replaceState(null, '', '#/'); joinPartner(q.c); return; }
+  if (parts[0] === 'partner') { history.replaceState(null, '', '#/'); joinPartner(q.s || q.c, !q.s); return; }
   const inSetup = !S.settings.setupDone && !liveCount() && root === '';
   document.body.classList.toggle('setup-page', inSetup);
   try { html = inSetup ? pSetup(null, q) : PAGES[root](parts[1], q); } catch (e) { console.error(e); html = `<div class="notice warn">This page hit a problem: ${h(e.message)}</div>`; }
-  main.innerHTML = (typeof wsBanner === 'function' && !inSetup ? wsBanner() : '') + html;
+  main.innerHTML = (typeof wsBanner === 'function' && !inSetup ? wsBanner() : '') + (root === '' && !inSetup && typeof controlCardHTML === 'function' ? controlCardHTML() : '') + html;
   hydrate(main);
   $('#listsBtn')?.classList.toggle('on', ['lists', 'list', 'received'].includes(root));
   const fb = $('#farmBtn'); if (fb) { fb.setAttribute('aria-label', farmTitle()); fb.title = farmTitle(); fb.classList.toggle('on', root === 'farm' || root === 'products' || root === 'product'); }
-  const t4 = on('projects') ? ['projects', '#/projects', 'project', 'Projects'] : on('plan') ? ['plan', '#/plan', 'cal', 'Plan'] : ['due', '#/due', 'clock', 'Due'];
+  const t4 = keepsNow() === 'none' ? ['lists', '#/lists', 'project', 'Lists'] : on('projects') ? ['projects', '#/projects', 'project', 'Projects'] : on('plan') ? ['plan', '#/plan', 'cal', 'Plan'] : ['due', '#/due', 'clock', 'Due'];
   const tab4 = $('#tab4'); if (tab4 && tab4.dataset.tab !== t4[0]) { tab4.dataset.tab = t4[0]; tab4.href = t4[1]; tab4.innerHTML = ic(t4[2]) + t4[3]; }
   const tab2 = $('#tab2'); if (tab2) tab2.innerHTML = ic('library') + h(word('libraryTab'));
-  const tab3 = $('#tab3'); if (tab3) tab3.innerHTML = ic('tag') + h(word('taggedTab'));
+  const tab3 = $('#tab3'); if (tab3) { tab3.innerHTML = ic('tag') + h(word('taggedTab')); tab3.hidden = keepsNow() === 'none'; }
   const tab = root === 'due' && t4[0] === 'due' ? 'due' : TAB_OF[root];
   $$('.tabs a').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   $('#backBtn').hidden = !parts[1] && !['log', 'tags', 'groups', 'crosses', 'ask', 'settings', 'bin', 'due', 'weather', 'import', 'check', 'labels', 'planner', 'offers', 'trays', 'farm', 'products', 'lists', 'conflicts'].includes(root) && !(root === 'plan' && !on('projects'));
@@ -11181,7 +11413,7 @@ function mountPage(root, parts = []) {
     $('#ccForm')?.addEventListener('submit', async e => { e.preventDefault(); const v = e.target.elements.crossFormat.value.trim() || '{YY}C-{N}'; if (!/\{N\}/i.test(v)) { toast('Include {N} for the number'); return; } S.settings.crossFormat = v; await saveSettings(); toast('Saved'); render(); });
     $('#ccForm')?.addEventListener('input', e => { if (e.target.name === 'crossFormat' && /\{N\}/i.test(e.target.value)) $('#ccNext').textContent = crossCodeFor(today(), e.target.value); });
     $('#photoForm')?.addEventListener('change', async e => { S.settings.askPhotoLabel = e.target.checked; await saveSettings(); toast('Saved'); });
-    $('#dueForm').addEventListener('submit', async e => {
+    $('#dueForm')?.addEventListener('submit', async e => {
       e.preventDefault();
       const d = formData(e.target);
       const n = (v, def, min, max) => { const x = parseInt(v, 10); return isFinite(x) ? Math.max(min, Math.min(max, x)) : def; };
@@ -11202,10 +11434,12 @@ function mountPage(root, parts = []) {
     f.addEventListener('change', e => { if (e.target.name === 'ai') { $('#apiFields').hidden = e.target.value !== 'api'; $('#geminiFields').hidden = e.target.value !== 'gemini'; $('#testBtn').hidden = !['api', 'gemini'].includes(e.target.value); } });
     f.addEventListener('submit', async e => {
       e.preventDefault();
+      const keysBefore = KEY_FIELDS.map(k => S.settings[k] || '').join('|');
       S.settings.ai = f.querySelector('input[name=ai]:checked')?.value || 'off';
       S.settings.apiKey = f.elements.apiKey.value.trim();
       S.settings.model = f.elements.model.value.trim() || DEFAULT_MODEL;
       S.settings.geminiKey = f.elements.geminiKey.value.trim(); S.settings.geminiModel = f.elements.geminiModel.value.trim() || DEFAULT_GEMINI;
+      if (KEY_FIELDS.map(k => S.settings[k] || '').join('|') !== keysBefore) { S.settings.keysAt = Date.now(); if (S.sync?.shareKeys) scheduleSync(2000); }
       await saveSettings(); toast('Settings saved');
     });
   }
@@ -11245,7 +11479,7 @@ async function init() {
   lastPath = location.hash.split('?')[0];
   render();
   await runWsPending();
-  applyPartnerTheme(); checkPartnerWithdrawn(); await ensureIdentity(); ensureRegions(); migrateOffers();
+  await retireOldPartner(); applyPartnerTheme(); checkPartnerWithdrawn(); await ensureIdentity(); ensureRegions(); migrateOffers();
   maybeWhatsNew(); ensureLotCodes(); maybeDonatePrompt();
   purgeOldBin().catch(() => {});
   initSync().then(() => { if (parseHash().parts[0] === 'settings') render(); }).catch(e => console.error(e));

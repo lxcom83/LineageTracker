@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.28.0 (no data format change: new `product` kind and `S.settings.other`, both optional)
+- "Other things": a third thing to keep besides plants and animals. `S.settings.other` (boolean) beside `S.settings.keeps`; with neither plants nor animals `keepsNow()` is `'none'` and only labels, share, lists, offers and import show (`PRODUCT_ONLY` in `js11.js`). New `product` strain kind, `product` stock form and `product` offer type; starts empty (no starter groups).
+- Setup asks with three tick boxes and Continue; Settings has a combined "What you keep" choice (`KEEP_COMBOS`).
+- Library filter chips show Plants, Animals and Other when more than one is kept; the add-item form hides species and hybrid fields for goods.
+- Share sheet: Picture size (Small, Medium, Large) resizes the photos in a catalogue file at share time (`SHARE_Q`, `js21.js`); records are unchanged.
+- Fix: Settings crashed when the due list feature was off (`js3.js`).
+
+## 0.27.5 (no data format change)
+- Sharing a list now ends with a one-line pointer to LT-Catalogue for sellers.
+- Pig example: `examples/pigs-example.json` (Kunekune herd: 3 breeds, 20 tagged pigs, litters with farrowing dates, a pregnant sow with a birth-due reminder, paddock rotation, worming and vaccine records with withholding, weigh-ins, a breeding plan, 33 cartoon pictures). Built by `tools/make_pig_example.py` with the art in `tools/example_art3.py`. Opens from `#/try/pigs`, the home-page example buttons and Settings.
+- The withholding notice on the due list now shows as Today while it is active, instead of overdue from the day it was given (`js16.js`).
+- Spanish: withholding words and scope wording, example toasts and buttons.
+- Spanish batch 2: due-list sentences (`js5.js`, `js7.js`, `js11.js`, `js12.js`, `js14.js`, `js16.js`, `js21.js`), Log filters (`js28.js`), sticker presets and field labels (`js32.js`) and the Lists tabs now go through `tl()`. Spanish is 1860/1860. Plural forms added for lot and seedling.
+
 ## 0.27.4 (no data format change)
 - Input sheet (`inputSheet` in `js16.js`, `labelBoxHTML`/`mountLabelReader` in `js31.js`): Take photo / Choose photo buttons and the photo thumbnails now sit at the top, in the same layout as the packet scan; up to two photos (front and back); the label is read automatically as soon as a photo is added when smart features are on, with a Read the label again button; the copy-and-paste box shows only in manual mode (paused or offline) after a photo, and a one-line hint shows when smart features are off. Scan label in Library, Inputs opens the same sheet. The bottom Label photo field is gone.
 

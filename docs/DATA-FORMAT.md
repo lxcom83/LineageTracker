@@ -97,7 +97,7 @@ Every record has `id` and `type`. Fields not listed are ignored.
 | Field | Type | Notes |
 |---|---|---|
 | `name` | string | Required. As printed on the packet or breed name. |
-| `kind` | `"plant"` or `"animal"` | |
+| `kind` | `"plant"`, `"animal"` or `"product"` | `product` (v0.28.0) is an item you make or sell (candles, honey, tools). Older versions treat it as a plant. |
 | `group` | string | e.g. `Pumpkin`, `Herb`, `Chicken`. Groups the library. |
 | `species` | string | Scientific name, e.g. `Cucurbita moschata`. Used for cross warnings. |
 | `speciesVerified` | boolean | True only when confirmed from a packet, breeder or registry. |
@@ -113,7 +113,7 @@ Every record has `id` and `type`. Fields not listed are ignored.
 | Field | Type | Notes |
 |---|---|---|
 | `strainId` | id | Variety or breed. Empty for seed saved from your own cross. |
-| `form` | string | `seed`, `cuttings`, `seedlings`, `tubers`, `divisions`, `scions`, `tissue`, `eggs`, `young`, `adults` or `other`. Missing means seed (plants) or eggs (animals). |
+| `form` | string | `seed`, `cuttings`, `seedlings`, `tubers`, `divisions`, `scions`, `tissue`, `eggs`, `young`, `adults`, `product` or `other`. Missing means seed (plants) or eggs (animals). |
 | `cloneOf`, `propMethod` | id, string | For clonal forms: the plant the batch was taken from, and how (Cutting, Division, Runner or sucker, Graft or bud, Tissue culture, Layering, Bulb or tuber offset). |
 | `label` | string | e.g. `BF × SA — F2 — Plant 04 — 2028`. |
 | `source`, `batch`, `year` | string | `year` is free text: `2026`, `Autumn 2027`. |
