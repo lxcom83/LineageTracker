@@ -138,6 +138,7 @@ h1,h2,h3,.t,.s,.chip,.cap-item b,.cap-item small,.seg a{overflow-wrap:anywhere}
 .dosewrap{margin:4px 0 8px}.dosewrap>summary{cursor:pointer;font-weight:700;color:var(--leaf);padding:6px 0;min-height:36px}
 .empty{padding:22px;border:1.5px dashed var(--line);border-radius:var(--r-lg);text-align:center;color:var(--muted)}
 .empty .btn{margin-top:4px}
+.notice>svg,.notice p>svg{width:18px;height:18px;vertical-align:-3px;flex:none}
 .notice{border-radius:var(--r-md);padding:10px 14px;margin:0 0 12px;font-size:.93rem;background:var(--sunk)}
 .notice.warn{background:var(--warn-bg);color:var(--warn)}
 .prose{max-width:62ch;white-space:pre-wrap}
@@ -725,7 +726,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.28.0';
+const VERSION = '0.28.1';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -5128,6 +5129,14 @@ function scopeText(a) {
   if (s.type === 'place' && r) return tl('everything in {name}', { name: r.name });
   if (s.type === 'project' && r) return tl('all of {name}', { name: r.name });
   if (s.type === 'tray' && r) return tl('tray {code}', { code: r.code });
+  if (s.type === 'pick') {   // several beds, pots, projects or trays at once, maybe with single plants too
+    const parts = (a.targets || []).map(get).filter(x => x && ['place', 'project', 'tray'].includes(x.type));
+    if (parts.length) {
+      const via = new Set(parts.flatMap(x => resolveScope(`${x.type}:${x.id}`)?.targets || []));
+      const names = parts.map(x => x.type === 'tray' ? tl('tray {code}', { code: x.code }) : x.name).join(', '), extra = (a.targets || []).filter(t => !via.has(t)).length;
+      return extra ? tl('{names} and {n} plants or animals', { names, n: extra }) : names;
+    }
+  }
   const n = (a.targets || []).length;
   return n === 1 ? (get(a.targets[0]) ? (get(a.targets[0]).code || title(get(a.targets[0]))) : tl('1 record')) : tl('{n} plants or animals', { n });
 }
@@ -5266,7 +5275,7 @@ function pInput(id) {
 function inputsTabHTML(kind = 'all') {
   const rs = all('input').filter(r => kind === 'all' || (INPUT_CATS[r.category]?.kind || 'both') === 'both' || INPUT_CATS[r.category]?.kind === kind).sort(byName);
   return `<p class="muted">${keepsKind('animal') && !keepsKind('plant') ? h(tl('Medicines, wormers, vaccines, feeds and anything else you give your animals')) : keepsKind('plant') && !keepsKind('animal') ? h(tl('Fertilisers, sprays, compost and anything else you give your plants')) : h(tl('Fertilisers, sprays, medicines, feeds and anything else you give your plants or animals'))}. Set each up once, then log it with amounts.</p>
-  ${rs.length ? `<ul class="list">${rs.map(r => { const n = appliesOfInput(r.id).length; return `<li data-s="${h((r.name + ' ' + (r.brand || '') + ' ' + (r.active || '')).toLowerCase())}"><a class="row" href="#/input/${r.id}"><span class="thumb">${ic('spark')}</span><span class="main"><span class="t">${h(r.name)}</span><span class="s">${h([INPUT_CATS[r.category]?.label, r.brand, n ? `used ${n} time${n === 1 ? '' : 's'}` : ''].filter(Boolean).join(', '))}</span></span>${r.expiry && r.expiry < today() ? `<span class="chip warn">${h(tl('Expired'))}</span>` : ''}</a></li>`; }).join('')}</ul>` : emptyBox('No inputs yet.', 'newInput', 'Add your first input')}`;
+  ${rs.length ? `<ul class="list">${rs.map(r => { const n = appliesOfInput(r.id).length; return `<li data-s="${h((r.name + ' ' + (r.brand || '') + ' ' + (r.active || '')).toLowerCase())}"><a class="row" href="#/input/${r.id}">${thumbOf(r, 'spark')}<span class="main"><span class="t">${h(r.name)}</span><span class="s">${h([INPUT_CATS[r.category]?.label, r.brand, n ? `used ${n} time${n === 1 ? '' : 's'}` : ''].filter(Boolean).join(', '))}</span></span>${r.expiry && r.expiry < today() ? `<span class="chip warn">${h(tl('Expired'))}</span>` : ''}</a></li>`; }).join('')}</ul>` : emptyBox('No inputs yet.', 'newInput', 'Add your first input')}`;
 }
 /* ---------- Logging a use ---------- */
 function targetChoices() {
@@ -5287,8 +5296,11 @@ function resolveScope(v) {
 function logInputSheet({ id, preset = {} } = {}) {
   if (!all('input').length && !id) { inputSheet({ preset: { _then: 'log', _log: preset } }); toast('Set up the input first, then log it'); return; }
   const a = id ? get(id) : { date: today(), inputId: preset.inputId || '', amount: '', unit: '', method: '', reason: '', targets: preset.targets || [], scope: preset.scope || null, repeatDays: '', notes: '' };
-  const scopeVal = a.scope && ['place', 'project', 'tray'].includes(a.scope.type) ? `${a.scope.type}:${a.scope.id}` : 'pick';
-  const picked = new Set(a.targets);
+  const scopeGroups = targetChoices();
+  const scopePicked = new Set(a.scope && ['place', 'project', 'tray'].includes(a.scope.type) ? [`${a.scope.type}:${a.scope.id}`] : scopeGroups.flatMap(g => g.items.map(x => x[0])).filter(v => a.targets.includes(v.split(':')[1])));
+  /* individuals that only came in through a ticked bed, pot or project are not shown ticked one by one */
+  const viaScope = new Set([...scopePicked].flatMap(v => (resolveScope(v)?.targets || [])));
+  const picked = new Set(a.targets.filter(t => !viaScope.has(t) || get(t)?.type !== 'individual'));
   const inds = all('individual').filter(i => !ENDED.includes(i.status) || picked.has(i.id)).sort(byCode);
   const methods = ['', ...new Set([...(keepsKind('plant') ? PLANT_METHODS : []), ...(keepsKind('animal') ? ANIMAL_METHODS : [])])];
   const { el, form } = formSheet(id ? 'Edit input log' : 'Log an input', `
@@ -5298,7 +5310,8 @@ function logInputSheet({ id, preset = {} } = {}) {
     <div class="two">${F.text('amount', 'Amount (total)', a.amount ?? '', 'e.g. 50')}${F.text('unit', 'Unit', a.unit, 'mL')}</div>
     <div id="logDose"></div>
     ${F.text('reason', 'Why (optional)', a.reason, 'e.g. aphids, fortnightly feed, worming')}
-    <label class="fld"><span>${h(tl('Applied to'))}</span><select name="scopeSel"><option value="pick" ${scopeVal === 'pick' ? 'selected' : ''}>${h(tl('Choose plants or animals'))}</option>${targetChoices().map(g => `<optgroup label="${h(g.label)}">${g.items.map(([v, t]) => `<option value="${h(v)}" ${v === scopeVal ? 'selected' : ''}>${h(t)}</option>`).join('')}</optgroup>`).join('')}</select></label>
+    ${scopeGroups.length ? `<div class="fld"><span>${h(tl('Applied to'))}</span><p class="hint" style="margin:0 0 4px">${h(tl('Tick as many beds, pots, projects or trays as you like.'))}</p><div class="pickbox">${scopeGroups.map(g => `<p class="muted small" style="margin:6px 0 2px">${h(tl(g.label))}</p>${g.items.map(([v, t]) => `<label class="chk"><input type="checkbox" data-sc="${h(v)}" ${scopePicked.has(v) ? 'checked' : ''}><span>${h(t)}</span></label>`).join('')}`).join('')}</div></div>` : ''}
+    <p class="muted small" style="margin:8px 0 0">${h(tl('Or choose single plants or animals'))}</p>
     <div id="pickBox">${searchBox('Filter')}<div class="pickbox">${inds.map(i => `<label class="chk" data-s="${h((i.code + ' ' + (get(i.strainId)?.name || '')).toLowerCase())}"><input type="checkbox" data-t="${i.id}" ${picked.has(i.id) ? 'checked' : ''}><span>${h(i.code)} <span class="muted small">${h(get(i.strainId)?.name || '')}</span></span></label>`).join('') || `<p class="muted">${h(tl('No plants or animals yet.'))}</p>`}</div></div>
     <div id="logWarn"></div>
     ${more(`${F.text('repeatDays', 'Repeat every (days, optional)', a.repeatDays ?? '', 'e.g. 14 for a fortnightly feed')}
@@ -5306,9 +5319,11 @@ function logInputSheet({ id, preset = {} } = {}) {
     ${F.area('notes', 'Notes', a.notes, '', 2)}`)}`, {
     onSave: async (d, frm) => {
       if (!d.inputId) throw new Error('Choose an input');
-      let targets, scope;
-      if (d.scopeSel && d.scopeSel !== 'pick') ({ targets, scope } = resolveScope(d.scopeSel) || { targets: [], scope: null });
-      else { targets = $$('[data-t]', frm).filter(c => c.checked).map(c => c.dataset.t); scope = { type: targets.length === 1 ? 'single' : 'pick' }; }
+      const scs = $$('[data-sc]', frm).filter(c => c.checked).map(c => c.dataset.sc);
+      const ones = $$('[data-t]', frm).filter(c => c.checked).map(c => c.dataset.t);
+      const targets = [...new Set([...scs.flatMap(v => resolveScope(v)?.targets || []), ...ones])];
+      /* one bed, pot or project alone keeps its old record shape; anything mixed is a pick */
+      const scope = scs.length === 1 && !ones.length ? resolveScope(scs[0]).scope : { type: targets.length === 1 ? 'single' : 'pick' };
       if (!targets.length) throw new Error('Choose what it was applied to');
       const num = v => (v === '' || v == null ? '' : isFinite(+String(v).replace(',', '.')) ? +String(v).replace(',', '.') : '');
       const rec = id ? a : { id: uid(), type: 'apply' };
@@ -5323,8 +5338,7 @@ function logInputSheet({ id, preset = {} } = {}) {
   const upd = () => {
     const inp = get(form.elements.inputId.value);
     if (inp && !form.elements.unit.value) form.elements.unit.value = inp.unit || '';
-    const sv = form.elements.scopeSel.value; $('#pickBox', el).hidden = sv !== 'pick';
-    const targets = sv !== 'pick' ? (resolveScope(sv)?.targets || []) : $$('[data-t]', el).filter(c => c.checked).map(c => c.dataset.t);
+    const targets = [...new Set([...$$('[data-sc]', el).filter(c => c.checked).flatMap(c => resolveScope(c.dataset.sc)?.targets || []), ...$$('[data-t]', el).filter(c => c.checked).map(c => c.dataset.t)])];
     const warn = [];
     const zero = [...new Set(targets.map(t => get(t)).filter(r => r?.type === 'individual' && r.projectId).map(r => topProject(get(r.projectId))).filter(p => p?.noInputs))];
     if (zero.length) warn.push({ w: true, t: `${zero.map(p => p.name).join(', ')} ${zero.length === 1 ? 'is' : 'are'} set to no inputs. Logging this records that those plants or animals had an input.` });
@@ -5837,6 +5851,7 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.28.1': ['The cloud button now has one master switch at the top for every online feature, and its own on/off switch for sync, AI help, weather, the club check and app updates.','Inputs now show their label photo beside each name in the list.','Logging an input: tick as many beds, pots, projects or trays as you like in one go.','Fixed an oversized cloud picture on the Settings page.'],
   '0.28.0': ['New: Other things. Keep candles, honey, tools or crafts as well as plants and animals, or on their own. Tick what you keep in Settings, and the app shows only what fits.','Items you make or sell have a name, photos, a group, stock and a price, and go onto lists and catalogues like everything else.','Sharing a catalogue now lets you choose the picture size, so pages stay small.','Fixed a crash on Settings when the due list was switched off.'],
   '0.27.5': ['New Kunekune pig example: three breeds, twenty tagged pigs, litters, a pregnant sow with a birth due reminder, paddocks, worming and vaccines. Open it from Try an example.','Sharing a seed list now points sellers to LT-Catalogue, the free tool that makes a branded catalogue page.','The due list no longer shows a withholding notice as overdue while it is still active.','More of the app is translated into Spanish, including the due list, the Log filters and sticker presets.'],
   '0.27.4': ['Adding an input (fertiliser, snail bait, sprays, medicines, feed) now starts with Take photo and Choose photo at the top, like scanning a seed packet. Add the front and the back of the label and the name, rate and withholding period are filled in for you. Copy and paste with Claude or ChatGPT only appears when smart features are paused or offline.','Scan label in Library, Inputs now opens the same screen.'],
@@ -9555,6 +9570,13 @@ const aiMode = () => (aiKeyMode() && (netOffline() || S.settings.aiPaused) ? 'ma
 const wxAllowed = () => !netOffline() && !S.settings.wxOff;
 const syncAllowed = () => !netOffline() && !S.settings.syncPaused;
 const clubCheckAllowed = () => !netOffline() && !S.settings.clubCheckOff;
+const updatesAllowed = () => !netOffline() && !S.settings.updatesOff;
+/* App updates: the service worker opens the app from this device, without asking the website, while this flag is in its cache. */
+let __updFlag = null;
+function syncUpdateFlag() {
+  const want = !updatesAllowed(); if (__updFlag === want || !('caches' in window)) return; __updFlag = want;
+  caches.open('lineage-flags').then(c => want ? c.put('./no-update-check', new Response('1')) : c.delete('./no-update-check')).catch(() => {});
+}
 const wxSites = () => all('site').filter(siteHas);
 /* What is switched on and set up right now (Work offline counts as nothing). */
 function netActive() {
@@ -9568,6 +9590,7 @@ function netActive() {
 }
 /* Draw the header button.  A crossed-out cloud means nothing leaves this device. */
 function netIcon() {
+  syncUpdateFlag();
   const b = $('#syncBtn'); if (!b) return;
   const active = netActive(), syncing = active.includes('sync');
   b.hidden = false;
@@ -9588,25 +9611,25 @@ function netPanel() {
   const el = sheet('Online connections', `
     <p class="muted" style="margin-top:0">${h(tl('Lineage Tracker works fully offline. Nothing leaves this device unless you switch it on here.'))}</p>
     <ul class="net-list">
-      ${row('Work offline', 'Pause every connection below at once. Your choices are kept for when you switch back.', sw('netOff', off))}
+      ${row(tlx('All online features'), off ? 'Master switch: off. Nothing leaves this device. Your choices below are kept for when you switch back on.' : 'Master switch: on. Switch it off to stop every connection below at once. Each one can also be switched on or off on its own.', sw('netOff', !off))}
     </ul>
     <h3 class="cap-h">${h(tl('Connections'))}</h3>
     <ul class="net-list${off ? ' net-paused' : ''}">
-      ${row('Sync across devices', syncOn ? `Your records${S.sync.photos ? ' and photos' : ''} go to your own ${h(provName())}, and nowhere else.${S.settings.syncPaused || off ? ' Paused: changes wait here and catch up when you switch back on.' : ''}` : 'Off. Keep your phone, tablet and computer in step through your own Google Drive or Dropbox.',
-        syncOn ? sw('netSync', !s.syncPaused, off) : `<a class="btn sm" href="#/settings" data-close>${h(tl('Set up'))}</a>`,
+      ${row(tlx('Sync across devices'), syncOn ? `Your records${S.sync.photos ? ' and photos' : ''} go to your own ${h(provName())}, and nowhere else.${S.settings.syncPaused || off ? ' Paused: changes wait here and catch up when you switch back on.' : ''}` : 'Not set up. Keep your phone, tablet and computer in step through your own Google Drive or Dropbox. This switch decides whether it is allowed.',
+        sw('netSync', !s.syncPaused, off) + (syncOn ? '' : `<a class="btn sm" href="#/settings" data-close>${h(tl('Set up'))}</a>`),
         syncOn && !off && !s.syncPaused ? `<small id="netSyncState">${h(SYNC.label || '')}</small> <button type="button" class="linkish small" data-act="syncNow">${h(tl('Sync now'))}</button>` : '')}
-      ${row('AI help', aiKeyMode() ? `Packet and label photos, and questions you ask, go to ${aiName()} with your own key.${s.aiPaused || off ? ' Paused: copy and paste with Claude or ChatGPT still works.' : ''}` : s.ai === 'manual' ? 'Copy and paste with Claude or ChatGPT: you choose what to send, nothing goes automatically.' : 'Off. Have packet and label photos read for you, with your own free key.',
-        aiKeyMode() ? sw('netAi', !s.aiPaused, off) : `<a class="btn sm" href="#/settings" data-close>${h(tl('Set up'))}</a>`)}
-      ${row('Weather lookups', sites ? `The location of your ${sites === 1 ? 'site' : sites + ' sites'}, rounded to about 1 km, goes to Open-Meteo to fetch rain and temperatures. No records.` : 'Off until you add a site with a location (My garden, Weather).',
-        sites ? sw('netWx', !s.wxOff, off) : '')}
-      ${typeof partner === 'function' && partner() ? row('Club version check', 'Once a day, asks Lineage Tracker whether this club version is still switched on. Nothing about you or your records is sent.', sw('netClub', !s.clubCheckOff, off)) : ''}
-      ${row('App updates', 'When online, the app checks app.lineagetracker.org for a newer version. No records or personal details are sent. This keeps running so you still get fixes.', `<span class="chip">${h(tl('Always'))}</span>`)}
+      ${row(tlx('AI help'), aiKeyMode() ? `Packet and label photos, and questions you ask, go to ${aiName()} with your own key.${s.aiPaused || off ? ' Paused: copy and paste with Claude or ChatGPT still works.' : ''}` : s.ai === 'manual' ? 'Copy and paste with Claude or ChatGPT: you choose what to send, nothing goes automatically. This switch covers a key if you add one later.' : 'Not set up. Have packet and label photos read for you, with your own free key. This switch decides whether it is allowed.',
+        sw('netAi', !s.aiPaused, off) + (aiKeyMode() ? '' : `<a class="btn sm" href="#/settings" data-close>${h(tl('Set up'))}</a>`))}
+      ${row(tlx('Weather lookups'), sites ? `The location of your ${sites === 1 ? 'site' : sites + ' sites'}, rounded to about 1 km, goes to Open-Meteo to fetch rain and temperatures. No records.` : 'No site with a location yet (My garden, Weather). When you add one, this switch decides whether it may look up weather.',
+        sw('netWx', !s.wxOff, off))}
+      ${typeof partner === 'function' && partner() ? row(tlx('Club version check'), 'Once a day, asks Lineage Tracker whether this club version is still switched on. Nothing about you or your records is sent.', sw('netClub', !s.clubCheckOff, off)) : ''}
+      ${row(tlx('App updates'), s.updatesOff || off ? 'Off. The app opens from this device and does not ask the website for a newer version. Your browser may still check for its own app file now and then. Switch on to get fixes.' : 'The app checks app.lineagetracker.org for a newer version when you open it. No records or personal details are sent.', sw('netUpd', !s.updatesOff, off))}
     </ul>
     <p class="hint">${h(tl('Links to the website, help and how-to videos only open your browser; they send nothing from your records.'))}</p>
     <div class="actions"><button class="btn" data-close>${h(tl('Done'))}</button></div>`);
   const save = async () => { await saveSettings(); netIcon(); };
   $('#netOff', el)?.addEventListener('change', async e => {
-    s.offline = e.target.checked; await save();
+    s.offline = !e.target.checked; await save();
     toast(s.offline ? 'Working offline. Nothing leaves this device.' : 'Your online choices are back on');
     if (!s.offline && syncAllowed()) syncNow();
     netPanel();
@@ -9614,6 +9637,7 @@ function netPanel() {
   $('#netSync', el)?.addEventListener('change', async e => { s.syncPaused = !e.target.checked; await save(); if (!s.syncPaused) syncNow(); else setSyncState('paused'); netPanel(); });
   $('#netAi', el)?.addEventListener('change', async e => { s.aiPaused = !e.target.checked; await save(); netPanel(); });
   $('#netWx', el)?.addEventListener('change', async e => { s.wxOff = !e.target.checked; await save(); netPanel(); });
+  $('#netUpd', el)?.addEventListener('change', async e => { s.updatesOff = !e.target.checked; await save(); netPanel(); });
   $('#netClub', el)?.addEventListener('change', async e => { s.clubCheckOff = !e.target.checked; await save(); netPanel(); });
 }
 Object.assign(ACT_GROUPS, { netPanel: () => netPanel() });

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.28.1 (no data format change: new optional setting `updatesOff`)
+- Cloud panel: master switch "All online features" at the top (same `S.settings.offline`, now shown positively), and a switch on every connection even when not set up: sync, AI help, weather, club check, and app updates (`S.settings.updatesOff`; `sw.js` serves the app from cache while the `lineage-flags` cache holds `no-update-check`).
+- Log an input: "Applied to" is now tick boxes for any number of places (beds, pots), projects and trays, plus single plants or animals; one log covers them all (`js16.js`, `scope` is `pick` when mixed, a single bed or project keeps its old shape). Log text lists the names.
+- Inputs list shows the label photo as the thumbnail (`js16.js`).
+- Fix: the cloud icon in the Settings note had no size and filled the page (`head.html`).
+
 ## 0.28.0 (no data format change: new `product` kind and `S.settings.other`, both optional)
 - "Other things": a third thing to keep besides plants and animals. `S.settings.other` (boolean) beside `S.settings.keeps`; with neither plants nor animals `keepsNow()` is `'none'` and only labels, share, lists, offers and import show (`PRODUCT_ONLY` in `js11.js`). New `product` strain kind, `product` stock form and `product` offer type; starts empty (no starter groups).
 - Setup asks with three tick boxes and Continue; Settings has a combined "What you keep" choice (`KEEP_COMBOS`).

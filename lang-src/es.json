@@ -1921,7 +1921,16 @@
   "a plant, animal or item": "una planta, un animal o un artículo",
   "an item": "un artículo",
   "item": "artículo",
-  "Selling seeds or things you make? Take the catalogue file to LT-Catalogue for a branded page with search, quick links and ordering by email, plus matching labels and flyers. Free with a website account.": "¿Vendes semillas o cosas que haces? Lleva el archivo de catálogo a LT-Catalogue para tener una página con tu marca, búsqueda, enlaces rápidos y pedidos por correo, además de etiquetas y folletos a juego. Gratis con una cuenta del sitio web."
+  "Selling seeds or things you make? Take the catalogue file to LT-Catalogue for a branded page with search, quick links and ordering by email, plus matching labels and flyers. Free with a website account.": "¿Vendes semillas o cosas que haces? Lleva el archivo de catálogo a LT-Catalogue para tener una página con tu marca, búsqueda, enlaces rápidos y pedidos por correo, además de etiquetas y folletos a juego. Gratis con una cuenta del sitio web.",
+  "AI help": "Ayuda de IA",
+  "All online features": "Todas las funciones en línea",
+  "App updates": "Actualizaciones de la app",
+  "Club version check": "Comprobación de versión del club",
+  "Sync across devices": "Sincronizar entre dispositivos",
+  "Weather lookups": "Consultas del tiempo",
+  "Or choose single plants or animals": "O elige plantas o animales sueltos",
+  "Tick as many beds, pots, projects or trays as you like.": "Marca tantos bancales, macetas, proyectos o bandejas como quieras.",
+  "{names} and {n} plants or animals": "{names} y {n} plantas o animales"
  },
  "plurals": {
   "breed": {
