@@ -726,7 +726,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.28.1';
+const VERSION = '0.28.2';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -5851,6 +5851,7 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.28.2': ['Lists can now be managed on the website: tick "I manage this list\'s stock and prices on the website" and the list page gets a button to import the stock and price changes you made in LT-Catalogue, with a review before anything changes.'],
   '0.28.1': ['The cloud button now has one master switch at the top for every online feature, and its own on/off switch for sync, AI help, weather, the club check and app updates.','Inputs now show their label photo beside each name in the list.','Logging an input: tick as many beds, pots, projects or trays as you like in one go.','Fixed an oversized cloud picture on the Settings page.'],
   '0.28.0': ['New: Other things. Keep candles, honey, tools or crafts as well as plants and animals, or on their own. Tick what you keep in Settings, and the app shows only what fits.','Items you make or sell have a name, photos, a group, stock and a price, and go onto lists and catalogues like everything else.','Sharing a catalogue now lets you choose the picture size, so pages stay small.','Fixed a crash on Settings when the due list was switched off.'],
   '0.27.5': ['New Kunekune pig example: three breeds, twenty tagged pigs, litters, a pregnant sow with a birth due reminder, paddocks, worming and vaccines. Open it from Try an example.','Sharing a seed list now points sellers to LT-Catalogue, the free tool that makes a branded catalogue page.','The due list no longer shows a withholding notice as overdue while it is still active.','More of the app is translated into Spanish, including the due list, the Log filters and sticker presets.'],
@@ -6668,13 +6669,15 @@ function listSheet({ id } = {}) {
       <div class="two">${F.text('contact', 'How to arrange', l.contact, 'e.g. Message us to request seed')}${F.text('area', 'General area (optional)', l.area, 'e.g. Central Coast NSW')}</div>
       <div class="two">${F.select('postMode', 'Postage', l.postage?.mode || 'per', [['per', 'Charge postage'], ['free', 'Free postage'], ['pickup', 'Pick up only']])}${F.text('postAmount', 'Per order', l.postage?.amount ?? '')}</div>
       ${F.text('postExtra', 'Each extra bag (optional)', l.postage?.extra ?? '')}
+      ${F.check('siteManaged', 'I manage this list\'s stock and prices on the website (LT-Catalogue)', !!l.siteManaged)}
+      <p class="hint" style="margin-top:-6px">${h(tl('Then the list page gets a button to import the changes you make there. Leave this off and the app stays in charge.'))}</p>
       ${F.select('postsTo', 'Posts to', l.postsTo || 'all', Object.entries(POSTS_TO).filter(([k]) => k !== 'none'))}
     </div>` : `<p class="hint">${h(tl('Turn on Selling and swapping in Settings to add bag sizes, reserves, prices and lending.'))}</p>`}`, {
     onSave: async d => {
       if (!d.name) throw new Error('Give the list a name');
       const num = v => (v === '' || v == null ? '' : isFinite(+String(v).replace(',', '.')) ? +String(v).replace(',', '.') : '');
       const rec = id ? l : { id: uid(), type: 'list', items: [] };
-      Object.assign(rec, { name: d.name, notes: d.notes, trade: !!d.trade, ltype: d.ltype || rec.ltype || 'free', status: d.status || 'open', contact: d.contact, area: d.area, postsTo: d.postsTo || 'all', postage: { mode: d.postMode || 'per', amount: num(d.postAmount), extra: num(d.postExtra) } });
+      Object.assign(rec, { name: d.name, notes: d.notes, trade: !!d.trade, siteManaged: !!d.siteManaged, ltype: d.ltype || rec.ltype || 'free', status: d.status || 'open', contact: d.contact, area: d.area, postsTo: d.postsTo || 'all', postage: { mode: d.postMode || 'per', amount: num(d.postAmount), extra: num(d.postExtra) } });
       await save(rec); closeSheet(); toast(id ? 'Saved' : 'List created'); location.hash = '#/list/' + rec.id;
     },
     onDelete: id && (async () => { if (!confirm(`Delete the list "${l.name}"? Only the list goes. Everything on it stays in your library.`)) return null; await removeRec(id); return '#/lists'; }),
@@ -6842,7 +6845,7 @@ function pList(id) {
   return `<a href="#/lists">${h(tl('Lists'))}</a><div class="page-head"><h1>${h(l.name)}</h1><button class="btn" data-act="editList" data-id="${id}">${h(tl('Edit'))}</button></div>
     ${l.notes ? `<p class="prose">${h(l.notes)}</p>` : ''}
     ${trade ? `<p class="small muted">${h([LTYPES.find(x => x[0] === l.ltype)?.[1], l.status === 'closed' ? 'Closed' : 'Open', l.area, POSTS_TO[l.postsTo]].filter(Boolean).join(' · '))}</p>` : ''}
-    <div class="actions"><button class="btn tagc" data-act="pickItems" data-id="${id}">${ic('plus')}${h(tl('Add from my library'))}</button><button class="btn primary" data-act="shareList" data-id="${id}">${ic('share')}${h(tl('Share this list'))}</button></div>
+    <div class="actions"><button class="btn tagc" data-act="pickItems" data-id="${id}">${ic('plus')}${h(tl('Add from my library'))}</button><button class="btn primary" data-act="shareList" data-id="${id}">${ic('share')}${h(tl('Share this list'))}</button>${trade && l.siteManaged ? `<button class="btn" data-act="importListUpdate" data-id="${id}">${ic('download')}${h(tl('Import changes from LT-Catalogue'))}</button>` : ''}</div>
     ${(l.items || []).length ? `<ul class="list">${rows}</ul>` : `<p class="muted">${h(tl('Empty. Add varieties, breeds or packets from your library.'))}</p>`}
     ${loans.length ? sec('Lent out', loans.length, `<ul class="list">${loans.map(ln => `<li><div class="row"><span class="main"><span class="t">${h(itemStrain({ ref: ln.ref })?.name || 'Seed')}: ${h(ln.who)}</span><span class="s">${ln.bags} bag${ln.bags === 1 ? '' : 's'}${ln.due ? `, due back ${h(fmtDate(ln.due))}` : ''}</span></span><button class="btn sm" data-act="returnLoan" data-id="${ln.id}">${h(tl('Returned'))}</button></div></li>`).join('')}</ul>`) : ''}
     ${trade && (l.items || []).length ? `<p class="hint">${h(tl('Bags available are worked out from your stock, minus what you keep in reserve, divided by the bag size. Change these by tapping ⋯ on an item. Received seed in a swap? Open the item and use Received.'))}</p>` : ''}`;
@@ -7055,6 +7058,33 @@ async function removeReceivedList(id, skipConfirm) {
     await save(keep);
   }
   await removeRec(id); toast('List removed. It\'s in the recycle bin for 30 days'); location.hash = '#/lists?tab=others';
+}
+
+/* Import an update file from LT-Catalogue ("lt-update"): stock and price changes for items already on this list, reviewed before anything changes. */
+async function importListUpdate(id) {
+  const l = get(id); if (!l) return;
+  const [file] = await pickFiles(false, '.json,application/json'); if (!file) return;
+  let j; try { j = JSON.parse(await file.text()); } catch { toast('That is not an update file'); return; }
+  if (!j || j.app !== 'lt-update' || !Array.isArray(j.items)) { toast('That is not an update file from LT-Catalogue'); return; }
+  if (j.catalogueId && j.catalogueId !== l.id) { toast('That update is for a different list'); return; }
+  const parsePrice = t => { t = String(t == null ? '' : t).trim(); if (/^free$/i.test(t)) return { mode: 'free', amount: '' }; if (/^swap$/i.test(t)) return { mode: 'swap', amount: '' }; const n = parseFloat(t.replace(/[^0-9.]/g, '')); return isFinite(n) ? { mode: 'price', amount: n } : null; };
+  const changes = [];
+  for (const u of j.items.slice(0, 500)) {
+    const it = (l.items || []).find(x => x.ref === String(u.key || '')); if (!it) continue;
+    const c = { it, name: listItemName(it) };
+    if (u.price != null) { const np = parsePrice(u.price); if (np && priceOf(l, it) !== priceOf(l, { ...it, price: np })) { c.price = np; c.oldP = priceOf(l, it); c.newP = priceOf(l, { ...it, price: np }); } }
+    if (u.available !== undefined) { const na = u.available === null ? '' : Math.max(0, Math.floor(+u.available)); if (na === '' || isFinite(na)) { const old = itemAvailable(l, it); if ((na === '' ? null : na) !== old) { c.avail = na; c.oldA = old; } } }
+    if (c.price || c.avail !== undefined) changes.push(c);
+  }
+  if (!changes.length) { toast('Nothing to change: the app already matches that update', 5000); return; }
+  const el = sheet('Changes from LT-Catalogue', `<p class="muted" style="margin-top:0">${h(tl('Untick anything you do not want. Nothing changes until you press Apply.'))}</p>
+    <ul class="list">${changes.map((c, k) => `<li><label class="chk"><input type="checkbox" data-k="${k}" checked><span><b>${h(c.name)}</b><br><span class="muted small">${[c.price ? `${h(tl('Price'))}: ${h(c.oldP)} → ${h(c.newP)}` : '', c.avail !== undefined ? `${h(tl('Available'))}: ${c.oldA == null ? '–' : c.oldA} → ${c.avail === '' ? '–' : c.avail}` : ''].filter(Boolean).join('<br>')}</span></span></label></li>`).join('')}</ul>
+    <div class="actions"><button class="btn primary" id="applyUpd">${h(tl('Apply'))}</button><button class="btn" data-close>${h(tl('Cancel'))}</button></div>`);
+  $('#applyUpd', el).addEventListener('click', async () => {
+    const on = $$('[data-k]', el).filter(c => c.checked).map(c => changes[+c.dataset.k]);
+    for (const c of on) { if (c.price) c.it.price = c.price; if (c.avail !== undefined) c.it.manual = c.avail; }
+    await save(l); closeSheet(); toast(on.length + (on.length === 1 ? ' change applied' : ' changes applied')); render();
+  });
 }
 /* ===================================================================
    v0.17 (from testing): collapsible grouped lists, plant rows with place
@@ -11277,7 +11307,7 @@ const ACT = {
   shareBuiltin: el => { const b = BUILTIN[el.dataset.id]; shareListSheet({ id: el.dataset.id, type: 'list', name: b.name, notes: '', trade: false, items: b.items().map(s => ({ ref: s.id })) }); },
   newMyList: () => listSheet(), editList: el => listSheet({ id: el.dataset.id }), pickItems: el => pickItemsSheet(el.dataset.id),
   listItem: el => listItemSheet(el.dataset.id, +el.dataset.k), unlistItem: async el => { const l = get(el.dataset.id); l.items.splice(+el.dataset.k, 1); await save(l); render(); },
-  shareList: el => shareListSheet(el.dataset.id), sentItem: el => sentSheet(el.dataset.id, +el.dataset.k, false), lendItem: el => sentSheet(el.dataset.id, +el.dataset.k, true),
+  shareList: el => shareListSheet(el.dataset.id), importListUpdate: el => importListUpdate(el.dataset.id), sentItem: el => sentSheet(el.dataset.id, +el.dataset.k, false), lendItem: el => sentSheet(el.dataset.id, +el.dataset.k, true),
   returnLoan: el => returnSheet(el.dataset.id), receivedSwap: el => { closeSheet(); receivedSwapSheet(el.dataset.id, +el.dataset.k); }, addToList: el => addToListsSheet(el.dataset.id),
   starItem: async el => { const r = get(el.dataset.id); const k = el.dataset.key; r.starred = (r.starred || []).includes(k) ? r.starred.filter(x => x !== k) : [...(r.starred || []), k]; await save(r); render(); },
   importItem: async el => { const n = await importReceivedItems(el.dataset.id, [el.dataset.key]); if (n) toast('Added to your library'); render(); },

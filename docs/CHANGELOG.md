@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.28.2 (no data format change: new optional list flag `siteManaged`)
+- Lists: optional `siteManaged` (checkbox "I manage this list's stock and prices on the website"). When set, the list page shows "Import changes from LT-Catalogue", which reads a `.lt-update.json` file (`app:'lt-update'`, `catalogueId` = list id, `items:[{key, price, available}]`, key = the list item's `ref`), lists each change old to new, and on Apply sets the list item's `price` and `manual` availability (`js21.js importListUpdate`). Unknown keys are ignored; an update for another list is refused.
+
 ## 0.28.1 (no data format change: new optional setting `updatesOff`)
 - Cloud panel: master switch "All online features" at the top (same `S.settings.offline`, now shown positively), and a switch on every connection even when not set up: sync, AI help, weather, club check, and app updates (`S.settings.updatesOff`; `sw.js` serves the app from cache while the `lineage-flags` cache holds `no-update-check`).
 - Log an input: "Applied to" is now tick boxes for any number of places (beds, pots), projects and trays, plus single plants or animals; one log covers them all (`js16.js`, `scope` is `pick` when mixed, a single bed or project keeps its old shape). Log text lists the names.

@@ -593,3 +593,6 @@ My records:
 ## 9. Planned
 
 See the README and CHANGELOG for what's coming next.
+
+### Website update file (0.28.2)
+`*.lt-update.json`: `{ "app": "lt-update", "v": 1, "catalogueId": "<list id>", "at": "YYYY-MM-DD", "items": [{ "key": "<item ref>", "price": "$4.25", "available": 12 }] }`. Made by LT-Catalogue (Stock & prices, Send changes to the app). `available: null` clears the manual count. The list record gains optional `siteManaged` (boolean).

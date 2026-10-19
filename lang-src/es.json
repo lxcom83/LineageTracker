@@ -1930,7 +1930,17 @@
   "Weather lookups": "Consultas del tiempo",
   "Or choose single plants or animals": "O elige plantas o animales sueltos",
   "Tick as many beds, pots, projects or trays as you like.": "Marca tantos bancales, macetas, proyectos o bandejas como quieras.",
-  "{names} and {n} plants or animals": "{names} y {n} plantas o animales"
+  "{names} and {n} plants or animals": "{names} y {n} plantas o animales",
+  "Apply": "Aplicar",
+  "Changes from LT-Catalogue": "Cambios desde LT-Catalogue",
+  "I manage this list's stock and prices on the website (LT-Catalogue)": "Gestiono las existencias y los precios de esta lista en el sitio web (LT-Catalogue)",
+  "Import changes from LT-Catalogue": "Importar cambios desde LT-Catalogue",
+  "Nothing to change: the app already matches that update": "Nada que cambiar: la app ya coincide con esa actualización",
+  "That is not an update file": "Ese no es un archivo de actualización",
+  "That is not an update file from LT-Catalogue": "Ese no es un archivo de actualización de LT-Catalogue",
+  "That update is for a different list": "Esa actualización es de otra lista",
+  "Then the list page gets a button to import the changes you make there. Leave this off and the app stays in charge.": "Entonces la página de la lista tendrá un botón para importar los cambios que hagas allí. Si lo dejas desactivado, la app sigue al mando.",
+  "Untick anything you do not want. Nothing changes until you press Apply.": "Desmarca lo que no quieras. No cambia nada hasta que pulses Aplicar."
  },
  "plurals": {
   "breed": {
