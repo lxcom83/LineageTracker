@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.29.0 (no data format change: new optional settings and optional fields only)
+- Hatch and birth calendar: `#/hatch` (`pHatch`, `hatchBatches` in `js29.js`), shown when the `animalDue` feature is on, linked from the Pairings page. Batches come from pairings whose parents are animals and whose species has a gestation or incubation time (`REPRO`, `js12.js`); eggs use `eggsSet`, others the pairing date; a pairing with a hatch or birth record, or status Successful, counts as finished. Eggs show candling (day 7) and stop-turning (3 days before hatch) marks; overdue batches are flagged; eggs with no set date are listed under Needs a date.
+- Share styles: `S.settings.shareStyles` (up to 6: `{id, name, hashtags, brand: 'full'|'discreet', template}`) and `shareStyleLast`; the credit line is never off. Built from the old `shareBrand` and `shareTemplate`, which are kept in step for older copies.
+- Shared smart keys: `S.sync.shareKeys` (off by default; only with a sync passphrase; `keysOnAt` stamps the choice). Keys travel only inside the encrypted sync copy; a device with the switch off passes them through untouched.
+- Dry inputs: input records gain optional `prodForm` (`'dry'`), coverage and `petWarn` fields; units pellets and handful.
+- First-run card: `S.settings.controlSeen`.
+- Partner versions: signed links checked on the device (`PARTNER_KEYS`, `verifyPartnerLink` in `js19.js`); unsigned and expired links go back to plain Lineage Tracker. The "Powered by" credit always shows.
+- Spanish: batch 3 (Settings feature list, log tags, colour genetics names and phenotypes, label settings, search boxes, theme names) and the new calendar. 2108/2108.
+- Fix: "Add a animal" is now "Add an animal"; the add-variety and add-breed buttons are translated.
+
 ## 0.28.2 (no data format change: new optional list flag `siteManaged`)
 - Lists: optional `siteManaged` (checkbox "I manage this list's stock and prices on the website"). When set, the list page shows "Import changes from LT-Catalogue", which reads a `.lt-update.json` file (`app:'lt-update'`, `catalogueId` = list id, `items:[{key, price, available}]`, key = the list item's `ref`), lists each change old to new, and on Apply sets the list item's `price` and `manual` availability (`js21.js importListUpdate`). Unknown keys are ignored; an update for another list is refused.
 

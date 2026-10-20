@@ -11,7 +11,7 @@ RE_TL = re.compile(r"\b(?:tl|tlx)\(\s*" + STR)
 RE_LBL = re.compile(r"\bsaveLabel:\s*" + STR)
 # Wording passed to helpers that translate it themselves (toast, F.* labels and placeholders, fact, factLink, sec, sheet titles,
 # photoField, and error messages that end up in a toast).
-RE_HELP = re.compile(r"\b(?:toast|fact|factLink|sec|sheet|formSheet|photoField|new Error)\(\s*" + STR)
+RE_HELP = re.compile(r"\b(?:toast|fact|factLink|sec|sheet|formSheet|photoField|searchBox|new Error)\(\s*" + STR)
 RE_F = re.compile(r"\bF\.(?:text|area|date|month|select|check|ref)\(\s*'[^']*',\s*" + STR)
 RE_PH = re.compile(r"\bF\.(?:text|area)\(\s*'[^']*',\s*" + STR + r"\s*,\s*[^,()`]+?\s*,\s*" + STR)
 RE_TLP = re.compile(r"\b(?:tlp|plural)\(\s*[^,()]+(?:\([^()]*\))?[^,()]*,\s*" + STR + r"\s*(?:,\s*" + STR + r")?")
