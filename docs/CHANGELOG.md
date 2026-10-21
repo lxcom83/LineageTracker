@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.30.1 (no data format change)
+- Welcome page wording by what the person keeps (`welcomeLine()` in `js2.js`): animals only, plants only, both, or only products; the "Just looking around" paragraph lists only the examples offered; "Everything stays on this device." is translated.
+- Hatch calendar: the candling and stop-turning tip shows only when an egg batch is on the go (it showed for pig births).
+- Spanish: share-style settings (branding options, caption hint) and every `emptyBox` message; `tools/i18n_extract.py` now collects `emptyBox` text and button labels. es 2176/2176.
+
+## 0.30.0 (no data format change)
+- Spanish batch 4 (es 2144/2144): label size names and gap options (`SIZE_NOTES`, `sizeLabel` in `js32.js`), list names and blurbs (`js23.js`), group chips (`js22.js`), seed-saving headings (`js11.js`), `emptyBox` now translates its text and label (`js2.js`), read-only / give-code strings (`js15.js`), the how-to guide (`js17.js`), flowering message (`js24.js`), bin text (`js4.js`), coiChip prefix (`js12.js`). Example data stays English by design. Native-speaker review still needed.
+
 ## 0.29.0 (no data format change: new optional settings and optional fields only)
 - Hatch and birth calendar: `#/hatch` (`pHatch`, `hatchBatches` in `js29.js`), shown when the `animalDue` feature is on, linked from the Pairings page. Batches come from pairings whose parents are animals and whose species has a gestation or incubation time (`REPRO`, `js12.js`); eggs use `eggsSet`, others the pairing date; a pairing with a hatch or birth record, or status Successful, counts as finished. Eggs show candling (day 7) and stop-turning (3 days before hatch) marks; overdue batches are flagged; eggs with no set date are listed under Needs a date.
 - Share styles: `S.settings.shareStyles` (up to 6: `{id, name, hashtags, brand: 'full'|'discreet', template}`) and `shareStyleLast`; the credit line is never off. Built from the old `shareBrand` and `shareTemplate`, which are kept in step for older copies.

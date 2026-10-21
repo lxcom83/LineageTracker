@@ -739,7 +739,7 @@ function suggestedLanguage() {
   return dev !== 'en' && LT_LANGS.some(l => l[0] === dev) && (S.settings.lang || 'en') !== dev ? dev : null;
 }
 'use strict';
-const VERSION = '0.29.0';
+const VERSION = '0.30.1';
 // Growth phase: the "Made with Lineage Tracker" credit on shared pictures, captions, PDFs and pages is always on.
 // The old switch (settings.shareCredit) is hidden; flip this to read it again.
 const CREDIT_LOCKED_ON = true;
@@ -1666,7 +1666,7 @@ async function cleanOrphanPhotos() {
 function pBin() {
   const batches = binBatches();
   const kindName = r => ({ site: 'Site', reading: 'Gauge reading', strain: 'Variety or breed', stock: 'Lot', individual: 'Tagged', project: 'Project', cross: 'Cross', note: 'Note', entry: 'Record', place: 'Place', germ: 'Germination test', reminder: 'Reminder', input: 'Input', apply: 'Input use', product: 'Product', yield: 'Harvest or product', tray: 'Seed tray', offer: 'Offer', plan: 'Season plan', logtag: 'Log tag', vgroup: 'Group' }[r.type] || 'Record');
-  return `<h1>${h(tl('Recycle bin'))}</h1><p class="muted">Deleted records stay here for ${BIN_DAYS} days, then are removed for good.</p>
+  return `<h1>${h(tl('Recycle bin'))}</h1><p class="muted">${h(tl('Deleted records stay here for {n} days, then are removed for good.', { n: BIN_DAYS }))}</p>
   ${batches.length ? `<ul class="list">${batches.map(b => {
     const extra = b.recs.length - 1;
     const name = b.root.type === 'entry' ? itemLabel(b.root) : b.root.type === 'note' ? (b.root.text || 'Photo note').slice(0, 60) : b.root.type === 'reminder' ? b.root.text : b.root.type === 'germ' ? `Germination test, ${title(get(b.root.lotId))}` : title(b.root);
@@ -4308,7 +4308,7 @@ function guideHTML(s) {
   const g = guideFor(s);
   const hyb = isHybrid(s) ? '<div class="notice warn">F1 hybrid: seed saved from this won\'t grow true to type. It can still be a parent in your own crosses.</div>' : '';
   if (!g) return hyb;
-  return `${hyb}<div class="guide"><b>Seed saving: ${h(g.crop)}</b><dl class="facts" style="margin:8px 0 0"><div><dt>${h(tl('Pollinated by'))}</dt><dd>${h(g.poll === 'self' ? 'Itself, mostly' : g.poll)}</dd></div><div><dt>${h(tl('Keep varieties apart'))}</dt><dd>${h(g.iso)}</dd></div><div><dt>${h(tl('Save seed from'))}</dt><dd>${h(g.save)}</dd></div></dl>${g.note ? `<p class="small" style="margin:8px 0 0">${h(g.note)}</p>` : ''}${g.tip ? `<p class="small" style="margin:4px 0 0">${h(g.tip)}</p>` : ''}<p class="hint" style="margin:6px 0 0">${h(tl('General guidance only; local conditions vary.'))}</p></div>`;
+  return `${hyb}<div class="guide"><b>${h(tl('Seed saving: {crop}', { crop: g.crop }))}</b><dl class="facts" style="margin:8px 0 0"><div><dt>${h(tl('Pollinated by'))}</dt><dd>${h(g.poll === 'self' ? 'Itself, mostly' : g.poll)}</dd></div><div><dt>${h(tl('Keep varieties apart'))}</dt><dd>${h(g.iso)}</dd></div><div><dt>${h(tl('Save seed from'))}</dt><dd>${h(g.save)}</dd></div></dl>${g.note ? `<p class="small" style="margin:8px 0 0">${h(g.note)}</p>` : ''}${g.tip ? `<p class="small" style="margin:4px 0 0">${h(g.tip)}</p>` : ''}<p class="hint" style="margin:6px 0 0">${h(tl('General guidance only; local conditions vary.'))}</p></div>`;
 }
 function crossRisk(a, b) {
   const ga = guideFor(a), gb = guideFor(b);
@@ -4528,12 +4528,12 @@ function coiCtx() {
 }
 function coiOf(r) { const [m, f] = pedParents(r?.id); return m && f ? coiCtx().K(m, f) : null; }
 function coiPair(mId, fId) { return mId && fId ? coiCtx().K(mId, fId) : null; }
-function coiChip(v, kind, prefix = 'Inbreeding') {
+function coiChip(v, kind, prefix = tlx('Inbreeding')) {
   if (v == null) return '';
   const pct = Math.round(v * 1000) / 10;
-  if (kind !== 'animal') return `<span class="chip" title="${h(tl('Normal in plant breeding, especially after selfing'))}">${prefix} ${fmtNum(pct)}%</span>`;
+  if (kind !== 'animal') return `<span class="chip" title="${h(tl('Normal in plant breeding, especially after selfing'))}">${h(tl(prefix))} ${fmtNum(pct)}%</span>`;
   const cls = v < 0.0625 ? 'ok' : v < 0.125 ? '' : 'warn';
-  return `<span class="chip ${cls}" title="${h(tl('Below 6.25% is low; 12.5% or more is high for animals'))}">${prefix} ${fmtNum(pct)}%</span>`;
+  return `<span class="chip ${cls}" title="${h(tl('Below 6.25% is low; 12.5% or more is high for animals'))}">${h(tl(prefix))} ${fmtNum(pct)}%</span>`;
 }
 /* ---------- Animal due dates ---------- */
 const REPRO = [
@@ -4606,7 +4606,7 @@ function pPlanner(_, q) {
   }
   return `<div class="page-head"><h1>${xcap()} planner</h1><button class="btn tagc" data-act="newCross" data-preset="${pre({ status: 'Planned', projectId: pid })}">${ic('plus')}Plan a ${xw()}</button></div>
   ${projs.length ? `<div class="filters"><a class="chip" href="#/planner" aria-pressed="${!pid}">${h(tl('All'))}</a>${projs.map(p => `<a class="chip" href="#/planner?project=${p.id}" aria-pressed="${pid === p.id}">${h(p.name)}</a>`).join('')}</div>` : ''}
-  ${sec('Planned', planned.length, planned.length ? `<ul class="list">${planned.map(c => { const v = coiFor(c); const k = kindOf(get(c.motherId) || {}); return `<li class="bulk-row"><span class="main"><span class="t">${h(crossTitle(c))}</span><span class="s">${[c.date ? `planned for ${fmtDate(c.date)}` : '', get(c.projectId)?.name].filter(Boolean).map(h).join(', ')}</span><span>${coiChip(v, k, 'Offspring inbreeding')} ${guardHTML(c.motherId, c.fatherId) ? `<span class="chip warn">${h(tl('Check species'))}</span>` : ''}</span></span><span class="actions tight"><button class="btn sm primary" data-act="crossDoneToday" data-id="${c.id}">${h(tl('Done today'))}</button><button class="icon-btn" data-act="editCross" data-id="${c.id}" aria-label="${h(tl('Edit'))}">${ic('more')}</button></span></li>`; }).join('')}</ul>` : `<p class="muted">${h(tl('Nothing planned. Plan crosses ahead of flowering or the breeding season, then tick them off as you make them.'))}</p>`)}
+  ${sec('Planned', planned.length, planned.length ? `<ul class="list">${planned.map(c => { const v = coiFor(c); const k = kindOf(get(c.motherId) || {}); return `<li class="bulk-row"><span class="main"><span class="t">${h(crossTitle(c))}</span><span class="s">${[c.date ? `planned for ${fmtDate(c.date)}` : '', get(c.projectId)?.name].filter(Boolean).map(h).join(', ')}</span><span>${coiChip(v, k, tlx('Offspring inbreeding'))} ${guardHTML(c.motherId, c.fatherId) ? `<span class="chip warn">${h(tl('Check species'))}</span>` : ''}</span></span><span class="actions tight"><button class="btn sm primary" data-act="crossDoneToday" data-id="${c.id}">${h(tl('Done today'))}</button><button class="icon-btn" data-act="editCross" data-id="${c.id}" aria-label="${h(tl('Edit'))}">${ic('more')}</button></span></li>`; }).join('')}</ul>` : `<p class="muted">${h(tl('Nothing planned. Plan crosses ahead of flowering or the breeding season, then tick them off as you make them.'))}</p>`)}
   ${sugg}
   ${sec('Results by pairing', stats.length, stats.length ? `<div class="tbl-wrap"><table class="cmp"><thead><tr><th scope="col">${h(tl('Pairing'))}</th><th scope="col">${h(tl('Times'))}</th><th scope="col">${h(tl('Attempts'))}</th><th scope="col">${h(tl('Took'))}</th><th scope="col">${h(tl('Success'))}</th><th scope="col">${h(tl('Seeds or young'))}</th>${on('coi') ? `<th scope="col">${h(tl('Inbreeding'))}</th>` : ''}</tr></thead><tbody>${stats.map(s => { const rate = s.tried ? Math.round(s.set / s.tried * 100) : (s.ok + s.fail ? Math.round(s.ok / (s.ok + s.fail) * 100) : null); const v = coiFor(s.c); return `<tr><th scope="row"><a href="#/cross/${s.c.id}">${h(crossTitle(s.c))}</a></th><td>${s.n}</td><td>${s.tried || ''}</td><td>${s.set || s.ok || ''}</td><td>${rate != null ? rate + '%' : ''}</td><td>${s.seeds || ''}</td>${on('coi') ? `<td>${v != null ? fmtNum(Math.round(v * 1000) / 10) + '%' : ''}</td>` : ''}</tr>`; }).join('')}</tbody></table></div><p class="hint">${h(tl('Success uses attempts and how many took when you record them, otherwise crosses marked Successful or Failed.'))}</p>` : `<p class="muted">${h(tl('No crosses recorded yet.'))}</p>`)}`;
 }
@@ -5474,7 +5474,7 @@ async function historyReportHTML(r, o) {
    automatic cross codes, weather-station import, encryption helpers.
    =================================================================== */
 /* ---------- Workspaces ---------- */
-const WS_KIND = { mine: 'Your records', part: 'Your list', example: 'Example', shared: 'Shared library' };
+const WS_KIND = { mine: tlx('Your records'), part: tlx('Your list'), example: tlx('Example'), shared: tlx('Shared library') };
 async function saveWorkspaces() { await DB.mainPut('meta', { key: 'workspaces', list: WS.list, active: WS.active }); }
 function wsSwitch(id, hash = '#/') {
   WS.active = id; saveWorkspaces().then(() => { location.hash = hash; location.reload(); });
@@ -5551,7 +5551,7 @@ async function shareWorkspace() {
 function wsBanner() {
   if (WS.active === 'main') return '';
   const ws = WS.cur;
-  return `<div class="ws-banner"><span><b>${h(ws.name)}</b> <span class="chip">${h(WS_KIND[ws.kind] || '')}${ws.readOnly ? ', read-only' : ''}</span>${ws.kind === 'example' ? `<small>${h(tl('A sandbox: nothing here touches your records.'))}</small>` : ws.readOnly ? `<small>${h(tl('Copy anything you want into your own records.'))}</small>` : ''}</span><span class="actions tight">${ws.kind === 'example' ? `<button class="btn sm" data-act="resetExample">${h(tl('Reset'))}</button>` : ''}<button class="btn sm primary" data-act="wsSwitch" data-id="main">${h(tl('My records'))}</button></span></div>`;
+  return `<div class="ws-banner"><span><b>${h(ws.name)}</b> <span class="chip">${h(tl(WS_KIND[ws.kind] || ''))}${ws.readOnly ? ', ' + h(tl('read-only')) : ''}</span>${ws.kind === 'example' ? `<small>${h(tl('A sandbox: nothing here touches your records.'))}</small>` : ws.readOnly ? `<small>${h(tl('Copy anything you want into your own records.'))}</small>` : ''}</span><span class="actions tight">${ws.kind === 'example' ? `<button class="btn sm" data-act="resetExample">${h(tl('Reset'))}</button>` : ''}<button class="btn sm primary" data-act="wsSwitch" data-id="main">${h(tl('My records'))}</button></span></div>`;
 }
 function workspacesHTML() {
   return sec('Workspaces', null, `<p class="muted" style="margin-top:0">${h(tl('Keep separate sets of records on this device: your own, examples, libraries other breeders share with you, or your own lists split up for easier managing. Only "My records" syncs.'))}</p>
@@ -5726,7 +5726,7 @@ function crossCodeSettingsHTML() {
   const missing = all('cross').filter(c => !c.code).length;
   return sec('Cross codes', null, `<form id="ccForm" novalidate>${F.text('crossFormat', 'Pattern for new crosses', S.settings.crossFormat || '{YY}C-{N}')}
     <p class="hint">{YY} is the year (26), {YYYY} the full year, {N} the next number that year. Next one: <b id="ccNext">${h(crossCodeFor(today()))}</b>${h(tl('. Write the code on the tag on the pollinated flower; seed saved from that cross is labelled with it too.'))}</p>
-    <div class="actions"><button class="btn primary" type="submit">${h(tl('Save'))}</button>${missing ? `<button type="button" class="btn" data-act="codeOldCrosses">Give codes to ${missing} older cross${missing === 1 ? '' : 'es'}</button>` : ''}</div></form>`);
+    <div class="actions"><button class="btn primary" type="submit">${h(tl('Save'))}</button>${missing ? `<button type="button" class="btn" data-act="codeOldCrosses">${h(missing === 1 ? tl('Give a code to 1 older cross') : tl('Give codes to {n} older crosses', { n: missing }))}</button>` : ''}</div></form>`);
 }
 
 /* ---------- Weather-station import ---------- */
@@ -5864,6 +5864,8 @@ function feedbackUrl(extra = {}) {
   return `${SITE()}/feedback.html?${q.toString()}`;
 }
 const WHATS_NEW = {
+  '0.30.1': ['The welcome page now talks about what you keep: animals only, plants only, both, or only things you make.','The hatch and birth calendar only shows the egg tip (candling and turning) when there are eggs on the go.','More Spanish: the sharing styles in Settings and the messages on empty pages.'],
+  '0.30.0': ['More of the app is now in Spanish: label size names, the seed-saving guide headings, list names, the guide chooser and several empty-page messages.','Small wording fixes in Spanish for lists, bins and the flowering reminder.'],
   '0.29.0': ['New: a hatch and birth calendar. Open Pairings, then Hatch calendar, to see every batch of eggs and every expected birth with a progress bar, candling and stop-turning days, and a month view.','Sharing: choose where you are sharing to (Substack Notes, a Facebook group, Instagram or your own style). Each style remembers whether hashtags are on and how the credit line reads.','Dry inputs such as pellets and granules: log them in pellets or handfuls, and enter coverage such as 2.5 kg per 500 m2.','You can now share your smart-feature keys between your own devices. It is off by default and only works with a sync passphrase.','A short "You are in control" card explains every online switch the first time you open the app.','Club and group versions now use signed links, so a link can be checked on your device and switched off by the club.','More of the app is in Spanish: the Settings feature list, log tags, colour genetics, label settings and search boxes.'],
   '0.28.2': ['Lists can now be managed on the website: tick "I manage this list\'s stock and prices on the website" and the list page gets a button to import the stock and price changes you made in LT-Catalogue, with a review before anything changes.'],
   '0.28.1': ['The cloud button now has one master switch at the top for every online feature, and its own on/off switch for sync, AI help, weather, the club check and app updates.','Inputs now show their label photo beside each name in the list.','Logging an input: tick as many beds, pots, projects or trays as you like in one go.','Fixed an oversized cloud picture on the Settings page.'],
@@ -5906,10 +5908,10 @@ async function maybeWhatsNew() {
 }
 function helpSettingsHTML() {
   const kp = keepsNow();
-  const guide = kp === 'animals' ? [['animals', 'How to use it: animals']] : kp === 'plants' ? [['plants', 'How to use it: plants']] : [['plants', 'How to use it: plants'], ['animals', 'How to use it: animals']];
+  const guide = kp === 'animals' ? [['animals', tlx('How to use it: animals')]] : kp === 'plants' ? [['plants', tlx('How to use it: plants')]] : [['plants', tlx('How to use it: plants')], ['animals', tlx('How to use it: animals')]];
   return sec('Help and feedback', null, `<p>${h(tl('Found a problem or have an idea? The feedback form opens on the Lineage Tracker website, with this app\'s version and device filled in. You can see and change everything before sending.'))}</p>
     <div class="actions"><a class="btn primary" href="${h(feedbackUrl())}" target="_blank" rel="noopener">${h(tl('Send feedback'))}</a><button class="btn" data-act="whatsNew">${h(tl('What\'s new'))}</button><a class="btn" href="https://www.youtube.com/@LineageTracker" target="_blank" rel="noopener">${h(tl('Watch how-to videos'))}</a></div>
-    <div class="actions tight">${guide.map(([p, t]) => `<a class="btn sm" href="${SITE()}/${p}.html" target="_blank" rel="noopener">${h(t)}</a>`).join('')}<a class="btn sm" href="${SITE()}/privacy.html" target="_blank" rel="noopener">${h(tl('Your data and privacy'))}</a><a class="btn sm" href="${h(CONFIG.donateUrl || SITE() + '/donate.html')}" target="_blank" rel="noopener">${h(tl('Support Lineage Tracker'))}</a></div>`);
+    <div class="actions tight">${guide.map(([p, t]) => `<a class="btn sm" href="${SITE()}/${p}.html" target="_blank" rel="noopener">${h(tl(t))}</a>`).join('')}<a class="btn sm" href="${SITE()}/privacy.html" target="_blank" rel="noopener">${h(tl('Your data and privacy'))}</a><a class="btn sm" href="${h(CONFIG.donateUrl || SITE() + '/donate.html')}" target="_blank" rel="noopener">${h(tl('Support Lineage Tracker'))}</a></div>`);
 }
 /* Something went wrong: show a bar with details the person can copy or send */
 let _errShown = false;
@@ -7107,7 +7109,7 @@ async function importListUpdate(id) {
    from the person's own library instead of anyone else's.
    =================================================================== */
 /* ---------- Grouped, collapsible lists ---------- */
-const GROUP_OPTS = [['type', 'By type'], ['variety', 'By variety'], ['place', 'By place'], ['status', 'By status'], ['none', 'No grouping']];
+const GROUP_OPTS = [['type', tlx('By type')], ['variety', tlx('By variety')], ['place', tlx('By place')], ['status', tlx('By status')], ['none', tlx('No grouping')]];
 const openSet = () => new Set(S.settings.openGroups || []);
 let _gSave;
 document.addEventListener('toggle', e => {
@@ -7138,7 +7140,7 @@ function plantsGroupedHTML(items) {
 }
 function groupByChipsHTML() {
   const by = S.settings.groupPlants || 'type';
-  return `<div class="filters gby"><span class="muted small">${h(tl('Group:'))}</span>${GROUP_OPTS.filter(([v]) => v !== 'place' || on('places')).map(([v, t]) => `<button class="chip" data-act="setGroupBy" data-v="${v}" aria-pressed="${by === v}">${h(t.replace(/^By /, ''))}</button>`).join('')}</div>`;
+  return `<div class="filters gby"><span class="muted small">${h(tl('Group:'))}</span>${GROUP_OPTS.filter(([v]) => v !== 'place' || on('places')).map(([v, t]) => `<button class="chip" data-act="setGroupBy" data-v="${v}" aria-pressed="${by === v}">${h(tl(t).replace(/^(By|Por) /, ''))}</button>`).join('')}</div>`;
 }
 function libraryVarietiesHTML(items, lotCount) {
   const byLot = new Map(); for (const l of all('stock')) { if (!byLot.has(l.strainId)) byLot.set(l.strainId, []); byLot.get(l.strainId).push(l); }
@@ -7163,8 +7165,8 @@ function shareSettingsHTML() {
   return sec('Log tags', null, `<p>${h(tl('Group your Log entries with tags, then filter the Log by tag.'))} <a href="#/tags">${h(tl('Manage tags'))}</a></p>`) + sec('Sharing', null, `
     <p class="muted" style="margin-top:0">${h(tl('Make a style for each place you share to, for example one for Substack Notes without hashtags. You pick the style each time you share, and it remembers your last choice. The Lineage Tracker credit stays on in every style.'))}</p>
     <label class="fld"><span>${h(tl('Style to edit'))}</span><select id="shareEditSel">${list.map(x => `<option value="${h(x.id)}" ${x.id === st.id ? 'selected' : ''}>${h(x.name)}</option>`).join('')}</select></label>
-    <form id="shareForm" novalidate>${F.text('ssName', 'Style name', st.name, 'e.g. Facebook group')}${F.check('ssTags', 'Add suggested hashtags', st.hashtags !== false)}${F.select('ssBrand', 'Branding on shared pictures', st.brand === 'discreet' ? 'discreet' : 'full', [['full', 'Full footer with logo and web address (default)'], ['discreet', 'Discreet: a slim strip with just the web address']])}<label class="fld"><span>${h(tl('Caption for this style (optional)'))}</span><textarea name="ssTemplate" rows="4" placeholder="{text}&#10;&#10;{tags} #mygarden">${h(st.template || '')}</textarea></label>
-    <p class="hint">Leave the caption empty to use the standard wording with the website and how-to videos. You can use {text} for the entry's wording, {tags} for suggested hashtags (empty when hashtags are off), {website} and {youtube}. The picture always carries the Lineage Tracker website, and you can still edit the caption before each share.</p></form>
+    <form id="shareForm" novalidate>${F.text('ssName', 'Style name', st.name, 'e.g. Facebook group')}${F.check('ssTags', 'Add suggested hashtags', st.hashtags !== false)}${F.select('ssBrand', 'Branding on shared pictures', st.brand === 'discreet' ? 'discreet' : 'full', [['full', tlx('Full footer with logo and web address (default)')], ['discreet', tlx('Discreet: a slim strip with just the web address')]])}<label class="fld"><span>${h(tl('Caption for this style (optional)'))}</span><textarea name="ssTemplate" rows="4" placeholder="{text}&#10;&#10;{tags} #mygarden">${h(st.template || '')}</textarea></label>
+    <p class="hint">${h(tl('Leave the caption empty to use the standard wording with the website and how-to videos. You can use {text} for the entry\'s wording, {tags} for suggested hashtags (empty when hashtags are off), {website} and {youtube}. The picture always carries the Lineage Tracker website, and you can still edit the caption before each share.', { text: '{text}', tags: '{tags}', website: '{website}', youtube: '{youtube}' }))}</p></form>
     <div class="actions tight">${list.length < 6 ? SHARE_PRESETS.filter(p => !list.some(x => x.name === p.name)).map(p => `<button type="button" class="btn sm" data-ssadd="${h(p.name)}">${ic('plus')}${h(tl('Add'))} ${h(p.name)}</button>`).join('') + `<button type="button" class="btn sm" data-ssadd="">${ic('plus')}${h(tl('Add another style'))}</button>` : ''}${list.length > 1 ? `<button type="button" class="btn sm" data-ssdel>${h(tl('Remove this style'))}</button>` : ''}</div>`);
 }
 function mountShareSettings() {
@@ -7432,16 +7434,16 @@ function onAnyList(strainId) {
   return all('list').some(l => (l.items || []).some(it => it.ref === strainId || lotIds.has(it.ref)));
 }
 const BUILTIN = {
-  __all: { name: 'All my seeds and stock', blurb: 'Everything in your library. Always here, always up to date.', items: () => all('strain').sort(byName) },
-  __unsorted: { name: 'Not on a list yet', blurb: 'Anything that isn\'t on one of your lists. Tick some and move them to a list.', items: () => all('strain').filter(s => !onAnyList(s.id)).sort(byName) },
+  __all: { name: tlx('All my seeds and stock'), blurb: tlx('Everything in your library. Always here, always up to date.'), items: () => all('strain').sort(byName) },
+  __unsorted: { name: tlx('Not on a list yet'), blurb: tlx('Anything that isn\'t on one of your lists. Tick some and move them to a list.'), items: () => all('strain').filter(s => !onAnyList(s.id)).sort(byName) },
 };
 function builtinListsHTML() {
-  return `<ul class="list">${Object.entries(BUILTIN).map(([k, b]) => `<li><a class="row" href="#/list/${k}"><span class="thumb">${ic(k === '__all' ? 'library' : 'log')}</span><span class="main"><span class="t">${h(b.name)}</span><span class="s">${plural(b.items().length, 'item')}</span></span></a></li>`).join('')}</ul>`;
+  return `<ul class="list">${Object.entries(BUILTIN).map(([k, b]) => `<li><a class="row" href="#/list/${k}"><span class="thumb">${ic(k === '__all' ? 'library' : 'log')}</span><span class="main"><span class="t">${h(tl(b.name))}</span><span class="s">${plural(b.items().length, 'item')}</span></span></a></li>`).join('')}</ul>`;
 }
 function pBuiltinList(id) {
   const b = BUILTIN[id]; if (!b) return notFound();
   const items = b.items();
-  return `<a href="#/lists">${h(tl('Lists'))}</a><h1>${h(b.name)}</h1><p class="muted">${h(b.blurb)}</p>
+  return `<a href="#/lists">${h(tl('Lists'))}</a><h1>${h(tl(b.name))}</h1><p class="muted">${h(tl(b.blurb))}</p>
     ${items.length ? `<div class="actions"><button class="btn primary" data-act="moveToList" data-id="${id}">${ic('log')}${h(tl('Move ticked to a list'))}</button><button class="btn" data-act="shareBuiltin" data-id="${id}">${ic('share')}${h(tl('Share'))}</button><button class="btn sm" data-act="tickAll">${h(tl('Tick all'))}</button></div>
     <ul class="list">${items.map(s => `<li><label class="row tickrow">${thumbOf(s)}<span class="main"><span class="t">${h(s.name)}</span><span class="s">${h([s.group, s.species, plural(all('stock').filter(l => l.strainId === s.id).length, 'source')].filter(Boolean).join(', '))}</span></span><input type="checkbox" data-tick="${s.id}" aria-label="Tick ${h(s.name)}"></label></li>`).join('')}</ul>`
     : `<p class="muted">${id === '__unsorted' ? h(tl('Everything is on a list. Nicely sorted.')) : h(tl('Your library is empty.'))}</p>`}`;
@@ -7544,7 +7546,7 @@ function overlapInfo(m, f) {
   if (!m || !f || kindOf(m) === 'animal') return null;
   const cuc = isCucurbit(m) || isCucurbit(f);
   const a = flowerWindow(m, cuc ? 'female' : null), b = flowerWindow(f, cuc ? 'male' : null);
-  if (!a || !b) return { ok: null, text: `Flowering not recorded yet for ${!a ? (m.code || 'the mother') : (f.code || 'the father')}.` };
+  if (!a || !b) return { ok: null, text: tl('Flowering not recorded yet for {who}.', { who: !a ? (m.code || tl('the mother')) : (f.code || tl('the father')) }) };
   const s = a.start > b.start ? a.start : b.start, e = a.end < b.end ? a.end : b.end;
   if (s <= e) return { ok: true, text: `${cuc ? 'Female flowers on ' + (m.code || 'the mother') + ' and male flowers on ' + (f.code || 'the father') : 'Both flowering'} overlap${a.open && b.open ? ' now' : ` from ${fmtDate(s)} to ${fmtDate(e)}`}.` };
   const first = a.end < b.start ? [m, a, 'finished'] : [f, b, 'finished'];
@@ -8994,7 +8996,7 @@ function pHatch(_, q = {}) {
   ${missing.length ? sec('Needs a date', missing.length, `<ul class="list">${missing.map(miss).join('')}</ul>`) : ''}
   <div class="hc-head"><a class="btn" href="#/hatch?m=${shift(-1)}" aria-label="${h(tl('Earlier month'))}">${ic('back')}</a><h2>${h(mon)}</h2><a class="btn" href="#/hatch?m=${shift(1)}" aria-label="${h(tl('Later month'))}">${ic('back')}</a></div>
   <ol class="hc-week" aria-hidden="true">${dn.map(x => `<li>${h(x)}</li>`).join('')}</ol><ol class="hc-grid">${cells}</ol>
-  <p class="small muted">${h(tl('Candle eggs on day 7, stop turning three days before the hatch.'))}</p>
+  ${live.some(b => b.egg) ? `<p class="small muted">${h(tl('Candle eggs on day 7, stop turning three days before the hatch.'))}</p>` : ''}
   ${recent.length ? sec('Recent', recent.length, `<ul class="list">${recent.map(b => `<li><a class="row" href="#/cross/${b.c.id}"><span class="thumb">${ic('check')}</span><span class="main"><span class="t">${h(crossTitle(b.c))}</span><span class="s">${h(tl('Due {date}', { date: fmtDate(b.due) }))}</span></span></a></li>`).join('')}</ul>`) : ''}`;
 }
 /* mp4-muxer 5.2.2, MIT licence, Copyright (c) 2023 Vanilagy. https://github.com/Vanilagy/mp4-muxer */
@@ -9446,6 +9448,9 @@ const LAB_STOCK = {
   l7165: { cols: 2, rows: 4, top: 13, left: 4.65, gx: 2.5, gy: 0 },
   l7651: { cols: 5, rows: 13, top: 10.7, left: 4.7, gx: 2.5, gy: 0 },
 };
+/* label size names: the numbers stay, the words in brackets are translated */
+const SIZE_NOTES = [tlx('65 per A4 sheet'), tlx('21 per A4 sheet'), tlx('14 per A4 sheet'), tlx('8 per A4 sheet'), tlx('A6'), tlx('thin card or tube'), tlx('stake or wire'), tlx('thick stake'), tlx('each side')];
+const sizeLabel = t => String(t).replace(/\((.+)\)$/, (m, a) => '(' + tl(a) + ')').replace(/ mm each side$/, () => ' mm ' + tl('each side'));
 const LAB_LAYOUTS = {
   tag: { name: tlx('Small tag'), desc: tlx('Name, a couple of details and a QR code. For stakes, pots, tubes and cage fronts.'), fs: 1, sizes: [['75x25', '75 × 25 mm', 75, 25], ['50x20', '50 × 20 mm', 50, 20], ['l7651', '38.1 × 21.2 mm (65 per A4 sheet)', 38.1, 21.2, 'l7651']] },
   front: { name: tlx('Front sticker'), desc: tlx('A bigger name with details and a QR code. For jars, boxes and trays.'), fs: 1, sizes: [['60x40', '60 × 40 mm', 60, 40], ['l7160', '63.5 × 38.1 mm (21 per A4 sheet)', 63.5, 38.1, 'l7160'], ['l7163', '99.1 × 38.1 mm (14 per A4 sheet)', 99.1, 38.1, 'l7163']] },
@@ -9585,10 +9590,10 @@ function labelsPage(kind, items, base, pick) {
   <form id="labForm" class="frm" novalidate ${dz ? 'hidden' : ''}>
     <label class="fld" style="margin-top:12px"><span>${h(tl('Sticker'))}</span><select name="layout">${Object.entries(LAB_LAYOUTS).map(([k, l]) => `<option value="${k}" ${c.layout === k ? 'selected' : ''}>${h(tl(l.name))}</option>`).join('')}</select></label>
     <p class="hint" style="margin-top:-4px" id="labDesc">${h(tl(L.desc))}</p>
-    <div class="two"><label class="fld"><span>${h(tl('Size'))}</span><select name="size">${L.sizes.map(s => `<option value="${s[0]}" ${sz.key === s[0] ? 'selected' : ''}>${h(s[1])}</option>`).join('')}<option value="custom" ${sz.key === 'custom' ? 'selected' : ''}>${h(tl('Custom size (mm)'))}</option></select></label>
+    <div class="two"><label class="fld"><span>${h(tl('Size'))}</span><select name="size">${L.sizes.map(s => `<option value="${s[0]}" ${sz.key === s[0] ? 'selected' : ''}>${h(sizeLabel(s[1]))}</option>`).join('')}<option value="custom" ${sz.key === 'custom' ? 'selected' : ''}>${h(tl('Custom size (mm)'))}</option></select></label>
     <label class="fld"><span>${h(tl('Paper'))}</span><select name="paper"><option value="a4" ${c.paper !== 'letter' ? 'selected' : ''}>A4</option><option value="letter" ${c.paper === 'letter' ? 'selected' : ''}>${h(tl('US Letter'))}</option></select></label></div>
     <div class="two" id="labCustom" ${sz.key === 'custom' ? '' : 'hidden'}><label class="fld"><span>${h(tl('Width (mm)'))}</span><input name="cw" inputmode="decimal" value="${h(c.custom.w)}"></label><label class="fld"><span>Height (mm${L.fold ? ', each side' : ''})</span><input name="ch" inputmode="decimal" value="${h(c.custom.h)}"></label></div>
-    <label class="fld" id="labGap" ${L.fold ? '' : 'hidden'}><span>${h(tl('Fold gap in the middle'))}</span><select name="gap">${[[2, '2 mm (thin card or tube)'], [5, '5 mm (stake or wire)'], [10, '10 mm (thick stake)']].map(([v, t]) => `<option value="${v}" ${+c.gap === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+    <label class="fld" id="labGap" ${L.fold ? '' : 'hidden'}><span>${h(tl('Fold gap in the middle'))}</span><select name="gap">${[[2, '2 mm (thin card or tube)'], [5, '5 mm (stake or wire)'], [10, '10 mm (thick stake)']].map(([v, t]) => `<option value="${v}" ${+c.gap === v ? 'selected' : ''}>${h(sizeLabel(t))}</option>`).join('')}</select></label>
     <p class="hint" id="labFit" style="margin-top:-4px"></p>
     <div class="fld"><span>${h(tl('Preview'))}</span><div id="labPrev" class="lab-prev"><iframe title="${h(tl('Sticker preview'))}" sandbox="" scrolling="no"></iframe></div><p class="hint" id="labPrevNote"></p></div>
     <div class="fld"><span>${h(tl('What to print'))}</span><div class="filters lab-fields">${fields.map(([k, t]) => `<label class="chip lab-f"><input type="checkbox" data-f="${k}" ${on_.includes(k) ? 'checked' : ''}><span>${h(tl(t))}</span></label>`).join('')}</div>
@@ -10226,7 +10231,7 @@ async function chooseLanguage(code) {
   S.settings.lang = code; await saveSettings(); await setLanguage(wantedLanguage()); applyShellText(); render();
 }
 /* ---------- Shared fragments ---------- */
-const emptyBox = (text, act, label, preset) => `<div class="empty"><p>${text}</p>${act ? `<button class="btn" data-act="${act}"${preset ? ` data-preset="${pre(preset)}"` : ''}>${label}</button>` : ''}</div>`;
+const emptyBox = (text, act, label, preset) => `<div class="empty"><p>${tl(text)}</p>${act ? `<button class="btn" data-act="${act}"${preset ? ` data-preset="${pre(preset)}"` : ''}>${tl(label)}</button>` : ''}</div>`;
 const fact = (k, v) => (v ? `<div><dt>${h(tl(k))}</dt><dd>${h(v)}</dd></div>` : '');
 const factLink = (k, r) => (r ? `<div><dt>${h(tl(k))}</dt><dd><a href="${link(r)}">${h(title(r))}</a></dd></div>` : '');
 const sec = (titleText, count, body) => `<section class="sec"><div class="sec-head"><h2>${tl(titleText)}</h2>${count != null ? `<span class="muted">${count}</span>` : ''}</div>${body}</section>`;
@@ -10270,6 +10275,14 @@ function pCard(p) {
   return `<a class="pcard" href="#/project/${p.id}">${cov ? thumbOf(p).replace('class="thumb"', 'class="pcard-img"') : ''}${p.code ? `<span class="tag sm">${h(p.code)}</span>` : ''}<span class="n">${h(p.name)}</span>${p.species ? `<i class="muted small">${h(p.species)}</i>` : ''}${p.goal ? `<p class="clamp">${h(p.goal)}</p>` : ''}<span class="small muted">${membersOf(p).length} tagged${lines ? `, ${lines} line${lines > 1 ? 's' : ''}` : ''}</span></a>`;
 }
 
+/* the welcome sentence, worded for what this person keeps (plants, animals, both, or only things they make) */
+function welcomeLine() {
+  const pl = keepsKind('plant'), an = keepsKind('animal'), lv = levelN();
+  if (!pl && !an) return tl('Keep your products and stock in one place: what you have, what you make, and what you sell.');
+  if (an && !pl) return lv === 1 ? tl('Keep track of your animals, where they live, and notes and photos as they grow.') : lv === 2 ? tl('Keep your breeds and animals, keep offspring from your best stock, record pairings, and keep a dated log of how everything does.') : tl('Keep your breeds and animals, tag individuals, record pairings, and build a dated log of how every line performs.');
+  if (pl && !an) return lv === 1 ? tl('Keep track of the seed you have, what you\'re growing this season, and notes and photos as things grow.') : lv === 2 ? tl('Keep your seed library, save seed from your best plants, record crosses, and keep a dated log of how everything does.') : tl('Keep your seed library, tag individual plants, record crosses, and build a dated log of how every line performs.');
+  return lv === 1 ? tl('Keep track of your seed and your animals, what you\'re growing this season, and notes and photos as things grow.') : lv === 2 ? tl('Keep your seed and stock library, save seed and offspring from your best plants and animals, record crosses, and keep a dated log of how everything does.') : tl('Keep your seed and stock library, tag individual plants and animals, record crosses and pairings, and build a dated log of how every line performs.');
+}
 /* ---------- Pages ---------- */
 function pHome() {
   const date = new Date().toLocaleDateString(LOC(), { weekday: 'long', day: 'numeric', month: 'long' });
@@ -10278,10 +10291,10 @@ function pHome() {
       <h1>${partner() ? h(partner().n) : h(tl('Lineage Tracker'))}</h1><p class="lede">${partner() ? h(tl('Powered by Lineage Tracker')) : h(tl('Breeding records for plants and animals'))}</p><p class="today">${h(date)}</p>
       ${partnerLibraryNotice()}
       ${gettingStartedHTML()}
-      <p>${levelN() === 1 ? h(tl('Keep track of the seed you have, what you\'re growing this season, and notes and photos as things grow.')) : levelN() === 2 ? h(tl('Keep your seed and stock library, save seed and offspring from your best plants and animals, record crosses, and keep a dated log of how everything does.')) : h(tl('Keep your seed and stock library, tag individual plants and animals, record crosses and pairings, and build a dated log of how every line performs.'))} Everything stays on this device.</p>
+      <p>${h(welcomeLine())} ${h(tl('Everything stays on this device.'))}</p>
       <div class="actions">${on('scan') && keepsKind('plant') ? `<button class="btn tagc" data-act="scan">${ic('camera')}${h(tl('Scan your first packet or label'))}</button>` : ''}<button class="btn${on('scan') && keepsKind('plant') ? '' : ' tagc'}" data-act="newStrain">${ic('plus')}${h(keepsKind('plant') ? tl('Add a variety') : tl('Add a breed'))}</button>${on('projects') ? `<button class="btn" data-act="newProject">${ic('project')}${h(tl('Start a breeding project'))}</button>` : ''}<button class="btn" data-act="importBackup" data-mode="merge">${h(tl('Restore a backup or open a gift file'))}</button>${on('import') ? `<a class="btn" href="#/import">${h(tl('Bring in records from a spreadsheet or another app'))}</a>` : ''}</div>
       <h2 style="margin-top:28px">${h(tl('Just looking around?'))}</h2>
-      <p>${h(tl('Load an example to see how everything fits together: a squash project with an F2 family and storage trials, a chicken laying line across three generations, or a Kunekune pig herd with litters and paddocks. Remove it any time from Settings.'))}</p>
+      <p>${h(keepsKind('plant') && keepsKind('animal') ? tl('Load an example to see how everything fits together: a squash project with an F2 family and storage trials, a chicken laying line across three generations, or a Kunekune pig herd with litters and paddocks. Remove it any time from Settings.') : keepsKind('animal') ? tl('Load an example to see how everything fits together: a chicken laying line across three generations, an Olive Egger breeding plan, or a Kunekune pig herd with litters and paddocks. Remove it any time from Settings.') : tl('Load an example to see how everything fits together: a squash project with an F2 family and storage trials. Remove it any time from Settings.'))}</p>
       <div class="actions">${keepsKind('plant') ? `<button class="btn" data-act="loadExample" data-ex="plants">${ic('library')}${h(tl('Explore a plant example'))}</button>` : ''}${keepsKind('animal') ? `<button class="btn" data-act="loadExample" data-ex="animals">${ic('tag')}${h(tl('Explore a chicken example'))}</button><button class="btn" data-act="loadExample" data-ex="olive">${ic('tree')}${h(tl('Explore a breeding example'))}</button><button class="btn" data-act="loadExample" data-ex="pigs">${ic('tag')}${h(tl('Explore a pig example'))}</button>` : ''}</div></section>`;
   }
   const strains = all('strain'), lots = all('stock'), inds = all('individual');
@@ -10370,7 +10383,7 @@ function pStrain(id) {
   ${s.description ? `<p class="prose">${h(s.description)}</p>` : ''}
   ${on('guidance') ? guideHTML(s) : (isHybrid(s) ? '<div class="notice warn">F1 hybrid: seed saved from this won\'t grow true to type.</div>' : '')}
   <div class="actions"><button class="btn primary" data-act="note" data-ref="${id}">${ic('note')}${h(tl('Add note'))}</button><button class="btn" data-act="quickPhoto" data-ref="${id}">${ic('camera')}${h(tl('Photo'))}</button><button class="btn" data-act="newLot" data-preset="${pre({ strainId: id, source: s.origin || '' })}">${ic('plus')}${h(word('lot').replace(/^./, c => c.toUpperCase()))}</button><button class="btn" data-act="newInd" data-preset="${pre({ strainId: id })}">${ic('tag')}${h(s.kind === 'animal' ? tl('Add an animal') : tl('Add a plant'))}</button>${on('share') ? `<button class="btn" data-act="friendShare" data-id="${id}">${ic('share')}${h(tl('Share'))}</button>` : ''}${on('workspaces') ? `<button class="btn" data-act="wsCopy" data-id="${id}">${h(tl('Copy to…'))}</button>` : ''}<button class="btn" data-act="addToList" data-id="${id}">${ic('log')}${h(tl('Add to list'))}</button><button class="btn" data-act="editStrain" data-id="${id}">${h(tl('Edit'))}</button><button class="btn" data-act="mergeStrain" data-id="${id}">${h(tl('Merge into…'))}</button></div>
-  ${sec('Notes', notes.length, (notes.length ? logList(notes) : `<p class="muted">Nothing logged yet. Notes here build into a running history of how ${h(s.name)} behaves for you, season after season.</p>`) + `<p><a href="#/log?about=${id}">See all in Log, including its ${kindOf(s) === 'animal' ? 'animals and stock' : 'plants and packets'}</a></p>${sharePhotosBtn(id)}`)}
+  ${sec('Notes', notes.length, (notes.length ? logList(notes) : `<p class="muted">${h(tl('Nothing logged yet. Notes here build into a running history of how {name} behaves for you, season after season.', { name: s.name }))}</p>`) + `<p><a href="#/log?about=${id}">${h(kindOf(s) === 'animal' ? tl('See all in Log, including its animals and stock') : tl('See all in Log, including its plants and packets'))}</a></p>${sharePhotosBtn(id)}`)}
   ${sec(w.lots, lots.length, lots.length ? `<ul class="list">${lots.map(lotRow).join('')}</ul>` : `<p class="muted">${h(tl('No lots recorded.'))}</p>`)}
   ${sourcesCompareHTML(s)}
   ${inds.length ? sec('Tagged', inds.length, `<ul class="list">${inds.map(indRow).join('')}</ul>`) : ''}
@@ -10460,7 +10473,7 @@ function pInd(id) {
   ${kids.length ? sec('Offspring', kids.length, `<ul class="list">${kids.map(r => (r.type === 'individual' ? indRow(r) : lotRow(r))).join('')}</ul>`) : ''}
   ${clonesOf(id).length ? sec('Clones', clonesOf(id).length, `<ul class="list">${clonesOf(id).map(r => (r.type === 'individual' ? indRow(r) : lotRow(r))).join('')}</ul>`) : ''}
   ${crosses.length && on('crosses') ? sec(kindOf(i) === 'animal' ? 'Pairings' : 'Crosses', crosses.length, `<ul class="list">${crosses.map(crossRow).join('')}</ul>`) : ''}
-  ${sec('Notes and photos', notes.length, (notes.length ? logList(notes) : `<p class="muted">Photos and observations build a dated history of this ${h(w.ind)}.</p>`) + `<p><a href="#/log?about=${id}">${h(tl('See all in Log'))}</a></p>${sharePhotosBtn(id)}`)}`;
+  ${sec('Notes and photos', notes.length, (notes.length ? logList(notes) : `<p class="muted">${h(tl('Photos and observations build a dated history of this {x}.', { x: tl(w.ind) }))}</p>`) + `<p><a href="#/log?about=${id}">${h(tl('See all in Log'))}</a></p>${sharePhotosBtn(id)}`)}`;
 }
 
 function pProjects() {
@@ -10972,7 +10985,7 @@ function crossSheet({ id, preset = {} } = {}) {
     const mr = get(m) || get(f), rp = reproFor(mr), animal = mr && kindOf(mr) === 'animal';
     $('#animalDates', el).hidden = !(on('animalDue') && animal);
     if (animal && rp) { form.elements.eggsSet.closest('.fld').hidden = !rp.egg; const due = crossDue({ motherId: m, fatherId: f, date: form.elements.date.value, eggsSet: form.elements.eggsSet.value }); $('#dueHint', el).textContent = due ? `Works out to ${fmtDate(due)} (${rp.days} days${rp.egg ? ' of incubation' : ''}).` : rp.egg ? `Add the date eggs were set to work out the hatch date (${rp.days} days).` : ''; }
-    $('#guard', el).innerHTML = guardHTML(m, f) + (on('coi') && m && f ? `<p class="small">${coiChip(coiPair(m, f), kindOf(mr || {}), 'Offspring inbreeding')}</p>` : '');
+    $('#guard', el).innerHTML = guardHTML(m, f) + (on('coi') && m && f ? `<p class="small">${coiChip(coiPair(m, f), kindOf(mr || {}), tlx('Offspring inbreeding'))}</p>` : '');
     if (m && m === f && !form.elements.method.value) form.elements.method.value = 'Self-pollinated';
   };
   form.elements.motherId.addEventListener('change', upd);

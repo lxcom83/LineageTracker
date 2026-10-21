@@ -12,6 +12,8 @@ RE_LBL = re.compile(r"\bsaveLabel:\s*" + STR)
 # Wording passed to helpers that translate it themselves (toast, F.* labels and placeholders, fact, factLink, sec, sheet titles,
 # photoField, and error messages that end up in a toast).
 RE_HELP = re.compile(r"\b(?:toast|fact|factLink|sec|sheet|formSheet|photoField|searchBox|new Error)\(\s*" + STR)
+# emptyBox(text, act, label): the text and the button label are translated inside emptyBox
+RE_EMPTY = re.compile(r"\bemptyBox\(\s*" + STR + r"(?:\s*,\s*'[^']*'\s*,\s*" + STR + r")?")
 RE_F = re.compile(r"\bF\.(?:text|area|date|month|select|check|ref)\(\s*'[^']*',\s*" + STR)
 RE_PH = re.compile(r"\bF\.(?:text|area)\(\s*'[^']*',\s*" + STR + r"\s*,\s*[^,()`]+?\s*,\s*" + STR)
 RE_TLP = re.compile(r"\b(?:tlp|plural)\(\s*[^,()]+(?:\([^()]*\))?[^,()]*,\s*" + STR + r"\s*(?:,\s*" + STR + r")?")
@@ -25,6 +27,10 @@ def main(write=True):
             for m in rx.finditer(txt):
                 k = unq(m)
                 if k.strip(): strings[k] = k; where.setdefault(k, f)
+        for m in RE_EMPTY.finditer(txt):
+            g = m.groups(); t1 = next((x for x in g[:3] if x is not None), None); t2 = next((x for x in g[3:] if x is not None), None)
+            for k in (t1, t2):
+                if k and k.strip(): k = re.sub(r"\\(.)", lambda x: {'n': '\n', 't': '\t'}.get(x.group(1), x.group(1)), k); strings[k] = k; where.setdefault(k, f)
         for m in RE_PH.finditer(txt):
             g = m.groups(); k = next((x for x in g[3:] if x is not None), None)
             if k and k.strip(): k = re.sub(r"\\(.)", lambda x: x.group(1), k); strings[k] = k; where.setdefault(k, f)
