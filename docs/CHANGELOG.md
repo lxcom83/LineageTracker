@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.30.2 (no data format change)
+- Kind view: `kindsKept()`, `viewKind()`, `setViewKind()`, `inKindView()` and `kindDefault()` in `js11.js`. When more than one of plants, animals and other things is kept, a header button (`#kindBtn`, `updateKindBtn()` and `kindMenu()` in `js33.js`) shows one kind at a time or everything. The choice is stored on the device only (`localStorage` key `lt.kindview`), never in the records or backups. `keepsNow()` and `keepsKind('product')` follow the view, so wording and features match; the tagged, library, crosses and projects lists filter by it; in the all view tagged rows say Plant or Animal. The "what do you keep" setting is unchanged.
+- AI key from the website account: Settings has a box (`accountKeyHTML()`, `useAccountKey()` in `js14.js`) that opens the locked code copied from the website account page (`LT-AIKEY1:` plus base64 JSON `{p, m, b}`, blob `{v:1, iter, salt, iv, ct}`, PBKDF2-SHA-256 and AES-GCM) with the account password, on the device, and sets the Claude or Gemini key as if typed. No network call.
+- Get the key from the member's own storage: "Get it from my Google Drive / Dropbox" buttons (`fetchStoredKey()` in `js14.js`, wired in `js3.js`) read `ai-key.ltkey` (the same locked code), which the website's account page puts there with the same Google client ID and Dropbox app key (Drive: appProperties lineageRole=aikey, in the app's sync folder; Dropbox: /ai-key.ltkey in the app folder). Read only; never switches sync on (Dropbox needs Dropbox already connected in Sync, since signing in from here would turn sync on). The code still needs the website password to open.
+- Settings always shows everything you keep: the kind view does not apply on the Settings page, and the switch is hidden there (`kindViewOff()`).
+- Spanish: es 2188/2188.
+
 ## 0.30.1 (no data format change)
 - Welcome page wording by what the person keeps (`welcomeLine()` in `js2.js`): animals only, plants only, both, or only products; the "Just looking around" paragraph lists only the examples offered; "Everything stays on this device." is translated.
 - Hatch calendar: the candling and stop-turning tip shows only when an egg batch is on the go (it showed for pig births).

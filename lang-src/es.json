@@ -2185,7 +2185,26 @@
   "{n} varieties and breeds": "{n} variedades y razas",
   "{n} {items} due a {what}": "{n} {items} pendientes de {what}",
   "{w} × {h} mm, too big for the page.": "{w} × {h} mm, demasiado grande para la página.",
-  "{w} × {h} mm, {n} per page.": "{w} × {h} mm, {n} por página."
+  "{w} × {h} mm, {n} per page.": "{w} × {h} mm, {n} por página.",
+  "AI key from my website account": "Clave de IA de mi cuenta web",
+  "Locked key code": "Código de clave bloqueado",
+  "Showing: {what}. Tap to change.": "Mostrando: {what}. Toca para cambiar.",
+  "That code looks damaged. Copy it again from your account page.": "Ese código parece dañado. Cópialo de nuevo desde tu página de cuenta.",
+  "That is not a Lineage Tracker key code. Copy it again from your account page.": "Ese no es un código de clave de Lineage Tracker. Cópialo de nuevo desde tu página de cuenta.",
+  "That password does not open this key. Use your website password.": "Esa contraseña no abre esta clave. Usa tu contraseña de la web.",
+  "This only chooses what is listed on this device. Nothing is changed or deleted.": "Esto solo elige lo que se muestra en este dispositivo. No se cambia ni se borra nada.",
+  "Use this key": "Usar esta clave",
+  "What to show": "Qué mostrar",
+  "Your website password": "Tu contraseña de la web",
+  "Your {name} key is set up on this device": "Tu clave de {name} está lista en este dispositivo",
+  "Connect Dropbox in Sync first, or paste the code instead.": "Conecta Dropbox en Sincronizar primero, o pega el código.",
+  "Found it. Type your website password and press Use this key.": "Encontrada. Escribe la contraseña de tu cuenta web y pulsa Usar esta clave.",
+  "Get it from my Dropbox": "Traerla de mi Dropbox",
+  "Get it from my Google Drive": "Traerla de mi Google Drive",
+  "If you keep an AI key with your website account, send it from your account page to your Google Drive or Dropbox, then get it here. Or paste its locked code. Either way it is opened on this device with your account password, and you do not have to type the key itself.": "Si guardas una clave de IA en tu cuenta web, envíala desde la página de tu cuenta a tu Google Drive o Dropbox y tráela aquí. O pega su código bloqueado. En ambos casos se abre en este dispositivo con la contraseña de tu cuenta, y no tienes que escribir la clave.",
+  "Looking…": "Buscando…",
+  "No key found there. On your account page, send it to your storage first.": "No hay ninguna clave allí. Primero envíala a tu almacenamiento desde la página de tu cuenta.",
+  "The file in your storage is not a Lineage Tracker key. Send it again from your account page.": "El archivo de tu almacenamiento no es una clave de Lineage Tracker. Envíala de nuevo desde la página de tu cuenta."
  },
  "plurals": {
   "breed": {
